@@ -1,0 +1,62 @@
+/* ============================================
+   RepairShop ERP — Global Styles
+   Pro Max Design System
+   ============================================ */
+
+/* Stat card hover */
+.stat-card:hover {
+  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+/* Quick action card hover */
+.quick-action-card:hover {
+  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+/* Kanban ticket card hover */
+.kanban-card:hover {
+  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+}
+
+/* Table row hover override for dark theme */
+.mantine-Table-tr:hover {
+  background-color: rgba(255, 255, 255, 0.03) !important;
+}
+
+/* Scrollbar styling for dark theme */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0f172a;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #1e293b;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #334155;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .stat-card,
+  .quick-action-card,
+  .kanban-card {
+    transition: none !important;
+  }
+
+  .stat-card:hover,
+  .quick-action-card:hover,
+  .kanban-card:hover {
+    transform: none !important;
+  }
+}
