@@ -1,0 +1,173 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ==========================================
+// ENUMS (Estados y Tipos)
+// ==========================================
+
+enum RolUsuario {
+  ADMIN
+  TECNICO
+}
+
+enum TipoContrato {
+  SALARIO_FIJO
+  COMISION_PURA
+  MIXTO
+}
+
+enum EstadoTicket {
+  COTIZACION
+  RECIBIDO
+  EN_REVISION
+  ESPERANDO_REPUESTO
+  REPARADO
+  ENTREGADO
+}
+
+// ==========================================
+// MÓDULO DE USUARIOS Y CLIENTES
+// ==========================================
+
+model Usuario {
+  id                        String       @id @default(uuid())
+  nombre                    String
+  rol                       RolUsuario
+  email                     String       @unique
+  password_hash             String
+
+  // Lógica de Nómina
+  tipo_contrato             TipoContrato @default(COMISION_PURA)
+  salario_base_usd          Float        @default(0)
+  porcentaje_comision_base  Float        @default(0) // Ej: 0.40 para 40%
+
+  tickets_reparados         TicketReparacion[]
+
+  createdAt                 DateTime     @default(now())
+  updatedAt                 DateTime     @updatedAt
+}
+
+model Cliente {
+  id                  String   @id @default(uuid())
+  nombre              String
+  telefono            String
+  documento_identidad String?
+
+  tickets             TicketReparacion[]
+
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}
+
+// ==========================================
+// MÓDULO FINANCIERO (Monedas)
+// ==========================================
+
+model Moneda {
+  id                 String   @id @default(uuid())
+  codigo             String   @unique // Ej: 'USD', 'VES', 'COP'
+  tasa_cambio        Float    // Valor respecto a la moneda base (USD)
+
+  pagos              Pago[]
+
+  updatedAt          DateTime @updatedAt
+}
+
+// ==========================================
+// MÓDULO DE INVENTARIO Y SERVICIOS
+// ==========================================
+
+model Producto {
+  id              String   @id @default(uuid())
+  sku             String   @unique
+  nombre          String
+  categoria       String   // REPUESTO, ACCESORIO
+  stock_actual    Int      @default(0)
+  stock_minimo    Int      @default(5)
+  costo_usd       Float
+  precio_usd      Float
+
+  tickets         Ticket_Producto[]
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model ServicioCatalog {
+  id                  String   @id @default(uuid())
+  nombre              String   @unique // Ej: "Cambio de Pantalla"
+  precio_base_usd     Float
+
+  tickets             Ticket_Servicio[]
+
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}
+
+// ==========================================
+// MÓDULO DE REPARACIONES (Core)
+// ==========================================
+
+model TicketReparacion {
+  id              String       @id @default(uuid())
+  clienteId       String
+  tecnicoId       String
+  equipo          String       // Marca y modelo
+  imei_serial     String?
+  falla_reportada String
+  observaciones   String?      // Ej: "Llega con rayones"
+  estado          EstadoTicket @default(COTIZACION)
+
+  fecha_ingreso   DateTime     @default(now())
+  fecha_entrega   DateTime?
+
+  // Relaciones
+  cliente         Cliente      @relation(fields: [clienteId], references: [id])
+  tecnico         Usuario      @relation(fields: [tecnicoId], references: [id])
+
+  repuestos       Ticket_Producto[]
+  servicios       Ticket_Servicio[]
+  pagos           Pago[]
+}
+
+// Tablas intermedias para congelar precios y comisiones al momento de la reparación
+model Ticket_Producto {
+  id                    String   @id @default(uuid())
+  ticketId              String
+  productoId            String
+  cantidad              Int
+  precio_congelado_usd  Float    // Precio del repuesto el día de la reparación
+
+  ticket                TicketReparacion @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  producto              Producto         @relation(fields: [productoId], references: [id])
+}
+
+model Ticket_Servicio {
+  id                   String   @id @default(uuid())
+  ticketId             String
+  servicioId           String
+  precio_cobrado_usd   Float    // Precio final cobrado por la mano de obra
+  comision_tecnico_usd Float    // Lo que se lleva el técnico (calculado en Node.js)
+
+  ticket               TicketReparacion @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  servicio             ServicioCatalog  @relation(fields: [servicioId], references: [id])
+}
+
+model Pago {
+  id                    String   @id @default(uuid())
+  ticketId              String
+  monedaId              String
+  monto_moneda_local    Float    // Lo que pagó en su moneda (Ej: 150000 COP)
+  equivalente_usd       Float    // A cuánto equivalía en dólares ese día
+  metodo                String   // EFECTIVO, PAGO_MOVIL, ZELLE
+
+  fecha_pago            DateTime @default(now())
+
+  ticket                TicketReparacion @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  moneda                Moneda           @relation(fields: [monedaId], references: [id])
+}
