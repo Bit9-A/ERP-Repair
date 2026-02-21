@@ -1,0 +1,21 @@
+{
+  "name": "erp-repair",
+  "version": "1.0.0",
+  "description": "Un moderno sistema ERP diseñado específicamente para talleres de reparación de dispositivos electrónicos (celulares, tablets, laptops). Facilita la gestión integral del negocio: desde el ingreso de tickets y seguimiento Kanban, hasta el control de inventario, finanzas multimoneda y cálculo de comisiones.",
+  "main": "index.js",
+  "scripts": {
+    "dev": "pnpm --filter ** dev",
+    "build": "pnpm --filter ** build",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Bit9-A/ERP-Repair.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Bit9-A/ERP-Repair/issues"
+  },
+  "homepage": "https://github.com/Bit9-A/ERP-Repair#readme"
+}
