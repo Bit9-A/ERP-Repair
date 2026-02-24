@@ -5,11 +5,16 @@
 
 // -- Users --
 export type Rol = "ADMIN" | "TECNICO";
+export type TipoContrato = "SALARIO_FIJO" | "COMISION_PURA" | "MIXTO";
 
 export interface Usuario {
-  id: number;
+  id: string;
   nombre: string;
   rol: Rol;
+  email: string;
+  tipo_contrato: TipoContrato;
+  salario_base_usd: number;
+  porcentaje_comision_base: number;
   createdAt: string;
 }
 

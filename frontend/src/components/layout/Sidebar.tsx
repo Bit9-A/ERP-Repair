@@ -43,7 +43,7 @@ export function Sidebar() {
         display: "flex",
         flexDirection: "column",
         justifyContent: "space-between",
-        background: "#237cd5",
+        background: "var(--sidebar-bg)",
       }}
     >
       {/* Top section */}
@@ -56,7 +56,7 @@ export function Sidebar() {
             size="xl"
             style={{
               color: "#ffffff",
-              textShadow: "0 0 8px rgba(34, 197, 94, 0.2)",
+              textShadow: "0 0 8px rgba(35, 124, 213, 0.4)",
               lineHeight: 1.2,
             }}
           >
@@ -64,17 +64,18 @@ export function Sidebar() {
           </Text>
           <Text
             size="xs"
-            c="red.5"
+            c="brand.2"
             ff="monospace"
             mt={2}
             style={{
-               letterSpacing: "0.12em" }}
+              letterSpacing: "0.12em",
+            }}
           >
-            Sistema de Gestión 
+            Sistema de Gestión
           </Text>
         </Box>
 
-        <Divider color="dark.6" />
+        <Divider color="brand.7" />
 
         {/* Navigation */}
         <Stack gap={4} px="sm" mt="md">
@@ -109,7 +110,7 @@ export function Sidebar() {
             <Text size="sm" c="gray.1" fw={500}>
               {user?.nombre || "Admin Principal"}
             </Text>
-            <Text size="xs" c="dimmed" tt="capitalize">
+            <Text size="xs" c="brand.3" tt="capitalize">
               {user?.rol?.toLowerCase() === "admin"
                 ? "Administrator"
                 : user?.rol?.toLowerCase() || "admin"}

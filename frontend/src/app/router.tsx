@@ -28,6 +28,11 @@ const FinancePage = lazy(() =>
     default: m.FinancePage,
   })),
 );
+const UsersPage = lazy(() =>
+  import("../features/users/pages/UsersPage").then((m) => ({
+    default: m.UsersPage,
+  })),
+);
 
 export const router = createBrowserRouter([
   // -- Public routes --
@@ -44,6 +49,7 @@ export const router = createBrowserRouter([
       { path: "inventario", element: <InventoryPage /> },
       { path: "reparaciones", element: <KanbanPage /> },
       { path: "ventas", element: <FinancePage /> },
+      { path: "usuarios", element: <UsersPage /> },
     ],
   },
 

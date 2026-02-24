@@ -18,7 +18,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // ── Health Check ──
-app.get("/api/health", (_req, res) => {
+app.get("/", (_req, res) => {
   res.json({
     success: true,
     message: "RepairShop ERP API v1.0 — PRO MAX",

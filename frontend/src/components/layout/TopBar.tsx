@@ -1,26 +1,31 @@
-import { Group, TextInput, ActionIcon, Indicator } from "@mantine/core";
+import { Group, TextInput, ActionIcon, Indicator, Burger } from "@mantine/core";
 import { IconBell, IconPlus, IconSearch } from "@tabler/icons-react";
 
 interface TopBarProps {
+  opened?: boolean;
+  toggle?: () => void;
   onNewTicket?: () => void;
 }
 
-export function TopBar({ onNewTicket }: TopBarProps) {
+export function TopBar({ opened, toggle, onNewTicket }: TopBarProps) {
   return (
-    <Group h="100%" px="md" justify="space-between">
-      {/* Search bar */}
-      <TextInput
-        placeholder="Buscar tickets, clientes, productos..."
-        leftSection={<IconSearch size={16} />}
-        w={{ base: 200, md: 350 }}
-        size="sm"
-        styles={{
-          input: {
-            background: "rgba(255, 255, 255, 0.04)",
-            borderColor: "rgba(255, 255, 255, 0.06)",
-          },
-        }}
-      />
+    <Group h="100%" px="md" justify="space-between" wrap="nowrap">
+      <Group gap="sm">
+        <Burger opened={opened} onClick={toggle} size="sm" color="gray.4" />
+        {/* Search bar */}
+        <TextInput
+          placeholder="Buscar tickets, clientes, productos..."
+          leftSection={<IconSearch size={16} />}
+          w={{ base: 200, md: 350 }}
+          size="sm"
+          styles={{
+            input: {
+              background: "rgba(255, 255, 255, 0.04)",
+              borderColor: "var(--border-subtle)",
+            },
+          }}
+        />
+      </Group>
 
       <Group gap="sm">
         <Indicator color="red" size={8} offset={4}>

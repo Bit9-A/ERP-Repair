@@ -3,6 +3,50 @@
    Pro Max Design System
    ============================================ */
 
+:root {
+  /* ── Brand Palette — Blue (#237CD5) ── */
+  --brand-50: #edf7ff;
+  --brand-100: #d6ebff;
+  --brand-200: #b5dbff;
+  --brand-300: #84b3ff;
+  --brand-400: #4d94e8;
+  --brand-500: #237cd5; /* Primary */
+  --brand-600: #1c63aa;
+  --brand-700: #154a80;
+  --brand-800: #0e3155;
+  --brand-900: #07182b;
+  --brand-950: #040c16;
+
+  /* ── Semantic: Primary ── */
+  --primary: var(--brand-500);
+  --primary-hover: var(--brand-600);
+  --primary-light: var(--brand-400);
+
+  /* ── Surfaces ── */
+  --bg-main: #0f172a;
+  --bg-card: #1e293b;
+  --bg-elevated: #263548;
+  --sidebar-bg: var(--brand-800);
+  --sidebar-active: var(--brand-700);
+
+  /* ── Text (WCAG AA 4.5:1 on dark bg) ── */
+  --text-primary: #f1f5f9; /* slate-100 — ratio ~15:1 on #0f172a */
+  --text-secondary: #94a3b8; /* slate-400 — ratio ~5.5:1 on #0f172a */
+  --text-muted: #64748b; /* slate-500 — ratio ~3.5:1 (large text OK) */
+  --text-on-brand: #ffffff;
+
+  /* ── Borders ── */
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --border-default: rgba(255, 255, 255, 0.12);
+  --border-strong: rgba(255, 255, 255, 0.2);
+
+  /* ── Status Colors ── */
+  --success: #22c55e;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --info: var(--brand-400);
+}
+
 /* Stat card hover */
 .stat-card:hover {
   box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
@@ -34,11 +78,11 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: #0f172a;
+  background: var(--bg-main);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #1e293b;
+  background: var(--bg-card);
   border-radius: 3px;
 }
 

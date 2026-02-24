@@ -7,7 +7,7 @@ app.listen(PORT, () => {
   console.log(`
   ╔══════════════════════════════════════╗
   ║  RepairShop ERP — PRO MAX Backend   ║
-  ║  Servidor corriendo en puerto ${PORT}  ║
+  ║  Servidor corriendo en puerto http://localhost:${PORT}  ║
   ║  Entorno: ${env.NODE_ENV.padEnd(24)}║
   ╚══════════════════════════════════════╝
   `);

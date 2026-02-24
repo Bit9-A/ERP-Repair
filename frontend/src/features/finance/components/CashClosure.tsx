@@ -15,8 +15,8 @@ export function CashClosure() {
       padding="lg"
       radius="lg"
       style={{
-        background: "#1E293B",
-        border: "1px solid rgba(255, 255, 255, 0.06)",
+        background: "var(--bg-card)",
+        border: "1px solid var(--border-subtle)",
       }}
     >
       <Group justify="space-between" mb="md">

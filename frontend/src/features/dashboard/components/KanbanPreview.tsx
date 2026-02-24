@@ -30,8 +30,8 @@ export function KanbanPreview({ counts = defaultCounts }: KanbanPreviewProps) {
       p="lg"
       radius="lg"
       style={{
-        background: "#1E293B",
-        border: "1px solid rgba(255, 255, 255, 0.06)",
+        background: "var(--bg-card)",
+        border: "1px solid var(--border-subtle)",
       }}
     >
       <Group gap="xs" mb="md">

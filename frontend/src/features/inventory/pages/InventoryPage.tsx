@@ -209,8 +209,8 @@ export function InventoryPage() {
       <Paper
         radius="lg"
         style={{
-          background: "#1E293B",
-          border: "1px solid rgba(255, 255, 255, 0.06)",
+          background: "var(--bg-card)",
+          border: "1px solid var(--border-subtle)",
           overflow: "hidden",
         }}
       >
@@ -239,7 +239,7 @@ export function InventoryPage() {
               styles={{
                 input: {
                   background: "rgba(255, 255, 255, 0.04)",
-                  borderColor: "rgba(255, 255, 255, 0.06)",
+                  borderColor: "var(--border-subtle)",
                 },
               }}
             />
@@ -260,7 +260,7 @@ export function InventoryPage() {
               styles={{
                 input: {
                   background: "rgba(255, 255, 255, 0.04)",
-                  borderColor: "rgba(255, 255, 255, 0.06)",
+                  borderColor: "var(--border-subtle)",
                 },
               }}
             />
