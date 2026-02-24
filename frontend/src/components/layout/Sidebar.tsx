@@ -22,7 +22,7 @@ const NAV_ITEMS = [
   { label: "Dashboard", icon: IconLayoutDashboard, path: "/" },
   { label: "Reparaciones", icon: IconTool, path: "/reparaciones" },
   { label: "Inventario", icon: IconPackage, path: "/inventario" },
-  { label: "Finanzas", icon: IconCurrencyDollar, path: "/finanzas" },
+  { label: "Ventas", icon: IconCurrencyDollar, path: "/ventas" },
   { label: "Usuarios", icon: IconUsers, path: "/usuarios" },
 ];
 
@@ -43,7 +43,7 @@ export function Sidebar() {
         display: "flex",
         flexDirection: "column",
         justifyContent: "space-between",
-        background: "#020617",
+        background: "#237cd5",
       }}
     >
       {/* Top section */}
@@ -55,21 +55,22 @@ export function Sidebar() {
             fw={700}
             size="xl"
             style={{
-              color: "#F8FAFC",
+              color: "#ffffff",
               textShadow: "0 0 8px rgba(34, 197, 94, 0.2)",
               lineHeight: 1.2,
             }}
           >
-            RepairPro
+            TecnoPro Cell
           </Text>
           <Text
             size="xs"
-            c="dimmed"
+            c="red.5"
             ff="monospace"
             mt={2}
-            style={{ letterSpacing: "0.12em" }}
+            style={{
+               letterSpacing: "0.12em" }}
           >
-            PRO MAX ERP
+            Sistema de Gestión 
           </Text>
         </Box>
 
@@ -123,7 +124,7 @@ export function Sidebar() {
           styles={{
             root: {
               borderRadius: "var(--mantine-radius-md)",
-              color: "var(--mantine-color-red-5)",
+              color: "var(--mantine-color-red-6)",
             },
           }}
         />
