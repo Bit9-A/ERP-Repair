@@ -1,142 +1,70 @@
+import { useState } from "react"; // 1. Importamos useState
 import { Button, Group, Stack, Title } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { IconPlus } from "@tabler/icons-react";
 import { KanbanBoard } from "../components/KanbanBoard";
 import { TicketForm } from "../components/TicketForm";
-import type { TicketReparacion } from "../../../types";
-import type { TicketFormValues } from "../types/tickets.types";
+import type { TicketReparacion, TicketFormValues } from "../types/tickets.types";
 
-// -- Demo data --
 const DEMO_TICKETS: TicketReparacion[] = [
   {
     id: 1,
-    clienteId: 1,
-    tecnicoId: 1,
-    equipo: "Samsung Galaxy A54",
-    falla: "Pantalla rota, no enciende al cargar",
+    cliente: { nombre: "Juan Pérez", cedula: "12345678", telefono: "0412-1234567", correo: "juan@example.com" },
+    equipo: { tipo: "Smartphone", marca: "Apple", modelo: "iPhone 13", imei: "123456789012345", clave: "1234", patron: "1,2,3" },
+    checklist: { camaras: true, touch: true, senal: true, encendido: true, botones: true },
+    falla: "Pantalla rota",
     estado: "RECIBIDO",
-    mano_obra_usd: 15,
-    fecha_ingreso: "2026-02-20",
-    cliente: { id: 1, nombre: "María López", telefono: "0414-1234567" },
-    tecnico: { id: 1, nombre: "Carlos", rol: "TECNICO", createdAt: "" },
+    costo_repuestos_usd: 50,
+    precio_total_usd: 120,
+    porcentaje_tecnico: 0.40,
+    tecnicoId: 1,
+    fecha_ingreso: new Date().toISOString(),
   },
   {
     id: 2,
-    clienteId: 2,
-    tecnicoId: 2,
-    equipo: "iPhone 14",
-    falla: "Batería se descarga rápido, solo dura 2h",
+    cliente: { nombre: "María Garcia", cedula: "87654321", telefono: "0414-7654321" },
+    equipo: { tipo: "Smartphone", marca: "Samsung", modelo: "S22 Ultra", imei: "987654321098765", clave: "0000", patron: "4,5,6" },
+    checklist: { camaras: true, touch: false, senal: true, encendido: true, botones: true },
+    falla: "No carga",
     estado: "EN_REVISION",
-    mano_obra_usd: 10,
-    fecha_ingreso: "2026-02-19",
-    cliente: { id: 2, nombre: "Juan Pérez", telefono: "0412-9876543" },
-    tecnico: { id: 2, nombre: "Ana", rol: "TECNICO", createdAt: "" },
+    costo_repuestos_usd: 30,
+    precio_total_usd: 80,
+    porcentaje_tecnico: 0.40,
+    tecnicoId: 2,
+    fecha_ingreso: new Date().toISOString(),
   },
   {
     id: 3,
-    clienteId: 3,
-    tecnicoId: 1,
-    equipo: "Xiaomi Redmi Note 12",
-    falla: "Conector de carga dañado, no carga",
-    estado: "EN_REVISION",
-    mano_obra_usd: 8,
-    fecha_ingreso: "2026-02-18",
-    cliente: { id: 3, nombre: "Rosa Martínez", telefono: "0416-5551234" },
-    tecnico: { id: 1, nombre: "Carlos", rol: "TECNICO", createdAt: "" },
-  },
-  {
-    id: 4,
-    clienteId: 4,
-    tecnicoId: 1,
-    equipo: "Motorola Moto G54",
-    falla: "Táctil no responde en parte inferior",
+    cliente: { nombre: "Pedro Lopez", cedula: "11223344", telefono: "0416-1122334" },
+    equipo: { tipo: "Tablet", marca: "Xiaomi", modelo: "Pad 5", imei: "556677889900112", clave: "abcd", patron: "" },
+    checklist: { camaras: true, touch: true, senal: false, encendido: true, botones: true },
+    falla: "Puerto de carga sulfatado",
     estado: "ESPERANDO_REPUESTO",
-    mano_obra_usd: 12,
-    fecha_ingreso: "2026-02-17",
-    cliente: { id: 4, nombre: "Pedro García", telefono: "0424-7771234" },
-    tecnico: { id: 1, nombre: "Carlos", rol: "TECNICO", createdAt: "" },
-  },
-  {
-    id: 5,
-    clienteId: 5,
-    tecnicoId: 2,
-    equipo: "Samsung Galaxy S23 Ultra",
-    falla: "Cámara trasera borrosa, posible daño en lente",
-    estado: "ESPERANDO_REPUESTO",
-    mano_obra_usd: 20,
-    fecha_ingreso: "2026-02-16",
-    cliente: { id: 5, nombre: "Luis Herrera", telefono: "0412-3214567" },
-    tecnico: { id: 2, nombre: "Ana", rol: "TECNICO", createdAt: "" },
-  },
-  {
-    id: 6,
-    clienteId: 6,
-    tecnicoId: 2,
-    equipo: "iPhone 13",
-    falla: "Reemplazo de cámara posterior completado",
-    estado: "REPARADO",
-    mano_obra_usd: 18,
-    fecha_ingreso: "2026-02-15",
-    cliente: { id: 6, nombre: "Ana Torres", telefono: "0414-8889999" },
-    tecnico: { id: 2, nombre: "Ana", rol: "TECNICO", createdAt: "" },
-  },
-  {
-    id: 7,
-    clienteId: 7,
+    costo_repuestos_usd: 15,
+    precio_total_usd: 45,
+    porcentaje_tecnico: 0.40,
     tecnicoId: 1,
-    equipo: "Huawei P30 Lite",
-    falla: "Cambio de batería finalizado, funcional",
-    estado: "REPARADO",
-    mano_obra_usd: 8,
-    fecha_ingreso: "2026-02-14",
-    cliente: { id: 7, nombre: "Carmen Rivas", telefono: "0416-1112233" },
-    tecnico: { id: 1, nombre: "Carlos", rol: "TECNICO", createdAt: "" },
-  },
-  {
-    id: 8,
-    clienteId: 8,
-    tecnicoId: 1,
-    equipo: "Samsung Galaxy A34",
-    falla: "Cliente retiró equipo reparado",
-    estado: "ENTREGADO",
-    mano_obra_usd: 10,
-    fecha_ingreso: "2026-02-12",
-    cliente: { id: 8, nombre: "Miguel Sánchez", telefono: "0424-4445566" },
-    tecnico: { id: 1, nombre: "Carlos", rol: "TECNICO", createdAt: "" },
-  },
-  {
-    id: 9,
-    clienteId: 1,
-    tecnicoId: 2,
-    equipo: "iPhone 12 Mini",
-    falla: "Entregado al cliente, cambio de pantalla OK",
-    estado: "ENTREGADO",
-    mano_obra_usd: 15,
-    fecha_ingreso: "2026-02-10",
-    cliente: { id: 1, nombre: "María López", telefono: "0414-1234567" },
-    tecnico: { id: 2, nombre: "Ana", rol: "TECNICO", createdAt: "" },
-  },
-  {
-    id: 10,
-    clienteId: 9,
-    tecnicoId: 1,
-    equipo: "Redmi Note 11",
-    falla: "No enciende, posible daño en placa",
-    estado: "RECIBIDO",
-    mano_obra_usd: 0,
-    fecha_ingreso: "2026-02-20",
-    cliente: { id: 9, nombre: "Sofía Díaz", telefono: "0412-6667788" },
-    tecnico: { id: 1, nombre: "Carlos", rol: "TECNICO", createdAt: "" },
-  },
+    fecha_ingreso: "2025-11-20T10:00:00Z", // Simulamos un ticket viejo (> 90 días)
+  }
 ];
 
 export function KanbanPage() {
-  const [formOpened, { open: openForm, close: closeForm }] =
-    useDisclosure(false);
+  const [formOpened, { open: openForm, close: closeForm }] = useDisclosure(false);
 
-  const handleNewTicket = (_values: TicketFormValues) => {
-    // TODO: API integration
+  // 2. Estado para el ticket seleccionado
+  const [selectedTicket, setSelectedTicket] = useState<TicketReparacion | null>(null);
+
+  const handleNewTicket = (values: TicketFormValues) => {
+    console.log("Datos del Formulario:", values);
+    // Aquí irá la lógica para guardar en DB
     closeForm();
+    setSelectedTicket(null);
+  };
+
+  // 3. Función para abrir un ticket existente
+  const handleEditTicket = (ticket: TicketReparacion) => {
+    setSelectedTicket(ticket); // Guardamos la info del ticket
+    openForm(); // Abrimos el mismo modal
   };
 
   return (
@@ -145,16 +73,31 @@ export function KanbanPage() {
         <Title order={3} c="gray.1">
           Tablero Kanban — Reparaciones
         </Title>
-        <Button leftSection={<IconPlus size={16} />} onClick={openForm}>
+        <Button
+          leftSection={<IconPlus size={16} />}
+          onClick={() => {
+            setSelectedTicket(null); // Limpiamos por si acaso
+            openForm();
+          }}
+        >
           Nuevo Ticket
         </Button>
       </Group>
 
-      <KanbanBoard tickets={DEMO_TICKETS} />
+      {/* 4. Pasamos la función handleEditTicket al tablero */}
+      <KanbanBoard
+        tickets={DEMO_TICKETS}
+        onTicketClick={handleEditTicket}
+      />
 
+      {/* 5. Le pasamos el selectedTicket al Formulario */}
       <TicketForm
         opened={formOpened}
-        onClose={closeForm}
+        onClose={() => {
+          closeForm();
+          setSelectedTicket(null);
+        }}
+        initialData={selectedTicket} // Prop nueva
         onSubmit={handleNewTicket}
       />
     </Stack>

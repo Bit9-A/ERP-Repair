@@ -12,6 +12,7 @@ export const TICKET_STATUS = {
   ESPERANDO_REPUESTO: { label: "Esperando Repuesto", color: "yellow" },
   REPARADO: { label: "Reparado", color: "brand" },
   ENTREGADO: { label: "Entregado", color: "violet" },
+  ABANDONO: { label: "Abandono", color: "red" },
 } as const;
 
 // -- Kanban column order --
@@ -21,6 +22,7 @@ export const KANBAN_COLUMNS = [
   "ESPERANDO_REPUESTO",
   "REPARADO",
   "ENTREGADO",
+  "ABANDONO",
 ] as const;
 
 // -- Payment methods --

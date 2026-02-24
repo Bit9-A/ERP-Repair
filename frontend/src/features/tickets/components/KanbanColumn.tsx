@@ -1,7 +1,7 @@
 import { Box, Stack, Text, Group, Badge } from "@mantine/core";
 import { TicketCard } from "./TicketCard";
 import { TICKET_STATUS } from "../../../lib/constants";
-import type { EstadoTicket, TicketReparacion } from "../../../types";
+import type { EstadoTicket, TicketReparacion } from "../types/tickets.types";
 
 interface KanbanColumnProps {
   estado: EstadoTicket;
@@ -15,6 +15,7 @@ const COLUMN_COLORS: Record<EstadoTicket, string> = {
   ESPERANDO_REPUESTO: "#F59E0B",
   REPARADO: "#22C55E",
   ENTREGADO: "#8B5CF6",
+  ABANDONO: "#EF4444",
 };
 
 export function KanbanColumn({

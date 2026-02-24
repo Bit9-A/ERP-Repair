@@ -48,7 +48,8 @@ export type EstadoTicket =
   | "EN_REVISION"
   | "ESPERANDO_REPUESTO"
   | "REPARADO"
-  | "ENTREGADO";
+  | "ENTREGADO"
+  | "ABANDONO";
 
 export interface TicketReparacion {
   id: number;

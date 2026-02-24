@@ -64,7 +64,7 @@ export function Sidebar() {
           </Text>
           <Text
             size="xs"
-            c="brand.2"
+            c="red.5"
             ff="monospace"
             mt={2}
             style={{
