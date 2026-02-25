@@ -2,8 +2,8 @@
 // Application-wide constants
 // ============================================
 
-export const APP_NAME = "RepairShop ERP";
-export const APP_SUBTITLE = "Sistema de Gestión para Tienda de Reparaciones";
+export const APP_NAME = "TecnoPro Cell";
+export const APP_SUBTITLE = "Sistema de Gestión";
 
 // -- Ticket status labels & colors --
 export const TICKET_STATUS = {
@@ -29,8 +29,43 @@ export const KANBAN_COLUMNS = [
 export const PAYMENT_METHODS = {
   EFECTIVO: "Efectivo",
   TRANSFERENCIA: "Transferencia",
-  PUNTO_VENTA: "Punto de Venta",
   PAGO_MOVIL: "Pago Móvil",
+  ZELLE: "Zelle",
+} as const;
+
+// -- Product categories --
+export const PRODUCT_CATEGORIES = {
+  EQUIPO: { label: "Equipo", color: "blue" },
+  ACCESORIO: { label: "Accesorio", color: "violet" },
+  REPUESTO: { label: "Repuesto", color: "orange" },
+} as const;
+
+// -- Product ownership --
+export const PRODUCT_OWNERSHIP = {
+  PROPIA: { label: "Propia", color: "brand" },
+  PRESTADA: { label: "Prestada", color: "yellow" },
+} as const;
+
+// -- Sale status --
+export const SALE_STATUS = {
+  PENDIENTE: { label: "Pendiente", color: "yellow" },
+  PAGADA: { label: "Pagada", color: "brand" },
+  ANULADA: { label: "Anulada", color: "red" },
+} as const;
+
+// -- Transaction types --
+export const TRANSACTION_TYPES = {
+  INGRESO: { label: "Ingreso", color: "green" },
+  EGRESO: { label: "Egreso", color: "red" },
+} as const;
+
+// -- Stock movement types --
+export const MOVEMENT_TYPES = {
+  ENTRADA: { label: "Entrada", color: "green" },
+  SALIDA_REPARACION: { label: "Salida (Reparación)", color: "blue" },
+  SALIDA_VENTA: { label: "Salida (Venta)", color: "violet" },
+  AJUSTE: { label: "Ajuste", color: "yellow" },
+  DEVOLUCION: { label: "Devolución", color: "orange" },
 } as const;
 
 // -- Stock status thresholds --

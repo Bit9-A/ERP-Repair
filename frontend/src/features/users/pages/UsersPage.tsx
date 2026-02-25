@@ -29,15 +29,13 @@ import { UserForm } from "../components/UserForm";
 import type { Usuario } from "../../../types";
 import type { UserFormValues } from "../types/users.types";
 
-// -- Demo data matching Prisma schema --
+// -- Demo data matching new schema --
 const DEMO_USERS: Usuario[] = [
   {
     id: "u1",
     nombre: "Carlos Mendoza",
     rol: "ADMIN",
     email: "carlos@tecnopro.com",
-    tipo_contrato: "SALARIO_FIJO",
-    salario_base_usd: 800,
     porcentaje_comision_base: 0,
     createdAt: "2025-01-15T10:00:00Z",
   },
@@ -46,8 +44,6 @@ const DEMO_USERS: Usuario[] = [
     nombre: "María López",
     rol: "TECNICO",
     email: "maria@tecnopro.com",
-    tipo_contrato: "COMISION_PURA",
-    salario_base_usd: 0,
     porcentaje_comision_base: 0.4,
     createdAt: "2025-02-10T08:30:00Z",
   },
@@ -56,19 +52,15 @@ const DEMO_USERS: Usuario[] = [
     nombre: "José Ramírez",
     rol: "TECNICO",
     email: "jose@tecnopro.com",
-    tipo_contrato: "MIXTO",
-    salario_base_usd: 300,
     porcentaje_comision_base: 0.25,
     createdAt: "2025-03-05T09:15:00Z",
   },
   {
     id: "u4",
     nombre: "Ana García",
-    rol: "ADMIN",
+    rol: "VENDEDOR",
     email: "ana@tecnopro.com",
-    tipo_contrato: "SALARIO_FIJO",
-    salario_base_usd: 750,
-    porcentaje_comision_base: 0,
+    porcentaje_comision_base: 0.15,
     createdAt: "2025-04-20T11:00:00Z",
   },
   {
@@ -76,19 +68,15 @@ const DEMO_USERS: Usuario[] = [
     nombre: "Pedro Castillo",
     rol: "TECNICO",
     email: "pedro@tecnopro.com",
-    tipo_contrato: "COMISION_PURA",
-    salario_base_usd: 0,
     porcentaje_comision_base: 0.35,
     createdAt: "2025-05-12T14:00:00Z",
   },
   {
     id: "u6",
     nombre: "Luisa Fernández",
-    rol: "TECNICO",
+    rol: "ADMIN",
     email: "luisa@tecnopro.com",
-    tipo_contrato: "MIXTO",
-    salario_base_usd: 250,
-    porcentaje_comision_base: 0.3,
+    porcentaje_comision_base: 0,
     createdAt: "2025-06-01T07:45:00Z",
   },
 ];

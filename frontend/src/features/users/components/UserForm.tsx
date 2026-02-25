@@ -34,8 +34,6 @@ export function UserForm({
       email: "",
       password: "",
       rol: "TECNICO",
-      tipo_contrato: "COMISION_PURA",
-      salario_base_usd: 0,
       porcentaje_comision_base: 0,
     },
     validate: {
@@ -44,7 +42,6 @@ export function UserForm({
         /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) ? null : "Email inválido",
       password: (v) =>
         !isEditing && v.length < 4 ? "Mínimo 4 caracteres" : null,
-      salario_base_usd: (v) => (v < 0 ? "No puede ser negativo" : null),
       porcentaje_comision_base: (v) =>
         v < 0 || v > 1 ? "Debe ser entre 0 y 1 (ej: 0.40 = 40%)" : null,
     },
@@ -57,14 +54,11 @@ export function UserForm({
         email: initialData.email,
         password: "",
         rol: initialData.rol,
-        tipo_contrato: initialData.tipo_contrato,
-        salario_base_usd: initialData.salario_base_usd,
         porcentaje_comision_base: initialData.porcentaje_comision_base,
       });
     } else if (opened) {
       form.reset();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [opened, initialData]);
 
   const handleSubmit = (values: UserFormValues) => {
@@ -105,27 +99,9 @@ export function UserForm({
               data={[
                 { value: "ADMIN", label: "Administrador" },
                 { value: "TECNICO", label: "Técnico" },
+                { value: "VENDEDOR", label: "Vendedor" },
               ]}
               {...form.getInputProps("rol")}
-            />
-            <Select
-              label="Tipo de Contrato"
-              data={[
-                { value: "SALARIO_FIJO", label: "Salario Fijo" },
-                { value: "COMISION_PURA", label: "Comisión Pura" },
-                { value: "MIXTO", label: "Mixto" },
-              ]}
-              {...form.getInputProps("tipo_contrato")}
-            />
-          </Group>
-          <Group grow>
-            <NumberInput
-              label="Salario Base (USD)"
-              min={0}
-              decimalScale={2}
-              fixedDecimalScale
-              prefix="$"
-              {...form.getInputProps("salario_base_usd")}
             />
             <NumberInput
               label="Comisión Base"

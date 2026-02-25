@@ -23,6 +23,11 @@ const KanbanPage = lazy(() =>
     default: m.KanbanPage,
   })),
 );
+const SalesPage = lazy(() =>
+  import("../features/sales/pages/SalesPage").then((m) => ({
+    default: m.SalesPage,
+  })),
+);
 const FinancePage = lazy(() =>
   import("../features/finance/pages/FinancePage").then((m) => ({
     default: m.FinancePage,
@@ -48,7 +53,8 @@ export const router = createBrowserRouter([
       { index: true, element: <DashboardPage /> },
       { path: "inventario", element: <InventoryPage /> },
       { path: "reparaciones", element: <KanbanPage /> },
-      { path: "ventas", element: <FinancePage /> },
+      { path: "ventas", element: <SalesPage /> },
+      { path: "finanzas", element: <FinancePage /> },
       { path: "usuarios", element: <UsersPage /> },
     ],
   },

@@ -1,7 +1,7 @@
 import { Group, ScrollArea } from "@mantine/core";
 import { KanbanColumn } from "./KanbanColumn";
 import { KANBAN_COLUMNS } from "../../../lib/constants";
-import type { EstadoTicket, TicketReparacion } from "../types/tickets.types";
+import type { EstadoTicket, TicketReparacion } from "../../../types";
 import dayjs from "dayjs";
 
 interface KanbanBoardProps {
@@ -10,27 +10,26 @@ interface KanbanBoardProps {
 }
 
 export function KanbanBoard({ tickets, onTicketClick }: KanbanBoardProps) {
-
   // --- LÓGICA DE INTELIGENCIA DE NEGOCIO (PRO) ---
-  const processedTickets = tickets.map(ticket => {
+  const processedTickets = tickets.map((ticket) => {
     // Calculamos los días basándonos en la fecha_ingreso de nuestro nuevo tipo
-    const diasTranscurridos = dayjs().diff(dayjs(ticket.fecha_ingreso), 'day');
+    const diasTranscurridos = dayjs().diff(dayjs(ticket.fecha_ingreso), "day");
 
     // Regla de los 90 días: Forzamos el estado a ABANDONO (en mayúsculas como definimos)
     // Excluimos los equipos que ya fueron ENTREGADOS
-    if (diasTranscurridos >= 90 && ticket.estado !== 'ENTREGADO') {
+    if (diasTranscurridos >= 90 && ticket.estado !== "ENTREGADO") {
       return {
         ...ticket,
-        estado: 'ABANDONO' as EstadoTicket,
-        esUrgente: true // Esta propiedad la usará la TicketCard para ponerse roja
+        estado: "ABANDONO" as EstadoTicket,
+        esUrgente: true, // Esta propiedad la usará la TicketCard para ponerse roja
       };
     }
 
     // Regla de los 60 días: Alerta preventiva
-    if (diasTranscurridos >= 60 && ticket.estado !== 'ENTREGADO') {
+    if (diasTranscurridos >= 60 && ticket.estado !== "ENTREGADO") {
       return {
         ...ticket,
-        esUrgente: true
+        esUrgente: true,
       };
     }
 
@@ -61,7 +60,7 @@ export function KanbanBoard({ tickets, onTicketClick }: KanbanBoardProps) {
             // Pasamos los tickets ya procesados con la lógica de abandono aplicada
             tickets={grouped[col] || []}
             onTicketClick={onTicketClick}
-          // Aquí la columna de ABANDONO podría recibir un estilo especial si quisieras
+            // Aquí la columna de ABANDONO podría recibir un estilo especial si quisieras
           />
         ))}
       </Group>

@@ -2,7 +2,7 @@ import prisma from "../../config/prisma";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { env } from "../../config/env";
-import type { RolUsuario, TipoContrato } from "@prisma/client";
+import type { RolUsuario } from "../../generated/prisma/client";
 
 // ── Auth ──
 
@@ -47,8 +47,6 @@ export async function findAll() {
       nombre: true,
       rol: true,
       email: true,
-      tipo_contrato: true,
-      salario_base_usd: true,
       porcentaje_comision_base: true,
       createdAt: true,
     },
@@ -60,7 +58,7 @@ export async function findById(id: string) {
   const user = await prisma.usuario.findUnique({
     where: { id },
     include: {
-      tickets_reparados: { take: 10, orderBy: { fecha_ingreso: "desc" } },
+      tickets_asignados: { take: 10, orderBy: { fecha_ingreso: "desc" } },
     },
   });
   if (!user)
@@ -77,8 +75,6 @@ interface CreateUserDTO {
   email: string;
   password: string;
   rol: RolUsuario;
-  tipo_contrato?: TipoContrato;
-  salario_base_usd?: number;
   porcentaje_comision_base?: number;
 }
 
@@ -90,8 +86,6 @@ export async function create(data: CreateUserDTO) {
       email: data.email,
       password_hash: hash,
       rol: data.rol,
-      tipo_contrato: data.tipo_contrato,
-      salario_base_usd: data.salario_base_usd,
       porcentaje_comision_base: data.porcentaje_comision_base,
     },
   });

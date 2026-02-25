@@ -3,8 +3,12 @@ import * as service from "./inventory.service";
 
 export async function findAll(req: Request, res: Response, next: NextFunction) {
   try {
-    const search = req.query["search"] as string | undefined;
-    const products = await service.findAll(search);
+    const filters = {
+      search: req.query["search"] as string | undefined,
+      categoria: req.query["categoria"] as any,
+      propiedad: req.query["propiedad"] as any,
+    };
+    const products = await service.findAll(filters);
     res.json({ success: true, data: products });
   } catch (err) {
     next(err);
@@ -42,6 +46,23 @@ export async function update(req: Request, res: Response, next: NextFunction) {
   }
 }
 
+export async function adjustStock(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const result = await service.adjustStock(
+      req.params["id"] as string,
+      req.body.cantidad,
+      req.body.nota,
+    );
+    res.json({ success: true, data: result });
+  } catch (err) {
+    next(err);
+  }
+}
+
 export async function remove(req: Request, res: Response, next: NextFunction) {
   try {
     const result = await service.remove(req.params["id"] as string);
@@ -59,6 +80,32 @@ export async function getStats(
   try {
     const stats = await service.getStats();
     res.json({ success: true, data: stats });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function getLowStock(
+  _req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const data = await service.getLowStock();
+    res.json({ success: true, data });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function getMovimientos(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const data = await service.getMovimientos(req.params["id"] as string);
+    res.json({ success: true, data });
   } catch (err) {
     next(err);
   }

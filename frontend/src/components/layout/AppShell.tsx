@@ -4,16 +4,19 @@ import { Outlet } from "react-router-dom";
 import { Sidebar } from "./Sidebar";
 import { TopBar } from "./TopBar";
 
+const SIDEBAR_WIDTH_EXPANDED = 250;
+const SIDEBAR_WIDTH_COLLAPSED = 72;
+
 export function AppShell() {
-  const [opened, { toggle }] = useDisclosure();
+  const [opened, { toggle }] = useDisclosure(true);
 
   return (
     <MantineAppShell
       layout="alt"
       navbar={{
-        width: 250,
+        width: opened ? SIDEBAR_WIDTH_EXPANDED : SIDEBAR_WIDTH_COLLAPSED,
         breakpoint: "sm",
-        collapsed: { mobile: !opened, desktop: !opened },
+        collapsed: { mobile: !opened },
       }}
       header={{ height: 60 }}
       padding="lg"
@@ -21,19 +24,23 @@ export function AppShell() {
         main: {
           background: "var(--bg-main)",
           minHeight: "100vh",
+          transition: "padding-left 300ms ease",
         },
         header: {
           background: "var(--bg-main)",
           borderBottom: "1px solid var(--border-subtle)",
+          transition: "left 300ms ease",
         },
         navbar: {
           background: "var(--sidebar-bg)",
           borderRight: "1px solid var(--border-subtle)",
+          transition: "width 300ms ease",
+          overflow: "hidden",
         },
       }}
     >
       <MantineAppShell.Navbar>
-        <Sidebar />
+        <Sidebar collapsed={!opened} />
       </MantineAppShell.Navbar>
 
       <MantineAppShell.Header>

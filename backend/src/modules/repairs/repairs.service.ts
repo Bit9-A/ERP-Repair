@@ -1,5 +1,5 @@
 import prisma from "../../config/prisma";
-import type { EstadoTicket } from "@prisma/client";
+import type { EstadoTicket } from "../../generated/prisma/client";
 import { calcularComision } from "../../core/utils/currency";
 
 // ── Queries ──
@@ -68,16 +68,43 @@ export async function getKanbanCounts() {
 
 interface CreateTicketDTO {
   clienteId: string;
-  tecnicoId: string;
-  equipo: string;
-  imei_serial?: string;
-  falla_reportada: string;
+  tecnicoId?: string;
+  equipo?: string;
+  tipo_equipo?: string;
+  marca: string;
+  modelo: string;
+  imei?: string;
+  clave?: string;
+  patron_visual?: string;
+  checklist?: Record<string, boolean>;
+  falla: string;
+  falla_reportada?: string;
   observaciones?: string;
+  costo_repuestos_usd?: number;
+  precio_total_usd?: number;
+  porcentaje_tecnico?: number;
 }
 
 export async function create(data: CreateTicketDTO) {
   return prisma.ticketReparacion.create({
-    data,
+    data: {
+      clienteId: data.clienteId,
+      tecnicoId: data.tecnicoId,
+      equipo: data.equipo,
+      tipo_equipo: data.tipo_equipo || "Smartphone",
+      marca: data.marca,
+      modelo: data.modelo,
+      imei: data.imei,
+      clave: data.clave,
+      patron_visual: data.patron_visual,
+      checklist: data.checklist,
+      falla: data.falla,
+      falla_reportada: data.falla_reportada,
+      observaciones: data.observaciones,
+      costo_repuestos_usd: data.costo_repuestos_usd,
+      precio_total_usd: data.precio_total_usd,
+      porcentaje_tecnico: data.porcentaje_tecnico,
+    },
     include: {
       cliente: { select: { nombre: true } },
       tecnico: { select: { nombre: true } },
@@ -105,14 +132,13 @@ export async function updateEstado(id: string, estado: EstadoTicket) {
   });
 }
 
-// ── Assign parts ──
+// ── Assign parts (with stock movement) ──
 
 export async function addRepuesto(
   ticketId: string,
   productoId: string,
   cantidad: number,
 ) {
-  // Get product price and validate stock
   const producto = await prisma.producto.findUnique({
     where: { id: productoId },
   });
@@ -127,7 +153,7 @@ export async function addRepuesto(
     );
   }
 
-  // Transaction: create junction + decrement stock
+  // Transaction: create Ticket_Producto + MovimientoStock + update stock
   return prisma.$transaction([
     prisma.ticket_Producto.create({
       data: {
@@ -135,6 +161,15 @@ export async function addRepuesto(
         productoId,
         cantidad,
         precio_congelado_usd: producto.precio_usd,
+        costo_congelado_usd: producto.costo_usd,
+      },
+    }),
+    prisma.movimientoStock.create({
+      data: {
+        productoId,
+        tipo: "SALIDA_REPARACION",
+        cantidad: -cantidad,
+        referencia: `Ticket ${ticketId}`,
       },
     }),
     prisma.producto.update({
@@ -158,10 +193,8 @@ export async function addServicio(
   if (!ticket)
     throw Object.assign(new Error("Ticket no encontrado"), { statusCode: 404 });
 
-  const comision = calcularComision(
-    precioCobrado,
-    ticket.tecnico.porcentaje_comision_base,
-  );
+  const porcentaje = ticket.tecnico?.porcentaje_comision_base ?? 0.4;
+  const comision = calcularComision(precioCobrado, porcentaje);
 
   return prisma.ticket_Servicio.create({
     data: {
@@ -173,10 +206,7 @@ export async function addServicio(
   });
 }
 
-export async function update(
-  id: string,
-  data: Partial<CreateTicketDTO & { observaciones: string }>,
-) {
+export async function update(id: string, data: Partial<CreateTicketDTO>) {
   return prisma.ticketReparacion.update({ where: { id }, data });
 }
 

@@ -9,6 +9,8 @@ import inventoryRoutes from "./modules/inventory/inventory.routes";
 import servicesRoutes from "./modules/services/services.routes";
 import repairsRoutes from "./modules/repairs/repairs.routes";
 import financeRoutes from "./modules/finance/finance.routes";
+import salesRoutes from "./modules/sales/sales.routes";
+import transactionsRoutes from "./modules/transactions/transactions.routes";
 
 const app = express();
 
@@ -32,6 +34,8 @@ app.use("/api/inventory", inventoryRoutes);
 app.use("/api/services", servicesRoutes);
 app.use("/api/repairs", repairsRoutes);
 app.use("/api/finance", financeRoutes);
+app.use("/api/sales", salesRoutes);
+app.use("/api/transactions", transactionsRoutes);
 
 // ── Error Handling ──
 app.use(notFoundHandler);

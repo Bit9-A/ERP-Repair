@@ -13,6 +13,7 @@ export async function updateTasa(id: string, tasa_cambio: number) {
 
 export async function createMoneda(data: {
   codigo: string;
+  nombre?: string;
   tasa_cambio: number;
 }) {
   return prisma.moneda.create({ data });
@@ -21,10 +22,12 @@ export async function createMoneda(data: {
 // ── Pagos ──
 
 export async function registrarPago(data: {
-  ticketId: string;
+  ticketId?: string;
+  ventaId?: string;
   monedaId: string;
   monto_moneda_local: number;
   metodo: string;
+  referencia?: string;
 }) {
   // Get currency rate to calculate USD equivalent
   const moneda = await prisma.moneda.findUnique({
@@ -41,10 +44,12 @@ export async function registrarPago(data: {
   return prisma.pago.create({
     data: {
       ticketId: data.ticketId,
+      ventaId: data.ventaId,
       monedaId: data.monedaId,
       monto_moneda_local: data.monto_moneda_local,
       equivalente_usd,
       metodo: data.metodo,
+      referencia: data.referencia,
     },
     include: { moneda: true },
   });
@@ -67,7 +72,16 @@ export async function findPagosByDate(fecha?: string) {
         select: {
           id: true,
           equipo: true,
+          marca: true,
+          modelo: true,
           cliente: { select: { nombre: true } },
+        },
+      },
+      venta: {
+        select: {
+          id: true,
+          codigo: true,
+          total_usd: true,
         },
       },
     },

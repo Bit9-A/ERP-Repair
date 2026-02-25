@@ -1,7 +1,7 @@
 import { Box, Stack, Text, Group, Badge } from "@mantine/core";
 import { TicketCard } from "./TicketCard";
 import { TICKET_STATUS } from "../../../lib/constants";
-import type { EstadoTicket, TicketReparacion } from "../types/tickets.types";
+import type { EstadoTicket, TicketReparacion } from "../../../types";
 
 interface KanbanColumnProps {
   estado: EstadoTicket;

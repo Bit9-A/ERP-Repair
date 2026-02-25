@@ -1,75 +1,74 @@
 import { Badge, Paper, Table, Text, Group } from "@mantine/core";
 import { PAYMENT_METHODS } from "../../../lib/constants";
-import type { MetodoPago } from "../../../types";
 
 interface PaymentRow {
-  id: number;
-  ticketId: string;
+  id: string;
+  referencia: string;
   cliente: string;
   monto_usd: number;
   moneda: string;
   monto_local: number;
-  metodo: MetodoPago;
+  metodo: string;
   fecha: string;
 }
 
-const PAYMENT_COLORS: Record<MetodoPago, string> = {
+const PAYMENT_COLORS: Record<string, string> = {
   EFECTIVO: "brand",
   TRANSFERENCIA: "blue",
-  PUNTO_VENTA: "violet",
   PAGO_MOVIL: "cyan",
+  ZELLE: "violet",
 };
 
 const DEMO_PAYMENTS: PaymentRow[] = [
   {
-    id: 1,
-    ticketId: "T-001",
+    id: "pay1",
+    referencia: "T-001",
     cliente: "María López",
     monto_usd: 50,
     moneda: "USD",
     monto_local: 50,
     metodo: "EFECTIVO",
-    fecha: "20/02/2026",
+    fecha: "24/02/2026",
   },
   {
-    id: 2,
-    ticketId: "T-002",
+    id: "pay2",
+    referencia: "T-002",
     cliente: "Juan Pérez",
     monto_usd: 32.5,
     moneda: "VES",
     monto_local: 1316.25,
     metodo: "PAGO_MOVIL",
-    fecha: "19/02/2026",
+    fecha: "24/02/2026",
   },
   {
-    id: 3,
-    ticketId: "T-006",
+    id: "pay3",
+    referencia: "V-001",
     cliente: "Ana Torres",
     monto_usd: 63,
     moneda: "USD",
     monto_local: 63,
-    metodo: "TRANSFERENCIA",
-    fecha: "18/02/2026",
+    metodo: "ZELLE",
+    fecha: "23/02/2026",
   },
   {
-    id: 4,
-    ticketId: "T-007",
+    id: "pay4",
+    referencia: "T-006",
     cliente: "Carmen Rivas",
     monto_usd: 16,
     moneda: "COP",
     monto_local: 66400,
-    metodo: "PUNTO_VENTA",
-    fecha: "17/02/2026",
+    metodo: "TRANSFERENCIA",
+    fecha: "22/02/2026",
   },
   {
-    id: 5,
-    ticketId: "T-008",
+    id: "pay5",
+    referencia: "V-003",
     cliente: "Miguel Sánchez",
     monto_usd: 45,
     moneda: "USD",
     monto_local: 45,
     metodo: "EFECTIVO",
-    fecha: "15/02/2026",
+    fecha: "21/02/2026",
   },
 ];
 
@@ -105,7 +104,7 @@ export function PaymentsTable() {
       >
         <Table.Thead>
           <Table.Tr>
-            <Table.Th>#Ticket</Table.Th>
+            <Table.Th>Ref.</Table.Th>
             <Table.Th>Cliente</Table.Th>
             <Table.Th style={{ textAlign: "right" }}>Equiv. USD</Table.Th>
             <Table.Th>Moneda</Table.Th>
@@ -119,7 +118,7 @@ export function PaymentsTable() {
             <Table.Tr key={pay.id}>
               <Table.Td>
                 <Text ff="monospace" size="sm" fw={600} c="gray.1">
-                  {pay.ticketId}
+                  {pay.referencia}
                 </Text>
               </Table.Td>
               <Table.Td>
@@ -148,9 +147,10 @@ export function PaymentsTable() {
                 <Badge
                   variant="light"
                   size="sm"
-                  color={PAYMENT_COLORS[pay.metodo]}
+                  color={PAYMENT_COLORS[pay.metodo] || "gray"}
                 >
-                  {PAYMENT_METHODS[pay.metodo]}
+                  {(PAYMENT_METHODS as Record<string, string>)[pay.metodo] ||
+                    pay.metodo}
                 </Badge>
               </Table.Td>
               <Table.Td>
