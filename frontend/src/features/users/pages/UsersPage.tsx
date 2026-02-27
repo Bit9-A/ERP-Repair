@@ -12,8 +12,10 @@ import {
   Badge,
   Divider,
   Box,
+  LoadingOverlay,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
+import { notifications } from "@mantine/notifications";
 import {
   IconPlus,
   IconSearch,
@@ -28,66 +30,25 @@ import { UserTable } from "../components/UserTable";
 import { UserForm } from "../components/UserForm";
 import type { Usuario } from "../../../types";
 import type { UserFormValues } from "../types/users.types";
-
-// -- Demo data matching new schema --
-const DEMO_USERS: Usuario[] = [
-  {
-    id: "u1",
-    nombre: "Carlos Mendoza",
-    rol: "ADMIN",
-    email: "carlos@tecnopro.com",
-    porcentaje_comision_base: 0,
-    createdAt: "2025-01-15T10:00:00Z",
-  },
-  {
-    id: "u2",
-    nombre: "María López",
-    rol: "TECNICO",
-    email: "maria@tecnopro.com",
-    porcentaje_comision_base: 0.4,
-    createdAt: "2025-02-10T08:30:00Z",
-  },
-  {
-    id: "u3",
-    nombre: "José Ramírez",
-    rol: "TECNICO",
-    email: "jose@tecnopro.com",
-    porcentaje_comision_base: 0.25,
-    createdAt: "2025-03-05T09:15:00Z",
-  },
-  {
-    id: "u4",
-    nombre: "Ana García",
-    rol: "VENDEDOR",
-    email: "ana@tecnopro.com",
-    porcentaje_comision_base: 0.15,
-    createdAt: "2025-04-20T11:00:00Z",
-  },
-  {
-    id: "u5",
-    nombre: "Pedro Castillo",
-    rol: "TECNICO",
-    email: "pedro@tecnopro.com",
-    porcentaje_comision_base: 0.35,
-    createdAt: "2025-05-12T14:00:00Z",
-  },
-  {
-    id: "u6",
-    nombre: "Luisa Fernández",
-    rol: "ADMIN",
-    email: "luisa@tecnopro.com",
-    porcentaje_comision_base: 0,
-    createdAt: "2025-06-01T07:45:00Z",
-  },
-];
+import {
+  useUsers,
+  useCreateUser,
+  useUpdateUser,
+  useDeleteUser,
+} from "../../../services";
 
 export function UsersPage() {
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState<string | null>(null);
-  const [users] = useState<Usuario[]>(DEMO_USERS);
   const [editUser, setEditUser] = useState<Usuario | null>(null);
   const [formOpened, { open: openForm, close: closeForm }] =
     useDisclosure(false);
+
+  // -- API hooks --
+  const { data: users = [], isLoading } = useUsers();
+  const createUser = useCreateUser();
+  const updateUser = useUpdateUser();
+  const deleteUser = useDeleteUser();
 
   const filtered = users.filter(
     (u) =>
@@ -110,17 +71,67 @@ export function UsersPage() {
     openForm();
   };
 
-  const handleSubmit = (_values: UserFormValues) => {
-    // TODO: API call
-    closeForm();
+  const handleSubmit = async (values: UserFormValues) => {
+    try {
+      if (editUser) {
+        await updateUser.mutateAsync({
+          id: editUser.id,
+          nombre: values.nombre,
+          email: values.email,
+          rol: values.rol,
+          porcentaje_comision_base: values.porcentaje_comision_base,
+        });
+        notifications.show({
+          title: "Usuario actualizado",
+          message: `${values.nombre} fue actualizado correctamente`,
+          color: "green",
+        });
+      } else {
+        await createUser.mutateAsync({
+          nombre: values.nombre,
+          email: values.email,
+          password: values.password,
+          rol: values.rol,
+          porcentaje_comision_base: values.porcentaje_comision_base,
+        });
+        notifications.show({
+          title: "Usuario creado",
+          message: `${values.nombre} fue creado correctamente`,
+          color: "green",
+        });
+      }
+      closeForm();
+    } catch {
+      notifications.show({
+        title: "Error",
+        message: "No se pudo guardar el usuario",
+        color: "red",
+      });
+    }
   };
 
-  const handleDelete = (_user: Usuario) => {
-    // TODO: confirm + API call
+  const handleDelete = async (user: Usuario) => {
+    if (!confirm(`¿Eliminar a ${user.nombre}?`)) return;
+    try {
+      await deleteUser.mutateAsync(user.id);
+      notifications.show({
+        title: "Usuario eliminado",
+        message: `${user.nombre} fue eliminado`,
+        color: "orange",
+      });
+    } catch {
+      notifications.show({
+        title: "Error",
+        message: "No se pudo eliminar el usuario",
+        color: "red",
+      });
+    }
   };
 
   return (
-    <Stack gap="xl">
+    <Stack gap="xl" pos="relative">
+      <LoadingOverlay visible={isLoading} />
+
       {/* Header */}
       <Group justify="space-between" align="center">
         <Group gap="xs">
@@ -240,7 +251,7 @@ export function UsersPage() {
           onDelete={handleDelete}
         />
 
-        {filtered.length === 0 && (
+        {filtered.length === 0 && !isLoading && (
           <Text ta="center" c="dimmed" py="xl">
             No se encontraron usuarios
           </Text>
@@ -251,7 +262,7 @@ export function UsersPage() {
         <Group justify="space-between" p="md">
           <Group gap="xs">
             <Badge variant="dot" color="brand" size="xs">
-              Sincronizado
+              {isLoading ? "Cargando..." : "Sincronizado"}
             </Badge>
           </Group>
         </Group>

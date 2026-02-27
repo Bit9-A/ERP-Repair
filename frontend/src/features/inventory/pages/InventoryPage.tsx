@@ -13,8 +13,10 @@ import {
   Divider,
   Box,
   SegmentedControl,
+  LoadingOverlay,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
+import { notifications } from "@mantine/notifications";
 import {
   IconPlus,
   IconSearch,
@@ -29,146 +31,26 @@ import { ProductTable } from "../components/ProductTable";
 import { ProductForm } from "../components/ProductForm";
 import type { Producto } from "../../../types";
 import type { ProductFormValues } from "../types/inventory.types";
-
-// -- Demo data matching new schema --
-const DEMO_PRODUCTS: Producto[] = [
-  {
-    id: "p1",
-    sku: "PANT-LCD-A54",
-    nombre: "Pantalla LCD Samsung A54",
-    marca_comp: "Samsung",
-    modelo_comp: "A54",
-    categoria: "REPUESTO",
-    propiedad: "PROPIA",
-    stock_actual: 8,
-    stock_minimo: 5,
-    costo_usd: 18,
-    precio_usd: 35,
-  },
-  {
-    id: "p2",
-    sku: "BAT-IPH14",
-    nombre: "Batería iPhone 14",
-    marca_comp: "Apple",
-    modelo_comp: "iPhone 14",
-    categoria: "REPUESTO",
-    propiedad: "PROPIA",
-    stock_actual: 3,
-    stock_minimo: 5,
-    costo_usd: 12,
-    precio_usd: 22.5,
-  },
-  {
-    id: "p3",
-    sku: "FUNDA-IPH15-PRO",
-    nombre: "Funda Silicona iPhone 15 Pro",
-    marca_comp: "Apple",
-    modelo_comp: "iPhone 15 Pro",
-    categoria: "ACCESORIO",
-    propiedad: "PRESTADA",
-    propietario: "Distribuidora XYZ",
-    stock_actual: 20,
-    stock_minimo: 10,
-    costo_usd: 2,
-    precio_usd: 8,
-  },
-  {
-    id: "p4",
-    sku: "PANT-OLED-S23",
-    nombre: "Pantalla OLED Galaxy S23",
-    marca_comp: "Samsung",
-    modelo_comp: "S23",
-    categoria: "REPUESTO",
-    propiedad: "PROPIA",
-    stock_actual: 0,
-    stock_minimo: 3,
-    costo_usd: 65,
-    precio_usd: 120,
-  },
-  {
-    id: "p5",
-    sku: "CARG-USBC-25W",
-    nombre: "Cargador USB-C 25W",
-    categoria: "ACCESORIO",
-    propiedad: "PROPIA",
-    stock_actual: 15,
-    stock_minimo: 5,
-    costo_usd: 4,
-    precio_usd: 12,
-  },
-  {
-    id: "p6",
-    sku: "IPH-12-64-USED",
-    nombre: "iPhone 12 64GB (Usado)",
-    marca_comp: "Apple",
-    modelo_comp: "iPhone 12",
-    categoria: "EQUIPO",
-    propiedad: "PRESTADA",
-    propietario: "Carlos M.",
-    stock_actual: 1,
-    stock_minimo: 0,
-    costo_usd: 180,
-    precio_usd: 250,
-  },
-  {
-    id: "p7",
-    sku: "FLEX-CARGA-XR",
-    nombre: "Flex de Carga Xiaomi Redmi",
-    marca_comp: "Xiaomi",
-    modelo_comp: "Redmi Note",
-    categoria: "REPUESTO",
-    propiedad: "PROPIA",
-    stock_actual: 12,
-    stock_minimo: 5,
-    costo_usd: 3,
-    precio_usd: 8,
-  },
-  {
-    id: "p8",
-    sku: "AUD-BT-GENERIC",
-    nombre: "Audífonos Bluetooth Genéricos",
-    categoria: "ACCESORIO",
-    propiedad: "PRESTADA",
-    propietario: "Importadora ABC",
-    stock_actual: 30,
-    stock_minimo: 10,
-    costo_usd: 3.5,
-    precio_usd: 12,
-  },
-  {
-    id: "p9",
-    sku: "SAM-A15-128-NEW",
-    nombre: "Samsung Galaxy A15 128GB (Nuevo)",
-    marca_comp: "Samsung",
-    modelo_comp: "A15",
-    categoria: "EQUIPO",
-    propiedad: "PROPIA",
-    stock_actual: 2,
-    stock_minimo: 1,
-    costo_usd: 120,
-    precio_usd: 165,
-  },
-  {
-    id: "p10",
-    sku: "MICA-TEMP-UNIV",
-    nombre: "Mica Templada Universal",
-    categoria: "ACCESORIO",
-    propiedad: "PROPIA",
-    stock_actual: 50,
-    stock_minimo: 20,
-    costo_usd: 0.5,
-    precio_usd: 2.5,
-  },
-];
+import {
+  useProducts,
+  useCreateProduct,
+  useUpdateProduct,
+  useDeleteProduct,
+} from "../../../services";
 
 export function InventoryPage() {
   const [search, setSearch] = useState("");
   const [stockFilter, setStockFilter] = useState<string | null>(null);
   const [categoryTab, setCategoryTab] = useState("all");
-  const [products] = useState<Producto[]>(DEMO_PRODUCTS);
   const [editProduct, setEditProduct] = useState<Producto | null>(null);
   const [formOpened, { open: openForm, close: closeForm }] =
     useDisclosure(false);
+
+  // -- API hooks --
+  const { data: products = [], isLoading } = useProducts();
+  const createProduct = useCreateProduct();
+  const updateProduct = useUpdateProduct();
+  const deleteProduct = useDeleteProduct();
 
   const filtered = products.filter((p) => {
     const matchesSearch =
@@ -206,16 +88,55 @@ export function InventoryPage() {
     openForm();
   };
 
-  const handleSubmit = (_values: ProductFormValues) => {
-    closeForm();
+  const handleSubmit = async (values: ProductFormValues) => {
+    try {
+      if (editProduct) {
+        await updateProduct.mutateAsync({ id: editProduct.id, ...values });
+        notifications.show({
+          title: "Producto actualizado",
+          message: `${values.nombre} fue actualizado correctamente`,
+          color: "green",
+        });
+      } else {
+        await createProduct.mutateAsync(values);
+        notifications.show({
+          title: "Producto creado",
+          message: `${values.nombre} fue agregado al inventario`,
+          color: "green",
+        });
+      }
+      closeForm();
+    } catch {
+      notifications.show({
+        title: "Error",
+        message: "No se pudo guardar el producto",
+        color: "red",
+      });
+    }
   };
 
-  const handleDelete = (_product: Producto) => {
-    // TODO: confirm + API call
+  const handleDelete = async (product: Producto) => {
+    if (!confirm(`¿Eliminar ${product.nombre}?`)) return;
+    try {
+      await deleteProduct.mutateAsync(product.id);
+      notifications.show({
+        title: "Producto eliminado",
+        message: `${product.nombre} fue eliminado del inventario`,
+        color: "orange",
+      });
+    } catch {
+      notifications.show({
+        title: "Error",
+        message: "No se pudo eliminar el producto",
+        color: "red",
+      });
+    }
   };
 
   return (
-    <Stack gap="xl">
+    <Stack gap="xl" pos="relative">
+      <LoadingOverlay visible={isLoading} />
+
       {/* Header */}
       <Group justify="space-between" align="center">
         <Title order={2} c="gray.1">
@@ -348,7 +269,7 @@ export function InventoryPage() {
           onDelete={handleDelete}
         />
 
-        {filtered.length === 0 && (
+        {filtered.length === 0 && !isLoading && (
           <Text ta="center" c="dimmed" py="xl">
             No se encontraron productos
           </Text>
@@ -360,7 +281,7 @@ export function InventoryPage() {
             TecnoPro Cell ERP
           </Text>
           <Badge variant="dot" color="brand" size="xs">
-            Sincronizado
+            {isLoading ? "Cargando..." : "Sincronizado"}
           </Badge>
         </Group>
       </Paper>

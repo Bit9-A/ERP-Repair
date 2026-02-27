@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   SimpleGrid,
   Stack,
@@ -14,7 +14,9 @@ import {
   Box,
   Tooltip,
   Notification,
+  LoadingOverlay,
 } from "@mantine/core";
+import { notifications } from "@mantine/notifications";
 import {
   IconCurrencyDollar,
   IconReceipt,
@@ -30,13 +32,10 @@ import {
 } from "@tabler/icons-react";
 import { StatCard } from "../../../components/ui/StatCard";
 import { PaymentsTable } from "../components/PaymentsTable";
-import {
-  useExchangeRatesStore,
-  type ExchangeRates,
-} from "../../../stores/exchangeRates.store";
+import { useMonedas, useUpdateTasa, useFinanceStats } from "../../../services";
 
 interface RateConfig {
-  code: keyof ExchangeRates;
+  code: string;
   name: string;
   symbol: string;
   color: string;
@@ -64,35 +63,87 @@ const RATE_CONFIGS: RateConfig[] = [
 ];
 
 export function FinancePage() {
-  const { rates, lastUpdated, setAllRates } = useExchangeRatesStore();
+  // -- API hooks --
+  const { data: monedas = [], isLoading } = useMonedas();
+  const updateTasa = useUpdateTasa();
+  const { data: stats } = useFinanceStats();
 
-  // Local editing state (so we only commit to store on save)
-  const [editRates, setEditRates] = useState<ExchangeRates>({ ...rates });
+  // Build a map: code -> { id, tasa_cambio }
+  const monedaMap = Object.fromEntries(
+    monedas.map((m) => [m.codigo, { id: m.id, tasa: m.tasa_cambio }]),
+  );
+
+  // Local editing state
+  const [editRates, setEditRates] = useState<Record<string, number>>({});
   const [showSaved, setShowSaved] = useState(false);
 
-  const hasChanges = editRates.VES !== rates.VES || editRates.COP !== rates.COP;
+  // Sync edit state when monedas load from API
+  useEffect(() => {
+    if (monedas.length > 0) {
+      const rates: Record<string, number> = {};
+      for (const m of monedas) {
+        rates[m.codigo] = m.tasa_cambio;
+      }
+      setEditRates(rates);
+    }
+  }, [monedas]);
 
-  const formattedLastUpdated = new Date(lastUpdated).toLocaleString("es-VE", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  const hasChanges = RATE_CONFIGS.some(
+    (r) => editRates[r.code] !== monedaMap[r.code]?.tasa,
+  );
 
-  const handleSaveRates = () => {
-    setAllRates(editRates);
-    setShowSaved(true);
-    setTimeout(() => setShowSaved(false), 2500);
-    // TODO: API call to persist rates
+  const lastUpdated = monedas.find((m) => m.codigo !== "USD")?.updatedAt;
+  const formattedLastUpdated = lastUpdated
+    ? new Date(lastUpdated).toLocaleString("es-VE", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      })
+    : "—";
+
+  const handleSaveRates = async () => {
+    try {
+      const promises = RATE_CONFIGS.map((r) => {
+        const moneda = monedaMap[r.code];
+        if (moneda && editRates[r.code] !== moneda.tasa) {
+          return updateTasa.mutateAsync({
+            id: moneda.id,
+            tasa_cambio: editRates[r.code],
+          });
+        }
+        return Promise.resolve();
+      });
+      await Promise.all(promises);
+      setShowSaved(true);
+      setTimeout(() => setShowSaved(false), 2500);
+      notifications.show({
+        title: "Tasas actualizadas",
+        message: "Las tasas de cambio fueron guardadas correctamente",
+        color: "green",
+      });
+    } catch {
+      notifications.show({
+        title: "Error",
+        message: "No se pudieron guardar las tasas",
+        color: "red",
+      });
+    }
   };
 
   const handleResetRates = () => {
-    setEditRates({ ...rates });
+    const rates: Record<string, number> = {};
+    for (const m of monedas) {
+      rates[m.codigo] = m.tasa_cambio;
+    }
+    setEditRates(rates);
   };
 
   return (
-    <Stack gap="xl">
+    <Stack gap="xl" pos="relative">
+      <LoadingOverlay visible={isLoading} />
+
       {/* Header */}
       <Group gap="xs">
         <IconWallet size={24} color="#22C55E" />
@@ -162,7 +213,7 @@ export function FinancePage() {
                     border: `1px solid ${r.bgBorder}`,
                     transition: "box-shadow 200ms ease",
                     boxShadow:
-                      editRates[r.code] !== rates[r.code]
+                      editRates[r.code] !== monedaMap[r.code]?.tasa
                         ? "0 0 0 2px rgba(59,130,246,0.3)"
                         : "none",
                   }}
@@ -173,7 +224,7 @@ export function FinancePage() {
                         <Badge variant="light" color={r.color} size="sm">
                           {r.code}
                         </Badge>
-                        {editRates[r.code] !== rates[r.code] && (
+                        {editRates[r.code] !== monedaMap[r.code]?.tasa && (
                           <Badge variant="outline" color="blue" size="xs">
                             Modificado
                           </Badge>
@@ -190,7 +241,7 @@ export function FinancePage() {
                       </Text>
                     </div>
                     <NumberInput
-                      value={editRates[r.code]}
+                      value={editRates[r.code] ?? 0}
                       onChange={(v) =>
                         setEditRates((prev) => ({
                           ...prev,
@@ -241,6 +292,7 @@ export function FinancePage() {
                   leftSection={<IconDeviceFloppy size={14} />}
                   disabled={!hasChanges}
                   onClick={handleSaveRates}
+                  loading={updateTasa.isPending}
                   variant={hasChanges ? "filled" : "light"}
                 >
                   Guardar Tasas
@@ -255,29 +307,28 @@ export function FinancePage() {
           <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
             <StatCard
               title="Ingresos del Día"
-              value="$1,245.50"
+              value={`$${(stats?.ingresosHoy ?? 0).toFixed(2)}`}
               icon={<IconCurrencyDollar size={20} />}
               accentColor="#22C55E"
             />
             <StatCard
               title="Egresos Totales"
-              value="-$210.00"
+              value="-$0.00"
               icon={<IconTrendingDown size={20} />}
               accentColor="#EF4444"
               subtitle="Promedio de gasto operativo"
             />
             <StatCard
               title="Balance Neto"
-              value="$1,035.50"
+              value={`$${(stats?.ingresosHoy ?? 0).toFixed(2)}`}
               icon={<IconTrendingUp size={20} />}
               accentColor="#3B82F6"
             />
             <StatCard
               title="Tickets Cobrados"
-              value="18"
+              value={String(stats?.ticketsCobradosHoy ?? 0)}
               icon={<IconReceipt size={20} />}
               accentColor="#8B5CF6"
-              subtitle="Avg. $69.20 p/ ticket"
             />
           </SimpleGrid>
         </Grid.Col>
@@ -298,7 +349,7 @@ export function FinancePage() {
             maxWidth: 320,
           }}
         >
-          VES: Bs. {rates.VES?.toFixed(2)} — COP: ${rates.COP?.toFixed(2)}
+          Tasas guardadas en la base de datos
         </Notification>
       )}
 
@@ -345,7 +396,7 @@ export function FinancePage() {
               Fondo USD
             </Text>
             <Text ff="monospace" fw={700} size="xl" c="brand.6">
-              $420.00
+              ${(stats?.ingresosHoy ?? 0).toFixed(2)}
             </Text>
           </Box>
           <Box>
@@ -353,10 +404,7 @@ export function FinancePage() {
               Fondo VES
             </Text>
             <Text ff="monospace" fw={700} size="xl" c="blue.5">
-              Bs. 8,450.00
-            </Text>
-            <Text size="xs" c="dimmed" mt={2}>
-              ≈ ${(8450 / rates.VES).toFixed(2)} USD
+              Bs. 0.00
             </Text>
           </Box>
           <Box>

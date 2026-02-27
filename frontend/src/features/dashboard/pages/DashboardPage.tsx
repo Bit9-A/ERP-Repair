@@ -1,4 +1,12 @@
-import { SimpleGrid, Stack, Title, Text, Grid, Box } from "@mantine/core";
+import {
+  SimpleGrid,
+  Stack,
+  Title,
+  Text,
+  Grid,
+  Box,
+  LoadingOverlay,
+} from "@mantine/core";
 import {
   IconTicket,
   IconClock,
@@ -10,9 +18,15 @@ import { KanbanPreview } from "../components/KanbanPreview";
 import { RecentTickets } from "../components/RecentTickets";
 import { QuickActions } from "../components/QuickActions";
 import { useAuthStore } from "../../auth/store/auth.store";
+import { useKanbanCounts } from "../../../services";
+import { useProducts, useRepairs } from "../../../services";
 
 export function DashboardPage() {
   const user = useAuthStore((s) => s.user);
+
+  const { data: kanbanCounts } = useKanbanCounts();
+  const { data: products = [] } = useProducts();
+  const { data: repairs = [], isLoading } = useRepairs();
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -21,39 +35,66 @@ export function DashboardPage() {
     return "Buenas noches";
   };
 
+  // KPI calculations from real data
+  const activeTickets = repairs.filter((r) => r.estado !== "ENTREGADO").length;
+  const waitingParts = repairs.filter(
+    (r) => r.estado === "ESPERANDO_REPUESTO",
+  ).length;
+  const lowStockCount = products.filter(
+    (p) => p.stock_actual > 0 && p.stock_actual <= p.stock_minimo,
+  ).length;
+
+  // Approximate today's revenue from delivered tickets
+  const todayRevenue = repairs
+    .filter((r) => {
+      if (!r.fecha_ingreso) return false;
+      const today = new Date().toDateString();
+      return new Date(r.fecha_ingreso).toDateString() === today;
+    })
+    .reduce((sum, r) => sum + (r.precio_total_usd || 0), 0);
+
+  const counts = kanbanCounts || {
+    RECIBIDO: 0,
+    EN_REVISION: 0,
+    ESPERANDO_REPUESTO: 0,
+    REPARADO: 0,
+    ENTREGADO: 0,
+  };
+
   return (
-    <Stack gap="xl">
-      {/* Greeting — matching Stitch "Buenos días, Admin" */}
+    <Stack gap="xl" pos="relative">
+      <LoadingOverlay visible={isLoading} />
+
+      {/* Greeting */}
       <Box>
         <Title order={2} c="gray.1">
           {getGreeting()}, {user?.nombre || "Admin"}
         </Title>
       </Box>
 
-      {/* KPI Row — matching Stitch values */}
+      {/* KPI Row */}
       <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }} spacing="md">
         <StatCard
           title="Tickets Activos"
-          value={24}
+          value={activeTickets}
           icon={<IconTicket size={20} />}
           accentColor="#22C55E"
         />
         <StatCard
           title="En Espera Repuesto"
-          value="08"
+          value={String(waitingParts).padStart(2, "0")}
           icon={<IconClock size={20} />}
           accentColor="#F59E0B"
-          subtitle="4 críticos (urgente)"
         />
         <StatCard
           title="Ingresos Hoy"
-          value="$1,240.00"
+          value={`$${todayRevenue.toLocaleString("en-US", { minimumFractionDigits: 2 })}`}
           icon={<IconCurrencyDollar size={20} />}
           accentColor="#3B82F6"
         />
         <StatCard
           title="Stock Bajo"
-          value="05"
+          value={String(lowStockCount).padStart(2, "0")}
           icon={<IconAlertTriangle size={20} />}
           accentColor="#EF4444"
           subtitle="Reponer ahora"
@@ -64,15 +105,7 @@ export function DashboardPage() {
       <Grid gutter="md">
         <Grid.Col span={{ base: 12, md: 5 }}>
           <Stack gap="md">
-            <KanbanPreview
-              counts={{
-                RECIBIDO: 5,
-                EN_REVISION: 8,
-                ESPERANDO_REPUESTO: 4,
-                REPARADO: 5,
-                ENTREGADO: 2,
-              }}
-            />
+            <KanbanPreview counts={counts} />
             <QuickActions />
           </Stack>
         </Grid.Col>

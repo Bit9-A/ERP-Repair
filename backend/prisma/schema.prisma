@@ -327,6 +327,28 @@ model TransaccionFinanciera {
 }
 
 // ==========================================
+// CATÁLOGO: MARCAS Y MODELOS
+// ==========================================
+
+model Marca {
+  id        String   @id @default(uuid())
+  nombre    String   @unique
+  modelos   Modelo[]
+  createdAt DateTime @default(now())
+}
+
+model Modelo {
+  id        String   @id @default(uuid())
+  nombre    String
+  marcaId   String
+  marca     Marca    @relation(fields: [marcaId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([nombre, marcaId])
+  @@index([marcaId])
+}
+
+// ==========================================
 // CONFIGURACIÓN GLOBAL
 // ==========================================
 

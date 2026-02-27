@@ -14,6 +14,7 @@ import {
   ActionIcon,
   Tooltip,
   Badge,
+  LoadingOverlay,
 } from "@mantine/core";
 import {
   IconPlus,
@@ -27,98 +28,7 @@ import {
 import type { Producto } from "../../../types";
 import { PRODUCT_CATEGORIES } from "../../../lib/constants";
 import { useExchangeRatesStore } from "../../../stores/exchangeRates.store";
-
-// -- Demo products (same as inventory) --
-const AVAILABLE_PRODUCTS: Producto[] = [
-  {
-    id: "p1",
-    sku: "PANT-LCD-A54",
-    nombre: "Pantalla LCD Samsung A54",
-    marca_comp: "Samsung",
-    modelo_comp: "A54",
-    categoria: "REPUESTO",
-    propiedad: "PROPIA",
-    stock_actual: 8,
-    stock_minimo: 5,
-    costo_usd: 18,
-    precio_usd: 35,
-  },
-  {
-    id: "p3",
-    sku: "FUNDA-IPH15-PRO",
-    nombre: "Funda Silicona iPhone 15 Pro",
-    marca_comp: "Apple",
-    modelo_comp: "iPhone 15 Pro",
-    categoria: "ACCESORIO",
-    propiedad: "PRESTADA",
-    propietario: "Distribuidora XYZ",
-    stock_actual: 20,
-    stock_minimo: 10,
-    costo_usd: 2,
-    precio_usd: 8,
-  },
-  {
-    id: "p5",
-    sku: "CARG-USBC-25W",
-    nombre: "Cargador USB-C 25W",
-    categoria: "ACCESORIO",
-    propiedad: "PROPIA",
-    stock_actual: 15,
-    stock_minimo: 5,
-    costo_usd: 4,
-    precio_usd: 12,
-  },
-  {
-    id: "p6",
-    sku: "IPH-12-64-USED",
-    nombre: "iPhone 12 64GB (Usado)",
-    marca_comp: "Apple",
-    modelo_comp: "iPhone 12",
-    categoria: "EQUIPO",
-    propiedad: "PRESTADA",
-    propietario: "Carlos M.",
-    stock_actual: 1,
-    stock_minimo: 0,
-    costo_usd: 180,
-    precio_usd: 250,
-  },
-  {
-    id: "p8",
-    sku: "AUD-BT-GENERIC",
-    nombre: "Audífonos Bluetooth Genéricos",
-    categoria: "ACCESORIO",
-    propiedad: "PRESTADA",
-    propietario: "Importadora ABC",
-    stock_actual: 30,
-    stock_minimo: 10,
-    costo_usd: 3.5,
-    precio_usd: 12,
-  },
-  {
-    id: "p9",
-    sku: "SAM-A15-128-NEW",
-    nombre: "Samsung Galaxy A15 128GB (Nuevo)",
-    marca_comp: "Samsung",
-    modelo_comp: "A15",
-    categoria: "EQUIPO",
-    propiedad: "PROPIA",
-    stock_actual: 2,
-    stock_minimo: 1,
-    costo_usd: 120,
-    precio_usd: 165,
-  },
-  {
-    id: "p10",
-    sku: "MICA-TEMP-UNIV",
-    nombre: "Mica Templada Universal",
-    categoria: "ACCESORIO",
-    propiedad: "PROPIA",
-    stock_actual: 50,
-    stock_minimo: 20,
-    costo_usd: 0.5,
-    precio_usd: 2.5,
-  },
-];
+import { useProducts } from "../../../services";
 
 interface CartItem {
   productoId: string;
@@ -155,8 +65,11 @@ export function SaleForm({ opened, onClose, onSubmit }: SaleFormProps) {
   const [descuento, setDescuento] = useState<number>(0);
   const [productSearch, setProductSearch] = useState("");
 
+  // -- Real products from API --
+  const { data: allProducts = [], isLoading: loadingProducts } = useProducts();
+
   // Filter products not already in cart and with stock > 0
-  const availableForAdd = AVAILABLE_PRODUCTS.filter(
+  const availableForAdd = allProducts.filter(
     (p) =>
       p.stock_actual > 0 &&
       !cart.find((c) => c.productoId === p.id) &&
@@ -264,7 +177,9 @@ export function SaleForm({ opened, onClose, onSubmit }: SaleFormProps) {
       size="xl"
       closeOnClickOutside={false}
     >
-      <Stack gap="md">
+      <Stack gap="md" pos="relative">
+        <LoadingOverlay visible={loadingProducts} />
+
         {/* ── 1. CLIENTE ── */}
         <Divider
           label={

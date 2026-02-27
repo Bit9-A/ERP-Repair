@@ -11,6 +11,8 @@ import repairsRoutes from "./modules/repairs/repairs.routes";
 import financeRoutes from "./modules/finance/finance.routes";
 import salesRoutes from "./modules/sales/sales.routes";
 import transactionsRoutes from "./modules/transactions/transactions.routes";
+import brandsRoutes from "./modules/brands/brands.routes";
+import clientsRoutes from "./modules/clients/clients.routes";
 
 const app = express();
 
@@ -36,6 +38,8 @@ app.use("/api/repairs", repairsRoutes);
 app.use("/api/finance", financeRoutes);
 app.use("/api/sales", salesRoutes);
 app.use("/api/transactions", transactionsRoutes);
+app.use("/api/brands", brandsRoutes);
+app.use("/api/clients", clientsRoutes);
 
 // ── Error Handling ──
 app.use(notFoundHandler);

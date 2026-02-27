@@ -16,8 +16,10 @@ import {
   ActionIcon,
   Tooltip,
   Modal,
+  LoadingOverlay,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
+import { notifications } from "@mantine/notifications";
 import {
   IconPlus,
   IconSearch,
@@ -34,204 +36,27 @@ import { SaleForm } from "../components/SaleForm";
 import type { SaleFormValues } from "../components/SaleForm";
 import { SALE_STATUS } from "../../../lib/constants";
 import type { Venta } from "../../../types";
-
-// -- Demo data --
-const DEMO_SALES: Venta[] = [
-  {
-    id: "v1",
-    codigo: "V-001",
-    clienteId: "c1",
-    cliente: {
-      id: "c1",
-      nombre: "María Pérez",
-      cedula: "V-12345678",
-      telefono: "0414-1234567",
-    },
-    vendedorId: "u1",
-    vendedor: {
-      id: "u1",
-      nombre: "Carlos Mendoza",
-      rol: "ADMIN",
-      email: "carlos@tecnopro.com",
-      porcentaje_comision_base: 0,
-      createdAt: "",
-    },
-    subtotal_usd: 45,
-    descuento_usd: 0,
-    total_usd: 45,
-    estado: "PAGADA",
-    items: [
-      {
-        id: "vi1",
-        ventaId: "v1",
-        productoId: "p3",
-        cantidad: 2,
-        precio_congelado_usd: 8,
-        costo_congelado_usd: 2,
-        producto: {
-          id: "p3",
-          sku: "FUNDA-IPH15-PRO",
-          nombre: "Funda Silicona iPhone 15 Pro",
-          categoria: "ACCESORIO",
-          propiedad: "PRESTADA",
-          propietario: "Distribuidora XYZ",
-          stock_actual: 18,
-          stock_minimo: 10,
-          costo_usd: 2,
-          precio_usd: 8,
-        },
-      },
-      {
-        id: "vi2",
-        ventaId: "v1",
-        productoId: "p10",
-        cantidad: 3,
-        precio_congelado_usd: 2.5,
-        costo_congelado_usd: 0.5,
-        producto: {
-          id: "p10",
-          sku: "MICA-TEMP-UNIV",
-          nombre: "Mica Templada Universal",
-          categoria: "ACCESORIO",
-          propiedad: "PROPIA",
-          stock_actual: 47,
-          stock_minimo: 20,
-          costo_usd: 0.5,
-          precio_usd: 2.5,
-        },
-      },
-      {
-        id: "vi3",
-        ventaId: "v1",
-        productoId: "p5",
-        cantidad: 1,
-        precio_congelado_usd: 12,
-        costo_congelado_usd: 4,
-        producto: {
-          id: "p5",
-          sku: "CARG-USBC-25W",
-          nombre: "Cargador USB-C 25W",
-          categoria: "ACCESORIO",
-          propiedad: "PROPIA",
-          stock_actual: 14,
-          stock_minimo: 5,
-          costo_usd: 4,
-          precio_usd: 12,
-        },
-      },
-    ],
-    createdAt: "2026-02-24T15:30:00Z",
-    tasas_snapshot: { VES: 39.8, COP: 4100, timestamp: "2026-02-24T15:30:00Z" },
-  },
-  {
-    id: "v2",
-    codigo: "V-002",
-    vendedorId: "u1",
-    vendedor: {
-      id: "u1",
-      nombre: "Carlos Mendoza",
-      rol: "ADMIN",
-      email: "carlos@tecnopro.com",
-      porcentaje_comision_base: 0,
-      createdAt: "",
-    },
-    subtotal_usd: 250,
-    descuento_usd: 10,
-    total_usd: 240,
-    estado: "PENDIENTE",
-    items: [
-      {
-        id: "vi4",
-        ventaId: "v2",
-        productoId: "p6",
-        cantidad: 1,
-        precio_congelado_usd: 250,
-        costo_congelado_usd: 180,
-        producto: {
-          id: "p6",
-          sku: "IPH-12-64-USED",
-          nombre: "iPhone 12 64GB (Usado)",
-          categoria: "EQUIPO",
-          propiedad: "PRESTADA",
-          propietario: "Carlos M.",
-          stock_actual: 0,
-          stock_minimo: 0,
-          costo_usd: 180,
-          precio_usd: 250,
-        },
-      },
-    ],
-    createdAt: "2026-02-24T16:45:00Z",
-    tasas_snapshot: { VES: 40.5, COP: 4150, timestamp: "2026-02-24T16:45:00Z" },
-  },
-  {
-    id: "v3",
-    codigo: "V-003",
-    clienteId: "c2",
-    cliente: {
-      id: "c2",
-      nombre: "Juan Rodríguez",
-      cedula: "V-87654321",
-      telefono: "0412-9876543",
-    },
-    vendedorId: "u1",
-    vendedor: {
-      id: "u1",
-      nombre: "Carlos Mendoza",
-      rol: "ADMIN",
-      email: "carlos@tecnopro.com",
-      porcentaje_comision_base: 0,
-      createdAt: "",
-    },
-    subtotal_usd: 165,
-    descuento_usd: 5,
-    total_usd: 160,
-    estado: "PAGADA",
-    items: [
-      {
-        id: "vi5",
-        ventaId: "v3",
-        productoId: "p9",
-        cantidad: 1,
-        precio_congelado_usd: 165,
-        costo_congelado_usd: 120,
-        producto: {
-          id: "p9",
-          sku: "SAM-A15-128-NEW",
-          nombre: "Samsung Galaxy A15 128GB (Nuevo)",
-          categoria: "EQUIPO",
-          propiedad: "PROPIA",
-          stock_actual: 1,
-          stock_minimo: 1,
-          costo_usd: 120,
-          precio_usd: 165,
-        },
-      },
-    ],
-    createdAt: "2026-02-23T10:15:00Z",
-    tasas_snapshot: { VES: 38.5, COP: 4080, timestamp: "2026-02-23T10:15:00Z" },
-  },
-  {
-    id: "v4",
-    codigo: "V-004",
-    subtotal_usd: 35,
-    descuento_usd: 0,
-    total_usd: 35,
-    estado: "ANULADA",
-    items: [],
-    createdAt: "2026-02-22T09:00:00Z",
-  },
-];
+import {
+  useSales,
+  useCreateSale,
+  useMarcarPagada,
+  useAnularVenta,
+} from "../../../services";
 
 export function SalesPage() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
-  const [sales] = useState<Venta[]>(DEMO_SALES);
   const [detailSale, setDetailSale] = useState<Venta | null>(null);
   const [detailOpened, { open: openDetail, close: closeDetail }] =
     useDisclosure(false);
   const [saleFormOpened, { open: openSaleForm, close: closeSaleForm }] =
     useDisclosure(false);
+
+  // -- API hooks --
+  const { data: sales = [], isLoading } = useSales();
+  const createSale = useCreateSale();
+  const marcarPagada = useMarcarPagada();
+  const anularVenta = useAnularVenta();
 
   const filtered = sales.filter((s) => {
     const matchesSearch =
@@ -253,13 +78,69 @@ export function SalesPage() {
     openDetail();
   };
 
-  const handleCreateSale = (values: SaleFormValues) => {
-    console.log("Nueva venta:", values);
-    // TODO: API call
+  const handleCreateSale = async (values: SaleFormValues) => {
+    try {
+      await createSale.mutateAsync({
+        items: values.items.map((i) => ({
+          productoId: i.productoId,
+          cantidad: i.cantidad,
+        })),
+        descuento_usd: values.descuento_usd,
+      });
+      notifications.show({
+        title: "Venta registrada",
+        message: "La venta fue creada correctamente",
+        color: "green",
+      });
+      closeSaleForm();
+    } catch {
+      notifications.show({
+        title: "Error",
+        message: "No se pudo registrar la venta",
+        color: "red",
+      });
+    }
+  };
+
+  const handleMarcarPagada = async (id: string) => {
+    try {
+      await marcarPagada.mutateAsync(id);
+      notifications.show({
+        title: "Venta pagada",
+        message: "La venta fue marcada como pagada",
+        color: "green",
+      });
+    } catch {
+      notifications.show({
+        title: "Error",
+        message: "No se pudo marcar como pagada",
+        color: "red",
+      });
+    }
+  };
+
+  const handleAnular = async (id: string) => {
+    if (!confirm("¿Anular esta venta?")) return;
+    try {
+      await anularVenta.mutateAsync(id);
+      notifications.show({
+        title: "Venta anulada",
+        message: "La venta fue anulada",
+        color: "orange",
+      });
+    } catch {
+      notifications.show({
+        title: "Error",
+        message: "No se pudo anular la venta",
+        color: "red",
+      });
+    }
   };
 
   return (
-    <Stack gap="xl">
+    <Stack gap="xl" pos="relative">
+      <LoadingOverlay visible={isLoading} />
+
       {/* Header */}
       <Group justify="space-between" align="center">
         <Group gap="xs">
@@ -445,12 +326,24 @@ export function SalesPage() {
                               variant="subtle"
                               color="green"
                               size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleMarcarPagada(sale.id);
+                              }}
                             >
                               <IconCheck size={16} />
                             </ActionIcon>
                           </Tooltip>
                           <Tooltip label="Anular">
-                            <ActionIcon variant="subtle" color="red" size="sm">
+                            <ActionIcon
+                              variant="subtle"
+                              color="red"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleAnular(sale.id);
+                              }}
+                            >
                               <IconBan size={16} />
                             </ActionIcon>
                           </Tooltip>
@@ -464,7 +357,7 @@ export function SalesPage() {
           </Table.Tbody>
         </Table>
 
-        {filtered.length === 0 && (
+        {filtered.length === 0 && !isLoading && (
           <Text ta="center" c="dimmed" py="xl">
             No se encontraron ventas
           </Text>
@@ -476,7 +369,7 @@ export function SalesPage() {
             TecnoPro Cell ERP
           </Text>
           <Badge variant="dot" color="brand" size="xs">
-            Sincronizado
+            {isLoading ? "Cargando..." : "Sincronizado"}
           </Badge>
         </Group>
       </Paper>
