@@ -1,5 +1,6 @@
 import { Badge, Paper, Table, Text, Group } from "@mantine/core";
 import { PAYMENT_METHODS } from "../../../lib/constants";
+import { IconPackage, IconReportMoney } from "@tabler/icons-react";
 
 interface PaymentRow {
   id: string;
@@ -83,9 +84,12 @@ export function PaymentsTable() {
       }}
     >
       <Group justify="space-between" p="md" pb="sm">
-        <Text size="sm" fw={600} c="gray.1">
-          Pagos Recientes
-        </Text>
+        <Group gap="xs"> {/* <-- Este Group crea el espacio */}
+          <IconReportMoney size={18} color="#3B82F6" />
+          <Text size="sm" fw={600} c="gray.1">
+            Pagos Recientes
+          </Text>
+        </Group>
       </Group>
 
       <Table

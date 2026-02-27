@@ -482,9 +482,10 @@ export function TicketForm({
             </Popover.Target>
             <Popover.Dropdown bg="gray.9">
               <Text size="xs" fw={700} mb="xs" c="white" ta="center">
-                DIBUJA EL PATRÓN EN LOS PUNTOS
+                {initialData ? "PATRÓN GUARDADO (ANIMACIÓN)" : "DIBUJA EL PATRÓN EN LOS PUNTOS"}
               </Text>
               <PatternCanvas
+                mode={initialData ? "view" : "draw"}
                 value={form.values.patron_visual || ""}
                 onPatternComplete={(pattern) =>
                   form.setFieldValue("patron_visual", pattern)

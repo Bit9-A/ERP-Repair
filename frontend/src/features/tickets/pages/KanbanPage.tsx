@@ -65,7 +65,7 @@ export function KanbanPage() {
 
       <Group justify="space-between" align="center">
         <Title order={3} c="gray.1">
-          Tablero Kanban — Reparaciones
+          Tablero de Reparaciones
         </Title>
         <Button
           leftSection={<IconPlus size={16} />}
