@@ -151,6 +151,11 @@ export interface Venta {
   estado: EstadoVenta;
   items?: VentaProducto[];
   pagos?: Pago[];
+  tasas_snapshot?: {
+    VES: number;
+    COP: number;
+    timestamp: string;
+  };
   createdAt: string;
 }
 

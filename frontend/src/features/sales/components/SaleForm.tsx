@@ -26,6 +26,7 @@ import {
 } from "@tabler/icons-react";
 import type { Producto } from "../../../types";
 import { PRODUCT_CATEGORIES } from "../../../lib/constants";
+import { useExchangeRatesStore } from "../../../stores/exchangeRates.store";
 
 // -- Demo products (same as inventory) --
 const AVAILABLE_PRODUCTS: Producto[] = [
@@ -132,6 +133,11 @@ export interface SaleFormValues {
   clienteTelefono: string;
   items: CartItem[];
   descuento_usd: number;
+  tasas_snapshot: {
+    VES: number;
+    COP: number;
+    timestamp: string;
+  };
 }
 
 interface SaleFormProps {
@@ -141,6 +147,7 @@ interface SaleFormProps {
 }
 
 export function SaleForm({ opened, onClose, onSubmit }: SaleFormProps) {
+  const { rates, snapshot: takeSnapshot } = useExchangeRatesStore();
   const [clienteNombre, setClienteNombre] = useState("");
   const [clienteCedula, setClienteCedula] = useState("");
   const [clienteTelefono, setClienteTelefono] = useState("");
@@ -210,12 +217,18 @@ export function SaleForm({ opened, onClose, onSubmit }: SaleFormProps) {
   };
 
   const handleSubmit = () => {
+    const snap = takeSnapshot();
     onSubmit({
       clienteNombre,
       clienteCedula,
       clienteTelefono,
       items: cart,
       descuento_usd: descuento,
+      tasas_snapshot: {
+        VES: snap.rates.VES,
+        COP: snap.rates.COP,
+        timestamp: snap.timestamp,
+      },
     });
     // Reset form
     setClienteNombre("");
@@ -595,6 +608,41 @@ export function SaleForm({ opened, onClose, onSubmit }: SaleFormProps) {
                     ${total.toFixed(2)}
                   </Text>
                 </Group>
+
+                {/* Local currency equivalents */}
+                <Divider variant="dashed" />
+                <Group justify="space-between">
+                  <Text size="xs" c="dimmed">
+                    Equivalente VES
+                  </Text>
+                  <Text size="xs" ff="monospace" fw={600} c="blue">
+                    Bs.{" "}
+                    {(total * rates.VES).toLocaleString("es-VE", {
+                      minimumFractionDigits: 2,
+                    })}
+                  </Text>
+                </Group>
+                <Group justify="space-between">
+                  <Text size="xs" c="dimmed">
+                    Equivalente COP
+                  </Text>
+                  <Text size="xs" ff="monospace" fw={600} c="yellow">
+                    $
+                    {(total * rates.COP).toLocaleString("es-VE", {
+                      minimumFractionDigits: 2,
+                    })}
+                  </Text>
+                </Group>
+                <Group justify="space-between">
+                  <Badge variant="light" color="blue" size="xs">
+                    Tasa VES: Bs. {rates.VES.toFixed(2)}
+                  </Badge>
+                  <Badge variant="light" color="yellow" size="xs">
+                    Tasa COP: ${rates.COP.toFixed(2)}
+                  </Badge>
+                </Group>
+
+                <Divider variant="dashed" />
                 <Group justify="space-between">
                   <Text size="xs" c="dimmed">
                     Costo: ${costoTotal.toFixed(2)}

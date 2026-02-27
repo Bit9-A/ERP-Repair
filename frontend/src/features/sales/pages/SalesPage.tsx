@@ -121,6 +121,7 @@ const DEMO_SALES: Venta[] = [
       },
     ],
     createdAt: "2026-02-24T15:30:00Z",
+    tasas_snapshot: { VES: 39.8, COP: 4100, timestamp: "2026-02-24T15:30:00Z" },
   },
   {
     id: "v2",
@@ -161,6 +162,7 @@ const DEMO_SALES: Venta[] = [
       },
     ],
     createdAt: "2026-02-24T16:45:00Z",
+    tasas_snapshot: { VES: 40.5, COP: 4150, timestamp: "2026-02-24T16:45:00Z" },
   },
   {
     id: "v3",
@@ -207,6 +209,7 @@ const DEMO_SALES: Venta[] = [
       },
     ],
     createdAt: "2026-02-23T10:15:00Z",
+    tasas_snapshot: { VES: 38.5, COP: 4080, timestamp: "2026-02-23T10:15:00Z" },
   },
   {
     id: "v4",
@@ -592,6 +595,62 @@ export function SalesPage() {
                 </Text>
               </div>
             </Group>
+
+            {/* Frozen exchange rates */}
+            {detailSale.tasas_snapshot && (
+              <>
+                <Divider />
+                <Text size="sm" fw={600}>
+                  Tasas al Momento de la Venta
+                </Text>
+                <Group gap="xl">
+                  <div>
+                    <Text size="xs" c="dimmed">
+                      Tasa VES
+                    </Text>
+                    <Text ff="monospace" fw={600} c="blue">
+                      Bs. {detailSale.tasas_snapshot.VES.toFixed(2)}
+                    </Text>
+                  </div>
+                  <div>
+                    <Text size="xs" c="dimmed">
+                      Tasa COP
+                    </Text>
+                    <Text ff="monospace" fw={600} c="yellow">
+                      ${detailSale.tasas_snapshot.COP.toFixed(2)}
+                    </Text>
+                  </div>
+                  <div>
+                    <Text size="xs" c="dimmed">
+                      Total VES
+                    </Text>
+                    <Text ff="monospace" fw={600} c="blue">
+                      Bs.{" "}
+                      {(
+                        detailSale.total_usd * detailSale.tasas_snapshot.VES
+                      ).toLocaleString("es-VE", { minimumFractionDigits: 2 })}
+                    </Text>
+                  </div>
+                  <div>
+                    <Text size="xs" c="dimmed">
+                      Total COP
+                    </Text>
+                    <Text ff="monospace" fw={600} c="yellow">
+                      $
+                      {(
+                        detailSale.total_usd * detailSale.tasas_snapshot.COP
+                      ).toLocaleString("es-VE", { minimumFractionDigits: 2 })}
+                    </Text>
+                  </div>
+                </Group>
+                <Text size="xs" c="dimmed">
+                  Capturado:{" "}
+                  {new Date(detailSale.tasas_snapshot.timestamp).toLocaleString(
+                    "es-VE",
+                  )}
+                </Text>
+              </>
+            )}
           </Stack>
         )}
       </Modal>
