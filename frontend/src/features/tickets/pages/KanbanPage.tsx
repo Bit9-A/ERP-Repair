@@ -101,7 +101,7 @@ export function KanbanPage() {
             Reparaciones
           </Title>
           <Badge variant="light" color="brand" size="lg">
-            {tickets.length} tickets
+            {tickets.length} orden
           </Badge>
         </Group>
 
@@ -140,7 +140,7 @@ export function KanbanPage() {
               openForm();
             }}
           >
-            Nuevo Ticket
+            Nueva Orden
           </Button>
         </Group>
       </Group>

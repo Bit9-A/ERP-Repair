@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Modal,
   TextInput,
@@ -15,20 +15,27 @@ import {
   Tooltip,
   Badge,
   LoadingOverlay,
+  Loader,
 } from "@mantine/core";
 import {
   IconPlus,
   IconTrash,
   IconSearch,
   IconShoppingCart,
-  IconUser,
   IconCurrencyDollar,
   IconMinus,
+  IconUserCheck,
+  IconUserPlus,
 } from "@tabler/icons-react";
+import { notifications } from "@mantine/notifications";
 import type { Producto } from "../../../types";
 import { PRODUCT_CATEGORIES } from "../../../lib/constants";
-import { useExchangeRatesStore } from "../../../stores/exchangeRates.store";
-import { useProducts } from "../../../services";
+import {
+  useProducts,
+  useMonedas,
+  useClientByCedula,
+  useCreateClient,
+} from "../../../services";
 
 interface CartItem {
   productoId: string;
@@ -38,9 +45,7 @@ interface CartItem {
 }
 
 export interface SaleFormValues {
-  clienteNombre: string;
-  clienteCedula: string;
-  clienteTelefono: string;
+  clienteId?: string;
   items: CartItem[];
   descuento_usd: number;
   tasas_snapshot: {
@@ -57,10 +62,30 @@ interface SaleFormProps {
 }
 
 export function SaleForm({ opened, onClose, onSubmit }: SaleFormProps) {
-  const { rates, snapshot: takeSnapshot } = useExchangeRatesStore();
-  const [clienteNombre, setClienteNombre] = useState("");
-  const [clienteCedula, setClienteCedula] = useState("");
-  const [clienteTelefono, setClienteTelefono] = useState("");
+  // -- DB exchange rates --
+  const { data: monedas = [] } = useMonedas();
+  const rateVES = monedas.find((m) => m.codigo === "VES")?.tasa_cambio ?? 0;
+  const rateCOP = monedas.find((m) => m.codigo === "COP")?.tasa_cambio ?? 0;
+
+  // -- Client lookup --
+  const [cedula, setCedula] = useState("");
+  const [clienteId, setClienteId] = useState<string | undefined>(undefined);
+  const [newNombre, setNewNombre] = useState("");
+  const [newTelefono, setNewTelefono] = useState("");
+  const [newCorreo, setNewCorreo] = useState("");
+  const { data: foundClient, isFetching: searchingClient } =
+    useClientByCedula(cedula);
+  const createClient = useCreateClient();
+
+  // Auto-set clienteId when found
+  useEffect(() => {
+    if (foundClient) {
+      setClienteId(foundClient.id);
+    } else {
+      setClienteId(undefined);
+    }
+  }, [foundClient]);
+
   const [cart, setCart] = useState<CartItem[]>([]);
   const [descuento, setDescuento] = useState<number>(0);
   const [productSearch, setProductSearch] = useState("");
@@ -130,32 +155,26 @@ export function SaleForm({ opened, onClose, onSubmit }: SaleFormProps) {
   };
 
   const handleSubmit = () => {
-    const snap = takeSnapshot();
     onSubmit({
-      clienteNombre,
-      clienteCedula,
-      clienteTelefono,
+      clienteId,
       items: cart,
       descuento_usd: descuento,
       tasas_snapshot: {
-        VES: snap.rates.VES,
-        COP: snap.rates.COP,
-        timestamp: snap.timestamp,
+        VES: rateVES,
+        COP: rateCOP,
+        timestamp: new Date().toISOString(),
       },
     });
-    // Reset form
-    setClienteNombre("");
-    setClienteCedula("");
-    setClienteTelefono("");
-    setCart([]);
-    setDescuento(0);
+    resetForm();
     onClose();
   };
 
   const resetForm = () => {
-    setClienteNombre("");
-    setClienteCedula("");
-    setClienteTelefono("");
+    setCedula("");
+    setClienteId(undefined);
+    setNewNombre("");
+    setNewTelefono("");
+    setNewCorreo("");
     setCart([]);
     setDescuento(0);
     setProductSearch("");
@@ -184,37 +203,148 @@ export function SaleForm({ opened, onClose, onSubmit }: SaleFormProps) {
         <Divider
           label={
             <Group gap={6}>
-              <IconUser size={14} />
+              <IconSearch size={14} />
               <Text size="sm" fw={600}>
-                Datos del Cliente (Opcional)
+                Cliente (Opcional)
               </Text>
             </Group>
           }
           labelPosition="left"
         />
-        <SimpleGrid cols={3}>
-          <TextInput
-            label="Nombre"
-            placeholder="Nombre del cliente"
-            value={clienteNombre}
-            onChange={(e) => setClienteNombre(e.currentTarget.value)}
-            size="sm"
-          />
-          <TextInput
-            label="Cédula"
-            placeholder="V-12345678"
-            value={clienteCedula}
-            onChange={(e) => setClienteCedula(e.currentTarget.value)}
-            size="sm"
-          />
-          <TextInput
-            label="Teléfono"
-            placeholder="0414-1234567"
-            value={clienteTelefono}
-            onChange={(e) => setClienteTelefono(e.currentTarget.value)}
-            size="sm"
-          />
-        </SimpleGrid>
+
+        {/* Cédula lookup */}
+        <TextInput
+          label="Cédula del Cliente"
+          placeholder="V-12345678"
+          value={cedula}
+          onChange={(e) => {
+            setCedula(e.currentTarget.value);
+            setNewNombre("");
+            setNewTelefono("");
+            setNewCorreo("");
+          }}
+          leftSection={<IconSearch size={16} />}
+          rightSection={
+            searchingClient ? (
+              <Loader size={14} />
+            ) : foundClient ? (
+              <IconUserCheck size={16} color="var(--mantine-color-green-6)" />
+            ) : undefined
+          }
+          description={
+            cedula.length >= 3 && !searchingClient
+              ? foundClient
+                ? "✅ Cliente encontrado"
+                : "Cliente no registrado — completa los datos abajo"
+              : "Escribe al menos 3 caracteres"
+          }
+          size="sm"
+        />
+
+        {/* Client found card */}
+        {foundClient && cedula.length >= 3 && (
+          <Paper
+            p="sm"
+            radius="md"
+            style={{
+              background: "rgba(34, 197, 94, 0.08)",
+              border: "1px solid rgba(34, 197, 94, 0.2)",
+            }}
+          >
+            <Group justify="space-between">
+              <Group gap="xs">
+                <IconUserCheck size={18} color="var(--mantine-color-green-6)" />
+                <div>
+                  <Text size="sm" fw={600} c="gray.1">
+                    {foundClient.nombre}
+                  </Text>
+                  <Text size="xs" c="dimmed">
+                    {foundClient.cedula} • {foundClient.telefono}
+                    {foundClient.correo ? ` • ${foundClient.correo}` : ""}
+                  </Text>
+                </div>
+              </Group>
+              <Badge variant="light" color="green" size="sm">
+                {foundClient._count?.tickets ?? 0} tickets
+              </Badge>
+            </Group>
+          </Paper>
+        )}
+
+        {/* New client form (when not found) */}
+        {!foundClient && cedula.length >= 3 && !searchingClient && (
+          <Paper
+            p="md"
+            radius="md"
+            style={{
+              background: "rgba(59, 130, 246, 0.05)",
+              border: "1px dashed rgba(59, 130, 246, 0.2)",
+            }}
+          >
+            <Group gap="xs" mb="sm">
+              <IconUserPlus size={16} color="var(--mantine-color-blue-6)" />
+              <Text size="sm" fw={600} c="gray.1">
+                Nuevo Cliente
+              </Text>
+            </Group>
+            <SimpleGrid cols={3}>
+              <TextInput
+                label="Nombre completo"
+                placeholder="Juan Pérez"
+                required
+                value={newNombre}
+                onChange={(e) => setNewNombre(e.currentTarget.value)}
+                size="sm"
+              />
+              <TextInput
+                label="Teléfono"
+                placeholder="0414-1234567"
+                required
+                value={newTelefono}
+                onChange={(e) => setNewTelefono(e.currentTarget.value)}
+                size="sm"
+              />
+              <TextInput
+                label="Correo (opcional)"
+                placeholder="email@ejemplo.com"
+                value={newCorreo}
+                onChange={(e) => setNewCorreo(e.currentTarget.value)}
+                size="sm"
+              />
+            </SimpleGrid>
+            <Button
+              mt="sm"
+              size="sm"
+              leftSection={<IconUserPlus size={14} />}
+              disabled={!newNombre.trim() || !newTelefono.trim()}
+              loading={createClient.isPending}
+              onClick={async () => {
+                try {
+                  const newClient = await createClient.mutateAsync({
+                    nombre: newNombre.trim(),
+                    cedula: cedula.trim(),
+                    telefono: newTelefono.trim(),
+                    correo: newCorreo.trim() || undefined,
+                  });
+                  setClienteId(newClient.id);
+                  notifications.show({
+                    title: "Cliente registrado",
+                    message: `${newClient.nombre} fue creado exitosamente`,
+                    color: "green",
+                  });
+                } catch {
+                  notifications.show({
+                    title: "Error",
+                    message: "No se pudo crear el cliente",
+                    color: "red",
+                  });
+                }
+              }}
+            >
+              Registrar Cliente
+            </Button>
+          </Paper>
+        )}
 
         {/* ── 2. AGREGAR PRODUCTOS ── */}
         <Divider
@@ -532,7 +662,7 @@ export function SaleForm({ opened, onClose, onSubmit }: SaleFormProps) {
                   </Text>
                   <Text size="xs" ff="monospace" fw={600} c="blue">
                     Bs.{" "}
-                    {(total * rates.VES).toLocaleString("es-VE", {
+                    {(total * rateVES).toLocaleString("es-VE", {
                       minimumFractionDigits: 2,
                     })}
                   </Text>
@@ -543,17 +673,17 @@ export function SaleForm({ opened, onClose, onSubmit }: SaleFormProps) {
                   </Text>
                   <Text size="xs" ff="monospace" fw={600} c="yellow">
                     $
-                    {(total * rates.COP).toLocaleString("es-VE", {
+                    {(total * rateCOP).toLocaleString("es-VE", {
                       minimumFractionDigits: 2,
                     })}
                   </Text>
                 </Group>
                 <Group justify="space-between">
                   <Badge variant="light" color="blue" size="xs">
-                    Tasa VES: Bs. {rates.VES.toFixed(2)}
+                    Tasa VES: Bs. {rateVES.toFixed(2)}
                   </Badge>
                   <Badge variant="light" color="yellow" size="xs">
-                    Tasa COP: ${rates.COP.toFixed(2)}
+                    Tasa COP: ${rateCOP.toFixed(2)}
                   </Badge>
                 </Group>
 

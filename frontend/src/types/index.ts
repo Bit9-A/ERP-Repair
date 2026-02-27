@@ -140,7 +140,7 @@ export type EstadoVenta = "PENDIENTE" | "PAGADA" | "ANULADA";
 
 export interface Venta {
   id: string;
-  codigo: string;
+  numero: number;
   clienteId?: string;
   cliente?: Cliente;
   vendedorId?: string;

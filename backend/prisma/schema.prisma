@@ -236,7 +236,7 @@ model Ticket_Servicio {
 
 model Venta {
   id            String        @id @default(uuid())
-  codigo        String        @unique @default(uuid())
+  numero        Int           @unique @default(autoincrement())
   clienteId     String?       // Opcional (venta al mostrador sin registrar cliente)
   vendedorId    String?
 

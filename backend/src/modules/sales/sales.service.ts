@@ -94,7 +94,7 @@ export async function create(data: CreateVentaDTO) {
         subtotal_usd: parseFloat(subtotal.toFixed(2)),
         descuento_usd: parseFloat(descuento.toFixed(2)),
         total_usd: parseFloat(total.toFixed(2)),
-        estado: "PENDIENTE",
+        estado: "PAGADA",
       },
     });
 

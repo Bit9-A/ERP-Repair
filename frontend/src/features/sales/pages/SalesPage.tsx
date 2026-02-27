@@ -60,7 +60,7 @@ export function SalesPage() {
 
   const filtered = sales.filter((s) => {
     const matchesSearch =
-      s.codigo.toLowerCase().includes(search.toLowerCase()) ||
+      `V-${s.numero}`.toLowerCase().includes(search.toLowerCase()) ||
       s.cliente?.nombre?.toLowerCase().includes(search.toLowerCase()) ||
       false;
     const matchesStatus =
@@ -276,7 +276,7 @@ export function SalesPage() {
                 <Table.Tr key={sale.id} onClick={() => handleViewDetail(sale)}>
                   <Table.Td>
                     <Text ff="monospace" size="sm" fw={600} c="gray.1">
-                      {sale.codigo}
+                      V-{sale.numero}
                     </Text>
                   </Table.Td>
                   <Table.Td>
@@ -378,7 +378,7 @@ export function SalesPage() {
       <Modal
         opened={detailOpened}
         onClose={closeDetail}
-        title={`Detalle Venta ${detailSale?.codigo || ""}`}
+        title={`Detalle Venta V-${detailSale?.numero || ""}`}
         size="lg"
       >
         {detailSale && (
