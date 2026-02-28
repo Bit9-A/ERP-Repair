@@ -29,7 +29,7 @@ export async function findAll(filters?: {
     where,
     include: {
       ticket: { select: { id: true, equipo: true, marca: true, modelo: true } },
-      venta: { select: { id: true, codigo: true, total_usd: true } },
+      venta: { select: { id: true, numero: true, total_usd: true } },
     },
     orderBy: { createdAt: "desc" },
   });

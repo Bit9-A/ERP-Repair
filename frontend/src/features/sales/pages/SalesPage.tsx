@@ -81,6 +81,7 @@ export function SalesPage() {
   const handleCreateSale = async (values: SaleFormValues) => {
     try {
       await createSale.mutateAsync({
+        clienteId: values.clienteId,
         items: values.items.map((i) => ({
           productoId: i.productoId,
           cantidad: i.cantidad,
@@ -285,8 +286,8 @@ export function SalesPage() {
                     </Text>
                   </Table.Td>
                   <Table.Td>
-                    <Text size="sm" c="gray.3">
-                      {sale.vendedor?.nombre || "—"}
+                    <Text size="sm" c="gray.2">
+                      {sale.vendedor?.nombre || "N/A"}
                     </Text>
                   </Table.Td>
                   <Table.Td style={{ textAlign: "right" }}>

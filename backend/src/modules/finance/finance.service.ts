@@ -80,7 +80,7 @@ export async function findPagosByDate(fecha?: string) {
       venta: {
         select: {
           id: true,
-          codigo: true,
+          numero: true,
           total_usd: true,
         },
       },

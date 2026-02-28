@@ -183,6 +183,8 @@ export interface Pago {
   metodo: string;
   referencia?: string;
   fecha_pago: string;
+  venta?: { numero: number; cliente?: { nombre: string } };
+  ticket?: { equipo: string; cliente?: { nombre: string } };
 }
 
 // -- Financial transactions (ingreso / egreso) --

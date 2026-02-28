@@ -29,7 +29,11 @@ export async function findById(
 
 export async function create(req: Request, res: Response, next: NextFunction) {
   try {
-    const data = await service.create(req.body);
+    const payload = {
+      ...req.body,
+      vendedorId: req.user?.userId,
+    };
+    const data = await service.create(payload);
     res.status(201).json({ success: true, data });
   } catch (err) {
     next(err);
