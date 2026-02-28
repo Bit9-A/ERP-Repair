@@ -275,6 +275,14 @@ model Venta_Producto {
 // FINANZAS: Pagos + Transacciones + Monedas
 // ==========================================
 
+enum MetodoPago {
+  EFECTIVO
+  PAGO_MOVIL
+  ZELLE
+  TRANSFERENCIA
+  BINANCE
+}
+
 model Moneda {
   id          String   @id @default(uuid())
   codigo      String   @unique  // "USD", "VES", "COP"
@@ -293,7 +301,7 @@ model Pago {
 
   monto_moneda_local Float             // Monto en la moneda del pago
   equivalente_usd    Float             // Monto convertido a USD
-  metodo             String            // EFECTIVO, PAGO_MOVIL, ZELLE, TRANSFERENCIA
+  metodo             MetodoPago        // EFECTIVO, PAGO_MOVIL, ZELLE, TRANSFERENCIA, BINANCE
   referencia         String?           // Número de referencia bancaria
 
   fecha_pago         DateTime          @default(now())

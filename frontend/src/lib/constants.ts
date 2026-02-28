@@ -26,12 +26,13 @@ export const KANBAN_COLUMNS = [
 ] as const;
 
 // -- Payment methods --
-export const PAYMENT_METHODS = {
-  EFECTIVO: "Efectivo",
-  TRANSFERENCIA: "Transferencia",
-  PAGO_MOVIL: "Pago Móvil",
-  ZELLE: "Zelle",
-} as const;
+export const PAYMENT_METHODS = [
+  { value: "EFECTIVO", label: "Efectivo" },
+  { value: "TRANSFERENCIA", label: "Transferencia" },
+  { value: "PAGO_MOVIL", label: "Pago Móvil" },
+  { value: "ZELLE", label: "Zelle" },
+  { value: "BINANCE", label: "Binance" },
+] as const;
 
 // -- Product categories --
 export const PRODUCT_CATEGORIES = {

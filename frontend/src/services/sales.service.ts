@@ -18,6 +18,13 @@ export interface CreateSalePayload {
     productoId: string;
     cantidad: number;
   }[];
+  pago?: {
+    monedaId: string;
+    monto_moneda_local: number;
+    equivalente_usd: number;
+    metodo: "EFECTIVO" | "PAGO_MOVIL" | "ZELLE" | "TRANSFERENCIA" | "BINANCE";
+    referencia?: string;
+  };
 }
 
 export interface SalesStats {

@@ -26,10 +26,11 @@ import {
   IconMinus,
   IconUserCheck,
   IconUserPlus,
+  IconReceipt,
 } from "@tabler/icons-react";
 import { notifications } from "@mantine/notifications";
-import type { Producto } from "../../../types";
-import { PRODUCT_CATEGORIES } from "../../../lib/constants";
+import type { Producto, MetodoPago } from "../../../types";
+import { PRODUCT_CATEGORIES, PAYMENT_METHODS } from "../../../lib/constants";
 import {
   useProducts,
   useMonedas,
@@ -53,6 +54,13 @@ export interface SaleFormValues {
     COP: number;
     timestamp: string;
   };
+  pago?: {
+    monedaId: string;
+    monto_moneda_local: number;
+    equivalente_usd: number;
+    metodo: MetodoPago;
+    referencia?: string;
+  };
 }
 
 interface SaleFormProps {
@@ -64,8 +72,6 @@ interface SaleFormProps {
 export function SaleForm({ opened, onClose, onSubmit }: SaleFormProps) {
   // -- DB exchange rates --
   const { data: monedas = [] } = useMonedas();
-  const rateVES = monedas.find((m) => m.codigo === "VES")?.tasa_cambio ?? 0;
-  const rateCOP = monedas.find((m) => m.codigo === "COP")?.tasa_cambio ?? 0;
 
   // -- Client lookup --
   const [cedula, setCedula] = useState("");
@@ -76,6 +82,22 @@ export function SaleForm({ opened, onClose, onSubmit }: SaleFormProps) {
   const { data: foundClient, isFetching: searchingClient } =
     useClientByCedula(cedula);
   const createClient = useCreateClient();
+
+  // -- Payment options --
+  const [selectedMonedaId, setSelectedMonedaId] = useState<string>("");
+  const [selectedMetodo, setSelectedMetodo] = useState<MetodoPago>("EFECTIVO");
+  const [referencia, setReferencia] = useState("");
+
+  const monedaUSD = monedas.find((m) => m.codigo === "USD");
+  const rateVES = monedas.find((m) => m.codigo === "VES")?.tasa_cambio ?? 1;
+  const rateCOP = monedas.find((m) => m.codigo === "COP")?.tasa_cambio ?? 1;
+
+  // Default USD
+  useEffect(() => {
+    if (monedas.length > 0 && !selectedMonedaId) {
+      if (monedaUSD) setSelectedMonedaId(monedaUSD.id);
+    }
+  }, [monedas, selectedMonedaId, monedaUSD]);
 
   // Auto-set clienteId when found
   useEffect(() => {
@@ -113,6 +135,11 @@ export function SaleForm({ opened, onClose, onSubmit }: SaleFormProps) {
     0,
   );
   const ganancia = total - costoTotal;
+
+  // Calculate payment data
+  const selectedMonedaObj = monedas.find((m) => m.id === selectedMonedaId);
+  const paymentRate = selectedMonedaObj?.tasa_cambio ?? 1;
+  const totalInSelectedCurrency = total * paymentRate;
 
   const addProduct = (product: Producto) => {
     setCart((prev) => [
@@ -164,6 +191,15 @@ export function SaleForm({ opened, onClose, onSubmit }: SaleFormProps) {
         COP: rateCOP,
         timestamp: new Date().toISOString(),
       },
+      pago: selectedMonedaId
+        ? {
+            monedaId: selectedMonedaId,
+            equivalente_usd: parseFloat(total.toFixed(2)),
+            monto_moneda_local: parseFloat(totalInSelectedCurrency.toFixed(2)),
+            metodo: selectedMetodo,
+            referencia: referencia.trim() || undefined,
+          }
+        : undefined,
     });
     resetForm();
     onClose();
@@ -178,6 +214,9 @@ export function SaleForm({ opened, onClose, onSubmit }: SaleFormProps) {
     setCart([]);
     setDescuento(0);
     setProductSearch("");
+    if (monedaUSD) setSelectedMonedaId(monedaUSD.id);
+    setSelectedMetodo("EFECTIVO");
+    setReferencia("");
   };
 
   return (
@@ -583,7 +622,103 @@ export function SaleForm({ opened, onClose, onSubmit }: SaleFormProps) {
           </Paper>
         )}
 
-        {/* ── 3. TOTALES ── */}
+        {/* ── 3. METODO DE PAGO ── */}
+        <Divider
+          label={
+            <Group gap={6}>
+              <IconReceipt size={14} />
+              <Text size="sm" fw={600}>
+                Información del Pago
+              </Text>
+            </Group>
+          }
+          labelPosition="left"
+        />
+
+        <Paper
+          p="md"
+          radius="md"
+          style={{
+            background: "rgba(255,255,255,0.02)",
+            border: "1px solid var(--border-subtle)",
+          }}
+        >
+          <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
+            {/* Divisa */}
+            <Stack gap={4}>
+              <Text size="sm" fw={500} c="gray.3">
+                Moneda de pago
+              </Text>
+              <Group gap="xs">
+                {monedas.map((m) => (
+                  <Button
+                    key={m.id}
+                    variant={selectedMonedaId === m.id ? "filled" : "light"}
+                    color={
+                      m.codigo === "USD"
+                        ? "brand"
+                        : m.codigo === "VES"
+                          ? "blue"
+                          : "yellow"
+                    }
+                    size="sm"
+                    onClick={() => setSelectedMonedaId(m.id)}
+                    style={{ flex: 1 }}
+                  >
+                    {m.codigo}
+                  </Button>
+                ))}
+              </Group>
+              <Text size="xs" c="dimmed">
+                Tasa usada:{" "}
+                {selectedMonedaObj?.codigo === "USD"
+                  ? "Base"
+                  : selectedMonedaObj?.codigo === "VES"
+                    ? `Bs. ${paymentRate.toFixed(2)}`
+                    : `$${paymentRate.toFixed(2)}`}
+              </Text>
+            </Stack>
+
+            {/* Metodo */}
+            <Stack gap={4}>
+              <Text size="sm" fw={500} c="gray.3">
+                Método de Pago
+              </Text>
+              <Group gap="xs">
+                {PAYMENT_METHODS.filter(
+                  (m) =>
+                    selectedMonedaObj?.codigo !== "USD" ||
+                    (m.value !== "PAGO_MOVIL" && m.value !== "TRANSFERENCIA"),
+                ).map((method) => (
+                  <Button
+                    key={method.value}
+                    variant={
+                      selectedMetodo === method.value ? "filled" : "outline"
+                    }
+                    color="gray"
+                    size="xs"
+                    onClick={() =>
+                      setSelectedMetodo(method.value as MetodoPago)
+                    }
+                  >
+                    {method.label}
+                  </Button>
+                ))}
+              </Group>
+              {selectedMetodo !== "EFECTIVO" && (
+                <TextInput
+                  placeholder="Referencia o recibo (Opcional)"
+                  size="xs"
+                  value={referencia}
+                  onChange={(e) => setReferencia(e.currentTarget.value)}
+                  mt="xs"
+                />
+              )}
+            </Stack>
+          </SimpleGrid>
+        </Paper>
+
+        {/* ── 4. TOTALES ── */}
         {cart.length > 0 && (
           <>
             <Divider
