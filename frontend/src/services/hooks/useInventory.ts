@@ -14,7 +14,9 @@ import type {
 
 export function useProducts(filters?: InventoryFilters) {
   return useQuery({
-    queryKey: queryKeys.inventory.all(filters),
+    queryKey: filters
+      ? (["inventory", "products", filters] as const)
+      : (["inventory", "products"] as const),
     queryFn: () => inventoryService.getAll(filters),
   });
 }

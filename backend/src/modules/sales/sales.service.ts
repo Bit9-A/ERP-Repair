@@ -51,6 +51,14 @@ interface CreateVentaDTO {
     productoId: string;
     cantidad: number;
   }>;
+  // Opcional: registrar el pago de una vez
+  pago?: {
+    monedaId: string;
+    monto_moneda_local: number;
+    equivalente_usd: number;
+    metodo: "EFECTIVO" | "PAGO_MOVIL" | "ZELLE" | "TRANSFERENCIA" | "BINANCE";
+    referencia?: string;
+  };
 }
 
 export async function create(data: CreateVentaDTO) {
@@ -122,6 +130,31 @@ export async function create(data: CreateVentaDTO) {
       await tx.producto.update({
         where: { id: item.productoId },
         data: { stock_actual: { decrement: item.cantidad } },
+      });
+    }
+
+    // Register payment if provided
+    if (data.pago) {
+      await tx.pago.create({
+        data: {
+          ventaId: newVenta.id,
+          monedaId: data.pago.monedaId,
+          monto_moneda_local: data.pago.monto_moneda_local,
+          equivalente_usd: data.pago.equivalente_usd,
+          metodo: data.pago.metodo,
+          referencia: data.pago.referencia,
+        },
+      });
+
+      // Register matching INGRESO transaction
+      await tx.transaccionFinanciera.create({
+        data: {
+          tipo: "INGRESO",
+          monto_usd: parseFloat(data.pago.equivalente_usd.toFixed(2)),
+          concepto: `Venta Comercial #${newVenta.numero || newVenta.id.slice(0, 8)}`,
+          categoria: "VENTA",
+          ventaId: newVenta.id,
+        },
       });
     }
 

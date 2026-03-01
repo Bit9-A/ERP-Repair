@@ -170,7 +170,12 @@ export interface VentaProducto {
 }
 
 // -- Payments --
-export type MetodoPago = "EFECTIVO" | "TRANSFERENCIA" | "PAGO_MOVIL" | "ZELLE";
+export type MetodoPago =
+  | "EFECTIVO"
+  | "TRANSFERENCIA"
+  | "PAGO_MOVIL"
+  | "ZELLE"
+  | "BINANCE";
 
 export interface Pago {
   id: string;
@@ -183,6 +188,8 @@ export interface Pago {
   metodo: string;
   referencia?: string;
   fecha_pago: string;
+  venta?: { numero: number; cliente?: { nombre: string } };
+  ticket?: { equipo: string; cliente?: { nombre: string } };
 }
 
 // -- Financial transactions (ingreso / egreso) --

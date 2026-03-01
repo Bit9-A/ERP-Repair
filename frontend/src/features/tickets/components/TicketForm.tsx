@@ -320,7 +320,7 @@ export function TicketForm({
                   Nuevo Cliente
                 </Text>
               </Group>
-              <SimpleGrid cols={3}>
+              <SimpleGrid cols={{ base: 1, sm: 3 }}>
                 <TextInput
                   label="Nombre completo"
                   placeholder="Juan Pérez"
@@ -380,7 +380,7 @@ export function TicketForm({
           )}
 
           <Divider label="2. Información del Equipo" labelPosition="center" />
-          <SimpleGrid cols={3}>
+          <SimpleGrid cols={{ base: 1, sm: 3 }}>
             <Select
               label="Tipo de Equipo"
               data={[
@@ -456,7 +456,7 @@ export function TicketForm({
             />
           </SimpleGrid>
 
-          <SimpleGrid cols={2}>
+          <SimpleGrid cols={{ base: 1, sm: 2 }}>
             <TextInput
               label="IMEI"
               placeholder="15 dígitos"
@@ -482,7 +482,9 @@ export function TicketForm({
             </Popover.Target>
             <Popover.Dropdown bg="gray.9">
               <Text size="xs" fw={700} mb="xs" c="white" ta="center">
-                {initialData ? "PATRÓN GUARDADO (ANIMACIÓN)" : "DIBUJA EL PATRÓN EN LOS PUNTOS"}
+                {initialData
+                  ? "PATRÓN GUARDADO (ANIMACIÓN)"
+                  : "DIBUJA EL PATRÓN EN LOS PUNTOS"}
               </Text>
               <PatternCanvas
                 mode={initialData ? "view" : "draw"}
@@ -498,7 +500,7 @@ export function TicketForm({
             label="3. Estado al Recibir (Checklist)"
             labelPosition="center"
           />
-          <SimpleGrid cols={5}>
+          <SimpleGrid cols={{ base: 2, sm: 3, md: 5 }}>
             <Checkbox
               label="Cámaras"
               {...form.getInputProps("checklist.camaras", { type: "checkbox" })}
@@ -533,7 +535,7 @@ export function TicketForm({
           />
 
           <Divider label="4. Costos y Split Dinámico" labelPosition="center" />
-          <SimpleGrid cols={3} mb="sm">
+          <SimpleGrid cols={{ base: 1, sm: 3 }} mb="sm">
             <NumberInput
               label="Precio Cliente ($)"
               prefix="$"
@@ -585,7 +587,7 @@ export function TicketForm({
 
           {/* Resumen Final */}
           <Paper withBorder p="sm" bg="gray.0" mt="md">
-            <Group justify="space-around">
+            <SimpleGrid cols={{ base: 1, sm: 3 }}>
               <Stack align="center" gap={0}>
                 <Text size="xs" c="dimmed">
                   Mano de Obra Neta
@@ -610,7 +612,7 @@ export function TicketForm({
                   ${(Number(gananciaLocal) || 0).toFixed(2)}
                 </Text>
               </Stack>
-            </Group>
+            </SimpleGrid>
           </Paper>
 
           <Group justify="flex-end" mt="md">

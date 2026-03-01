@@ -14,6 +14,7 @@ export * as catalogService from "./catalog.service";
 export * as salesService from "./sales.service";
 export * as financeService from "./finance.service";
 export * as transactionsService from "./transactions.service";
+export * as dashboardService from "./dashboard.service";
 
 // -- React Query hooks --
 export {
@@ -102,6 +103,8 @@ export {
   useCreateClient,
   useUpdateClient,
 } from "./hooks/useClients";
+
+export { useDashboardData } from "./hooks/useDashboard";
 
 // -- Service types re-exports --
 export type { LoginPayload, LoginResponse } from "./auth.service";

@@ -14,7 +14,9 @@ import type { EstadoTicket } from "../../types";
 
 export function useRepairs(filters?: RepairsFilters) {
   return useQuery({
-    queryKey: queryKeys.repairs.all(filters),
+    queryKey: filters
+      ? (["repairs", "all", filters] as const)
+      : (["repairs", "all"] as const),
     queryFn: () => repairsService.getAll(filters),
   });
 }

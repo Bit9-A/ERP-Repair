@@ -36,6 +36,7 @@ import {
   useCreateProduct,
   useUpdateProduct,
   useDeleteProduct,
+  useAdjustStock,
 } from "../../../services";
 
 export function InventoryPage() {
@@ -50,6 +51,7 @@ export function InventoryPage() {
   const { data: products = [], isLoading } = useProducts();
   const createProduct = useCreateProduct();
   const updateProduct = useUpdateProduct();
+  const adjustStock = useAdjustStock();
   const deleteProduct = useDeleteProduct();
 
   const filtered = products.filter((p) => {
@@ -88,12 +90,33 @@ export function InventoryPage() {
     openForm();
   };
 
-  const handleSubmit = async (values: ProductFormValues) => {
+  const handleSubmit = async (
+    values: ProductFormValues & {
+      id?: string;
+      isQuickAdd?: boolean;
+      qtyAdded?: number;
+    },
+  ) => {
     try {
-      if (editProduct) {
-        await updateProduct.mutateAsync({ id: editProduct.id, ...values });
+      if (values.id || editProduct) {
+        const targetId = values.id || editProduct?.id;
+        if (!targetId) return;
+
+        if (values.isQuickAdd && values.qtyAdded) {
+          // Send to stock adjustment endpoint to properly log EGRESO financing
+          await adjustStock.mutateAsync({
+            id: targetId,
+            cantidad: values.qtyAdded,
+            nota: "Actualización Rápida (Compra)",
+          });
+        } else {
+          // Standard metadata update via PUT
+          const { isQuickAdd, qtyAdded, ...cleanValues } = values;
+          await updateProduct.mutateAsync({ id: targetId, ...cleanValues });
+        }
+
         notifications.show({
-          title: "Producto actualizado",
+          title: "Stock actualizado",
           message: `${values.nombre} fue actualizado correctamente`,
           color: "green",
         });
@@ -138,7 +161,7 @@ export function InventoryPage() {
       <LoadingOverlay visible={isLoading} />
 
       {/* Header */}
-      <Group justify="space-between" align="center">
+      <Group justify="space-between" align="center" wrap="wrap" gap="sm">
         <Title order={2} c="gray.1">
           Inventario
         </Title>
@@ -263,11 +286,13 @@ export function InventoryPage() {
 
         <Divider color="dark.6" />
 
-        <ProductTable
-          products={filtered}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-        />
+        <div style={{ overflowX: "auto" }}>
+          <ProductTable
+            products={filtered}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+          />
+        </div>
 
         {filtered.length === 0 && !isLoading && (
           <Text ta="center" c="dimmed" py="xl">
@@ -291,6 +316,7 @@ export function InventoryPage() {
         onClose={closeForm}
         onSubmit={handleSubmit}
         initialData={editProduct}
+        allProducts={products}
       />
     </Stack>
   );

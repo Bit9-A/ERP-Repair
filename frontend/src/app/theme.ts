@@ -136,13 +136,6 @@ export const theme = createTheme({
       styles: {
         root: {
           color: "var(--text-primary)",
-          "&:hover": {
-            backgroundColor: "rgba(255, 255, 255, 0.08)",
-          },
-          "&[data-active]": {
-            backgroundColor: "var(--brand-600)",
-            color: "#ffffff",
-          },
         },
         label: {
           fontWeight: 500,

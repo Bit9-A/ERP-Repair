@@ -13,13 +13,21 @@ import salesRoutes from "./modules/sales/sales.routes";
 import transactionsRoutes from "./modules/transactions/transactions.routes";
 import brandsRoutes from "./modules/brands/brands.routes";
 import clientsRoutes from "./modules/clients/clients.routes";
+import dashboardRoutes from "./modules/dashboard/dashboard.routes";
 
 const app = express();
 
 // ── Global Middleware ──
-app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(
+  cors({
+    origin: "*",
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  }),
+  express.json(),
+  express.urlencoded({ extended: true }),
+);
 
 // ── Health Check ──
 app.get("/", (_req, res) => {
@@ -40,6 +48,7 @@ app.use("/api/sales", salesRoutes);
 app.use("/api/transactions", transactionsRoutes);
 app.use("/api/brands", brandsRoutes);
 app.use("/api/clients", clientsRoutes);
+app.use("/api/dashboard", dashboardRoutes);
 
 // ── Error Handling ──
 app.use(notFoundHandler);

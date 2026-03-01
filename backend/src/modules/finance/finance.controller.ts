@@ -94,7 +94,9 @@ export async function getStats(
   next: NextFunction,
 ) {
   try {
+    console.log("getStats");
     const data = await service.getStats();
+    console.log("data", data);
     res.json({ success: true, data });
   } catch (err) {
     next(err);

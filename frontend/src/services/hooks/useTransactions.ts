@@ -12,7 +12,9 @@ import type {
 
 export function useTransactions(filters?: TransactionsFilters) {
   return useQuery({
-    queryKey: queryKeys.transactions.all(filters),
+    queryKey: filters
+      ? (["transactions", "all", filters] as const)
+      : (["transactions", "all"] as const),
     queryFn: () => transactionsService.getAll(filters),
   });
 }

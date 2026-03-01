@@ -32,9 +32,15 @@ const NAV_ITEMS = [
 
 interface SidebarProps {
   collapsed?: boolean;
+  isMobile?: boolean;
+  onNavigate?: () => void;
 }
 
-export function Sidebar({ collapsed = false }: SidebarProps) {
+export function Sidebar({
+  collapsed = false,
+  isMobile = false,
+  onNavigate,
+}: SidebarProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuthStore();
@@ -42,7 +48,16 @@ export function Sidebar({ collapsed = false }: SidebarProps) {
   const handleLogout = () => {
     logout();
     navigate("/login");
+    onNavigate?.();
   };
+
+  const handleNavClick = (path: string) => {
+    navigate(path);
+    onNavigate?.();
+  };
+
+  // On mobile, always show expanded (never collapsed icons-only mode)
+  const isCollapsed = isMobile ? false : collapsed;
 
   return (
     <Box
@@ -59,18 +74,18 @@ export function Sidebar({ collapsed = false }: SidebarProps) {
       <Stack gap={0}>
         {/* Brand */}
         <Box
-          px={collapsed ? "xs" : "md"}
+          px={isCollapsed ? "xs" : "md"}
           py="lg"
           style={{
             display: "flex",
-            alignItems: collapsed ? "center" : "flex-start",
-            justifyContent: collapsed ? "center" : "flex-start",
+            alignItems: isCollapsed ? "center" : "flex-start",
+            justifyContent: isCollapsed ? "center" : "flex-start",
             flexDirection: "column",
             minHeight: 70,
             transition: "all 300ms ease",
           }}
         >
-          {collapsed ? (
+          {isCollapsed ? (
             <Text
               ff="monospace"
               fw={700}
@@ -120,7 +135,7 @@ export function Sidebar({ collapsed = false }: SidebarProps) {
           {NAV_ITEMS.map((item) => {
             const isActive = location.pathname === item.path;
 
-            if (collapsed) {
+            if (isCollapsed) {
               return (
                 <Tooltip
                   key={item.path}
@@ -134,7 +149,7 @@ export function Sidebar({ collapsed = false }: SidebarProps) {
                     color={isActive ? "brand" : "gray"}
                     size="xl"
                     radius="md"
-                    onClick={() => navigate(item.path)}
+                    onClick={() => handleNavClick(item.path)}
                     style={{
                       width: "100%",
                       transition: "all 200ms ease",
@@ -152,12 +167,17 @@ export function Sidebar({ collapsed = false }: SidebarProps) {
                 label={item.label}
                 leftSection={<item.icon size={20} stroke={1.5} />}
                 active={isActive}
-                onClick={() => navigate(item.path)}
+                onClick={() => handleNavClick(item.path)}
                 variant="filled"
                 styles={{
                   root: {
                     borderRadius: "var(--mantine-radius-md)",
                     transition: "all 200ms ease",
+                    // Larger touch target on mobile
+                    ...(isMobile && {
+                      padding: "12px 14px",
+                      fontSize: "15px",
+                    }),
                   },
                 }}
               />
@@ -170,7 +190,7 @@ export function Sidebar({ collapsed = false }: SidebarProps) {
       <Stack gap={0} px="sm" pb="md">
         <Divider color="dark.6" mb="md" />
 
-        {collapsed ? (
+        {isCollapsed ? (
           <Stack align="center" gap="sm">
             <Tooltip
               label={user?.nombre || "Admin Principal"}
@@ -219,6 +239,9 @@ export function Sidebar({ collapsed = false }: SidebarProps) {
                 root: {
                   borderRadius: "var(--mantine-radius-md)",
                   color: "var(--mantine-color-red-6)",
+                  ...(isMobile && {
+                    padding: "12px 14px",
+                  }),
                 },
               }}
             />
