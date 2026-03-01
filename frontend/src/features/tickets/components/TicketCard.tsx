@@ -1,71 +1,138 @@
-import { Card, Text, Group, Badge, Stack, Avatar } from "@mantine/core";
-import { IconDeviceMobile, IconClock } from "@tabler/icons-react";
+import { Card, Text, Group, Badge, Stack, Paper } from "@mantine/core";
+import {
+  IconDeviceMobile,
+  IconClock,
+  IconAlertTriangle,
+  IconLock,
+  IconFingerprint,
+} from "@tabler/icons-react";
 import type { TicketReparacion } from "../../../types";
-import { TICKET_STATUS } from "../../../lib/constants";
+import dayjs from "dayjs";
 
 interface TicketCardProps {
   ticket: TicketReparacion;
   onClick?: (ticket: TicketReparacion) => void;
 }
 
-const PRIORITY_COLORS: Record<string, string> = {
-  RECIBIDO: "#64748B",
-  EN_REVISION: "#3B82F6",
-  ESPERANDO_REPUESTO: "#F59E0B",
-  REPARADO: "#22C55E",
-  ENTREGADO: "#8B5CF6",
+const STATUS_COLORS: Record<string, string> = {
+  RECIBIDO: "gray",
+  EN_REVISION: "blue",
+  ESPERANDO_REPUESTO: "orange",
+  REPARADO: "green",
+  ENTREGADO: "grape",
+  ABANDONO: "red",
 };
 
 export function TicketCard({ ticket, onClick }: TicketCardProps) {
-  const status = TICKET_STATUS[ticket.estado];
-  const borderColor = PRIORITY_COLORS[ticket.estado];
+  const diasTranscurridos = dayjs().diff(dayjs(ticket.fecha_ingreso), "day");
+  const esAlerta = diasTranscurridos >= 60;
+  const esCritico = diasTranscurridos >= 90;
+  const colorEstado = STATUS_COLORS[ticket.estado] || "gray";
 
   return (
     <Card
       padding="sm"
       radius="md"
-      className="kanban-card"
+      withBorder
       onClick={() => onClick?.(ticket)}
       style={{
-        background: "#1E293B",
-        border: "1px solid rgba(255, 255, 255, 0.06)",
-        borderLeft: `3px solid ${borderColor}`,
-        cursor: "grab",
-        transition: "all 200ms ease",
+        cursor: "pointer",
+        borderLeft: `4px solid var(--mantine-color-${colorEstado}-filled)`,
+        backgroundColor: esCritico ? "var(--mantine-color-red-0)" : undefined,
       }}
     >
-      {/* Header — ticket ID + tech avatar */}
+      {/* Header: ID y Alerta de Tiempo */}
       <Group justify="space-between" mb="xs">
-        <Text ff="monospace" size="xs" fw={700} c="gray.1">
-          #T-{String(ticket.id).padStart(3, "0")}
+        <Text size="xs" fw={700} c="dimmed">
+          #T-{ticket.id.substring(0, 6)}
         </Text>
-        <Avatar size="xs" radius="xl" color={borderColor} variant="filled">
-          {(ticket.tecnico?.nombre ?? "?").charAt(0)}
-        </Avatar>
+        {esAlerta && (
+          <Badge
+            color="red"
+            variant="light"
+            size="xs"
+            leftSection={<IconAlertTriangle size={10} />}
+          >
+            {esCritico ? "ABANDONO" : `${diasTranscurridos} DÍAS`}
+          </Badge>
+        )}
       </Group>
 
-      {/* Device — prominent */}
-      <Group gap={6} mb={6}>
-        <IconDeviceMobile size={14} color={borderColor} />
-        <Text size="sm" fw={600} c="gray.1" lineClamp={1}>
-          {ticket.equipo}
-        </Text>
-      </Group>
-
-      {/* Failure description */}
-      <Text size="xs" c="dimmed" lineClamp={2} mb="xs">
-        {ticket.falla}
-      </Text>
-
-      {/* Footer — client + date */}
-      <Group justify="space-between" mt="auto">
+      {/* Equipo: Marca y Modelo */}
+      <Stack gap={2} mb="xs">
+        <Group gap={5}>
+          <IconDeviceMobile size={14} />
+          <Text size="sm" fw={700}>
+            {ticket.marca} {ticket.modelo}
+          </Text>
+        </Group>
         <Text size="xs" c="dimmed">
-          {ticket.cliente?.nombre ?? "Sin cliente"}
+          {ticket.tipo_equipo}
+          {ticket.imei ? ` • IMEI: ${ticket.imei}` : ""}
+        </Text>
+      </Stack>
+
+      {/* Seguridad: Clave y Patrón */}
+      <Group gap="xs" mb="xs" grow>
+        <Paper
+          withBorder
+          p="4px 8px"
+          radius="sm"
+          bg="gray.0"
+          style={{ borderStyle: "dashed" }}
+        >
+          <Group gap={6} wrap="nowrap">
+            <IconLock size={14} color="var(--mantine-color-gray-6)" />
+            <Text
+              size="sm"
+              fw={900}
+              style={{
+                fontFamily: "monospace",
+                letterSpacing: "1px",
+                color: "var(--mantine-color-dark-7)",
+              }}
+            >
+              {ticket.clave || "SIN PIN"}
+            </Text>
+          </Group>
+        </Paper>
+
+        <Paper
+          withBorder
+          p="4px 8px"
+          radius="sm"
+          bg="gray.0"
+          style={{ borderStyle: "dashed" }}
+        >
+          <Group gap={6} wrap="nowrap">
+            <IconFingerprint size={14} color="var(--mantine-color-gray-6)" />
+            <Text
+              size="sm"
+              fw={900}
+              style={{
+                fontFamily: "monospace",
+                letterSpacing: "1px",
+                color: "var(--mantine-color-dark-7)",
+              }}
+            >
+              {ticket.patron_visual || "SIN PATRÓN"}
+            </Text>
+          </Group>
+        </Paper>
+      </Group>
+
+      {/* Footer: Cliente y tiempo */}
+      <Group justify="space-between" mt="sm">
+        <Text size="xs" fw={500}>
+          {ticket.cliente?.nombre || "Sin cliente"}
         </Text>
         <Group gap={4}>
-          <IconClock size={12} color="#64748B" />
-          <Text size="xs" c="dimmed" ff="monospace">
-            {new Date(ticket.fecha_ingreso).toLocaleDateString("es-VE")}
+          <IconClock
+            size={12}
+            style={{ color: "var(--mantine-color-dimmed)" }}
+          />
+          <Text size="xs" c="dimmed">
+            {dayjs(ticket.fecha_ingreso).format("DD/MM")}
           </Text>
         </Group>
       </Group>

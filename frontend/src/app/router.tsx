@@ -1,6 +1,8 @@
 import { lazy } from "react";
 import { createBrowserRouter, Navigate } from "react-router-dom";
 import { AppShell } from "../components/layout/AppShell";
+import { PrivateRoute } from "../components/guards/PrivateRoute";
+import { RoleGuard } from "../components/guards/RoleGuard";
 
 // -- Lazy-loaded pages --
 const LoginPage = lazy(() =>
@@ -23,9 +25,19 @@ const KanbanPage = lazy(() =>
     default: m.KanbanPage,
   })),
 );
+const SalesPage = lazy(() =>
+  import("../features/sales/pages/SalesPage").then((m) => ({
+    default: m.SalesPage,
+  })),
+);
 const FinancePage = lazy(() =>
   import("../features/finance/pages/FinancePage").then((m) => ({
     default: m.FinancePage,
+  })),
+);
+const UsersPage = lazy(() =>
+  import("../features/users/pages/UsersPage").then((m) => ({
+    default: m.UsersPage,
   })),
 );
 
@@ -36,14 +48,70 @@ export const router = createBrowserRouter([
     element: <LoginPage />,
   },
 
-  // -- Protected routes (inside AppShell) --
+  // -- Protected routes (requires authentication) --
   {
-    element: <AppShell />,
+    element: <PrivateRoute />,
     children: [
-      { index: true, element: <DashboardPage /> },
-      { path: "inventario", element: <InventoryPage /> },
-      { path: "reparaciones", element: <KanbanPage /> },
-      { path: "finanzas", element: <FinancePage /> },
+      {
+        element: <AppShell />,
+        children: [
+          // Todos los roles pueden ver el Dashboard
+          {
+            index: true,
+            element: <DashboardPage />,
+          },
+
+          // ADMIN + TECNICO + VENDEDOR pueden ver Inventario
+          {
+            path: "inventario",
+            element: (
+              <RoleGuard roles={["ADMIN", "TECNICO", "VENDEDOR"]}>
+                <InventoryPage />
+              </RoleGuard>
+            ),
+          },
+
+          // ADMIN + TECNICO pueden ver Reparaciones
+          {
+            path: "reparaciones",
+            element: (
+              <RoleGuard roles={["ADMIN", "TECNICO"]}>
+                <KanbanPage />
+              </RoleGuard>
+            ),
+          },
+
+          // ADMIN + VENDEDOR pueden ver Ventas
+          {
+            path: "ventas",
+            element: (
+              <RoleGuard roles={["ADMIN", "VENDEDOR"]}>
+                <SalesPage />
+              </RoleGuard>
+            ),
+          },
+
+          // ADMIN + TECNICO pueden ver Finanzas
+          {
+            path: "finanzas",
+            element: (
+              <RoleGuard roles={["ADMIN", "TECNICO"]}>
+                <FinancePage />
+              </RoleGuard>
+            ),
+          },
+
+          // Solo ADMIN puede ver Usuarios
+          {
+            path: "usuarios",
+            element: (
+              <RoleGuard roles={["ADMIN"]}>
+                <UsersPage />
+              </RoleGuard>
+            ),
+          },
+        ],
+      },
     ],
   },
 

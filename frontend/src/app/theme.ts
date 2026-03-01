@@ -4,21 +4,22 @@ import { createTheme } from "@mantine/core";
 // Source: design-system/repairshop-erp/MASTER.md
 
 const brand = [
-  "#e6fff0",
-  "#d1f5e0",
-  "#a3ebc1",
-  "#72e0a0",
-  "#4ad884",
-  "#32d272",
-  "#22C55E", // index 6 — primary CTA
-  "#16a34a",
-  "#0d8f3e",
-  "#007a30",
+  "#edf7ff", // 0
+  "#d6ebff", // 1
+  "#b5dbff", // 2
+  "#84b3ff", // 3
+  "#4d94e8", // 4
+  "#237cd5", // 5 — primary CTA
+  "#1c63aa", // 6 — hover
+  "#154a80", // 7
+  "#0e3155", // 8 — sidebar bg
+  "#07182b", // 9
 ] as const;
 
 export const theme = createTheme({
   // -- Colors --
   primaryColor: "brand",
+  primaryShade: { light: 5, dark: 5 },
   colors: {
     brand,
     dark: [
@@ -128,6 +129,16 @@ export const theme = createTheme({
         overlayProps: {
           backgroundOpacity: 0.55,
           blur: 4,
+        },
+      },
+    },
+    NavLink: {
+      styles: {
+        root: {
+          color: "var(--text-primary)",
+        },
+        label: {
+          fontWeight: 500,
         },
       },
     },

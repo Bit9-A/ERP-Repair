@@ -1,8 +1,27 @@
+// Feature-specific ticket types
+// Use shared types from ../../types for most definitions.
+// This file defines just the form values shape.
+
 export interface TicketFormValues {
-  clienteNombre: string;
-  clienteTelefono: string;
-  equipo: string;
+  clienteId: string;
+  tecnicoId?: string;
+  tipo_equipo: string;
+  marca: string;
+  modelo: string;
+  imei?: string;
+  clave?: string;
+  patron_visual?: string;
+  checklist: {
+    camaras: boolean;
+    touch: boolean;
+    senal: boolean;
+    encendido: boolean;
+    botones: boolean;
+  };
   falla: string;
-  tecnicoId: number | null;
-  mano_obra_usd: number;
+  falla_reportada?: string;
+  observaciones?: string;
+  costo_repuestos_usd: number;
+  precio_total_usd: number;
+  porcentaje_tecnico: number;
 }

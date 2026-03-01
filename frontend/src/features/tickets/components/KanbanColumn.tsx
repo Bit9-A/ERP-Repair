@@ -15,6 +15,7 @@ const COLUMN_COLORS: Record<EstadoTicket, string> = {
   ESPERANDO_REPUESTO: "#F59E0B",
   REPARADO: "#22C55E",
   ENTREGADO: "#8B5CF6",
+  ABANDONO: "#EF4444",
 };
 
 export function KanbanColumn({

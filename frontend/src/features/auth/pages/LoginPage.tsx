@@ -55,7 +55,8 @@ export function LoginPage() {
     <Box
       style={{
         minHeight: "100vh",
-        background: "linear-gradient(135deg, #020617 0%, #0F172A 100%)",
+        background:
+          "linear-gradient(135deg, var(--brand-900) 0%, var(--bg-main) 100%)",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -70,7 +71,7 @@ export function LoginPage() {
           style={{
             background: "rgba(30, 41, 59, 0.85)",
             backdropFilter: "blur(12px)",
-            border: "1px solid rgba(255, 255, 255, 0.06)",
+            border: "1px solid var(--border-subtle)",
           }}
         >
           <form onSubmit={form.onSubmit(handleSubmit)}>
@@ -80,8 +81,8 @@ export function LoginPage() {
                 order={2}
                 ff="monospace"
                 style={{
-                  textShadow: "0 0 10px rgba(34, 197, 94, 0.3)",
-                  color: "#F8FAFC",
+                  textShadow: "0 0 10px rgba(35, 124, 213, 0.3)",
+                  color: "var(--text-primary)",
                 }}
               >
                 {APP_NAME}

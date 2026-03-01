@@ -12,8 +12,11 @@ import {
   Badge,
   Divider,
   Box,
+  SegmentedControl,
+  LoadingOverlay,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
+import { notifications } from "@mantine/notifications";
 import {
   IconPlus,
   IconSearch,
@@ -28,116 +31,54 @@ import { ProductTable } from "../components/ProductTable";
 import { ProductForm } from "../components/ProductForm";
 import type { Producto } from "../../../types";
 import type { ProductFormValues } from "../types/inventory.types";
-
-// -- Demo data matching Stitch inventory screen --
-const DEMO_PRODUCTS: Producto[] = [
-  {
-    id: 1,
-    sku: "PANT-LCD-A54",
-    nombre: "Pantalla LCD Samsung A54",
-    stock_actual: 8,
-    stock_minimo: 5,
-    precio_usd: 35.0,
-  },
-  {
-    id: 2,
-    sku: "BAT-IPH14",
-    nombre: "Batería iPhone 14",
-    stock_actual: 3,
-    stock_minimo: 5,
-    precio_usd: 22.5,
-  },
-  {
-    id: 3,
-    sku: "FLEX-CARGA-XR",
-    nombre: "Flex de Carga Xiaomi Redmi",
-    stock_actual: 12,
-    stock_minimo: 5,
-    precio_usd: 8.0,
-  },
-  {
-    id: 4,
-    sku: "PANT-OLED-S23",
-    nombre: "Pantalla OLED Galaxy S23",
-    stock_actual: 0,
-    stock_minimo: 3,
-    precio_usd: 120.0,
-  },
-  {
-    id: 5,
-    sku: "TAPA-MOT-G54",
-    nombre: "Tapa Trasera Moto G54",
-    stock_actual: 15,
-    stock_minimo: 5,
-    precio_usd: 12.0,
-  },
-  {
-    id: 6,
-    sku: "CAM-IPH13-POST",
-    nombre: "Cámara Posterior iPhone 13",
-    stock_actual: 2,
-    stock_minimo: 3,
-    precio_usd: 45.0,
-  },
-  {
-    id: 7,
-    sku: "CONJ-TORN-PRO",
-    nombre: "Kit Tornillería Profesional",
-    stock_actual: 25,
-    stock_minimo: 10,
-    precio_usd: 15.0,
-  },
-  {
-    id: 8,
-    sku: "MICA-TEMP-UNIV",
-    nombre: "Mica Templada Universal",
-    stock_actual: 50,
-    stock_minimo: 20,
-    precio_usd: 2.5,
-  },
-  {
-    id: 9,
-    sku: "PANT-IPH12-OEM",
-    nombre: "Pantalla iPhone 12 OEM",
-    stock_actual: 4,
-    stock_minimo: 3,
-    precio_usd: 65.0,
-  },
-  {
-    id: 10,
-    sku: "BAT-SAM-A34",
-    nombre: "Batería Samsung Galaxy A34",
-    stock_actual: 7,
-    stock_minimo: 5,
-    precio_usd: 18.0,
-  },
-];
+import {
+  useProducts,
+  useCreateProduct,
+  useUpdateProduct,
+  useDeleteProduct,
+  useAdjustStock,
+} from "../../../services";
 
 export function InventoryPage() {
   const [search, setSearch] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
-  const [products] = useState<Producto[]>(DEMO_PRODUCTS);
+  const [stockFilter, setStockFilter] = useState<string | null>(null);
+  const [categoryTab, setCategoryTab] = useState("all");
   const [editProduct, setEditProduct] = useState<Producto | null>(null);
   const [formOpened, { open: openForm, close: closeForm }] =
     useDisclosure(false);
 
-  const filtered = products.filter(
-    (p) =>
-      (p.nombre.toLowerCase().includes(search.toLowerCase()) ||
-        p.sku.toLowerCase().includes(search.toLowerCase())) &&
-      (!categoryFilter ||
-        categoryFilter === "all" ||
-        (categoryFilter === "low" &&
-          p.stock_actual > 0 &&
-          p.stock_actual <= p.stock_minimo) ||
-        (categoryFilter === "out" && p.stock_actual <= 0) ||
-        (categoryFilter === "ok" && p.stock_actual > p.stock_minimo)),
-  );
+  // -- API hooks --
+  const { data: products = [], isLoading } = useProducts();
+  const createProduct = useCreateProduct();
+  const updateProduct = useUpdateProduct();
+  const adjustStock = useAdjustStock();
+  const deleteProduct = useDeleteProduct();
 
-  // Stitch values
-  const totalProducts = 142;
-  const lowStock = 5;
-  const totalValue = 12450.0;
+  const filtered = products.filter((p) => {
+    const matchesSearch =
+      p.nombre.toLowerCase().includes(search.toLowerCase()) ||
+      p.sku.toLowerCase().includes(search.toLowerCase());
+    const matchesCategory =
+      categoryTab === "all" || p.categoria === categoryTab;
+    const matchesStock =
+      !stockFilter ||
+      stockFilter === "all" ||
+      (stockFilter === "low" &&
+        p.stock_actual > 0 &&
+        p.stock_actual <= p.stock_minimo) ||
+      (stockFilter === "out" && p.stock_actual <= 0) ||
+      (stockFilter === "ok" && p.stock_actual > p.stock_minimo);
+    return matchesSearch && matchesCategory && matchesStock;
+  });
+
+  const totalProducts = products.length;
+  const lowStock = products.filter(
+    (p) => p.stock_actual > 0 && p.stock_actual <= p.stock_minimo,
+  ).length;
+  const totalValue = products.reduce(
+    (sum, p) => sum + p.precio_usd * p.stock_actual,
+    0,
+  );
 
   const handleEdit = (product: Producto) => {
     setEditProduct(product);
@@ -149,18 +90,78 @@ export function InventoryPage() {
     openForm();
   };
 
-  const handleSubmit = (_values: ProductFormValues) => {
-    closeForm();
+  const handleSubmit = async (
+    values: ProductFormValues & {
+      id?: string;
+      isQuickAdd?: boolean;
+      qtyAdded?: number;
+    },
+  ) => {
+    try {
+      if (values.id || editProduct) {
+        const targetId = values.id || editProduct?.id;
+        if (!targetId) return;
+
+        if (values.isQuickAdd && values.qtyAdded) {
+          // Send to stock adjustment endpoint to properly log EGRESO financing
+          await adjustStock.mutateAsync({
+            id: targetId,
+            cantidad: values.qtyAdded,
+            nota: "Actualización Rápida (Compra)",
+          });
+        } else {
+          // Standard metadata update via PUT
+          const { isQuickAdd, qtyAdded, ...cleanValues } = values;
+          await updateProduct.mutateAsync({ id: targetId, ...cleanValues });
+        }
+
+        notifications.show({
+          title: "Stock actualizado",
+          message: `${values.nombre} fue actualizado correctamente`,
+          color: "green",
+        });
+      } else {
+        await createProduct.mutateAsync(values);
+        notifications.show({
+          title: "Producto creado",
+          message: `${values.nombre} fue agregado al inventario`,
+          color: "green",
+        });
+      }
+      closeForm();
+    } catch {
+      notifications.show({
+        title: "Error",
+        message: "No se pudo guardar el producto",
+        color: "red",
+      });
+    }
   };
 
-  const handleDelete = (_product: Producto) => {
-    // TODO: confirm + API call
+  const handleDelete = async (product: Producto) => {
+    if (!confirm(`¿Eliminar ${product.nombre}?`)) return;
+    try {
+      await deleteProduct.mutateAsync(product.id);
+      notifications.show({
+        title: "Producto eliminado",
+        message: `${product.nombre} fue eliminado del inventario`,
+        color: "orange",
+      });
+    } catch {
+      notifications.show({
+        title: "Error",
+        message: "No se pudo eliminar el producto",
+        color: "red",
+      });
+    }
   };
 
   return (
-    <Stack gap="xl">
-      {/* Header — matching Stitch */}
-      <Group justify="space-between" align="center">
+    <Stack gap="xl" pos="relative">
+      <LoadingOverlay visible={isLoading} />
+
+      {/* Header */}
+      <Group justify="space-between" align="center" wrap="wrap" gap="sm">
         <Title order={2} c="gray.1">
           Inventario
         </Title>
@@ -183,7 +184,7 @@ export function InventoryPage() {
         </Group>
       </Group>
 
-      {/* Summary KPI Cards — Stitch values */}
+      {/* Summary KPI Cards */}
       <SimpleGrid cols={{ base: 1, sm: 3 }} spacing="md">
         <StatCard
           title="Total Productos"
@@ -205,16 +206,15 @@ export function InventoryPage() {
         />
       </SimpleGrid>
 
-      {/* Table section — "Listado de Stock" matching Stitch */}
+      {/* Table section */}
       <Paper
         radius="lg"
         style={{
-          background: "#1E293B",
-          border: "1px solid rgba(255, 255, 255, 0.06)",
+          background: "var(--bg-card)",
+          border: "1px solid var(--border-subtle)",
           overflow: "hidden",
         }}
       >
-        {/* Table header with search + filters */}
         <Box p="md">
           <Group justify="space-between" mb="md">
             <Group gap="xs">
@@ -224,9 +224,26 @@ export function InventoryPage() {
               </Text>
             </Group>
             <Text size="xs" c="dimmed">
-              Mostrando 1 a {filtered.length} de {totalProducts} productos
+              Mostrando {filtered.length} de {totalProducts} productos
             </Text>
           </Group>
+
+          {/* Category tabs */}
+          <SegmentedControl
+            value={categoryTab}
+            onChange={setCategoryTab}
+            data={[
+              { value: "all", label: "Todos" },
+              { value: "EQUIPO", label: "📱 Equipos" },
+              { value: "ACCESORIO", label: "🎧 Accesorios" },
+              { value: "REPUESTO", label: "🔧 Repuestos" },
+            ]}
+            size="sm"
+            mb="md"
+            styles={{
+              root: { background: "rgba(255,255,255,0.04)" },
+            }}
+          />
 
           <Group gap="md">
             <TextInput
@@ -239,7 +256,7 @@ export function InventoryPage() {
               styles={{
                 input: {
                   background: "rgba(255, 255, 255, 0.04)",
-                  borderColor: "rgba(255, 255, 255, 0.06)",
+                  borderColor: "var(--border-subtle)",
                 },
               }}
             />
@@ -252,15 +269,15 @@ export function InventoryPage() {
                 { value: "low", label: "Stock Bajo" },
                 { value: "out", label: "Agotado" },
               ]}
-              value={categoryFilter}
-              onChange={setCategoryFilter}
+              value={stockFilter}
+              onChange={setStockFilter}
               clearable
               w={180}
               size="sm"
               styles={{
                 input: {
                   background: "rgba(255, 255, 255, 0.04)",
-                  borderColor: "rgba(255, 255, 255, 0.06)",
+                  borderColor: "var(--border-subtle)",
                 },
               }}
             />
@@ -269,39 +286,37 @@ export function InventoryPage() {
 
         <Divider color="dark.6" />
 
-        {/* Table */}
-        <ProductTable
-          products={filtered}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-        />
+        <div style={{ overflowX: "auto" }}>
+          <ProductTable
+            products={filtered}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+          />
+        </div>
 
-        {filtered.length === 0 && (
+        {filtered.length === 0 && !isLoading && (
           <Text ta="center" c="dimmed" py="xl">
             No se encontraron productos
           </Text>
         )}
 
-        {/* Footer — matching Stitch */}
         <Divider color="dark.6" />
         <Group justify="space-between" p="md">
           <Text size="xs" c="dimmed">
-            RepairShop ERP v2.4.0-PRO MAX
+            TecnoPro Cell ERP
           </Text>
-          <Group gap="xs">
-            <Badge variant="dot" color="brand" size="xs">
-              Sincronizado
-            </Badge>
-          </Group>
+          <Badge variant="dot" color="brand" size="xs">
+            {isLoading ? "Cargando..." : "Sincronizado"}
+          </Badge>
         </Group>
       </Paper>
 
-      {/* Product Form Modal */}
       <ProductForm
         opened={formOpened}
         onClose={closeForm}
         onSubmit={handleSubmit}
         initialData={editProduct}
+        allProducts={products}
       />
     </Stack>
   );

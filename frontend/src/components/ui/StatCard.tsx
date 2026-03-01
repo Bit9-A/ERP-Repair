@@ -21,8 +21,8 @@ export function StatCard({
       padding="lg"
       radius="lg"
       style={{
-        background: "#1E293B",
-        border: "1px solid rgba(255, 255, 255, 0.06)",
+        background: "var(--bg-card)",
+        border: "1px solid var(--border-subtle)",
         borderLeft: `3px solid ${accentColor}`,
         transition: "all 200ms ease",
         cursor: "pointer",

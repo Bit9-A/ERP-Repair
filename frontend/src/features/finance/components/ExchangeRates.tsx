@@ -31,8 +31,8 @@ export function ExchangeRates() {
             padding="md"
             radius="lg"
             style={{
-              background: "#1E293B",
-              border: "1px solid rgba(255, 255, 255, 0.06)",
+              background: "var(--bg-card)",
+              border: "1px solid var(--border-subtle)",
               borderTop: `3px solid ${rate.code === "USD" ? "#22C55E" : rate.code === "VES" ? "#3B82F6" : "#F59E0B"}`,
             }}
           >

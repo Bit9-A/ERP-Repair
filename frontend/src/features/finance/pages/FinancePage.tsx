@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import {
   SimpleGrid,
   Stack,
@@ -11,7 +12,11 @@ import {
   NumberInput,
   Badge,
   Box,
+  Tooltip,
+  Notification,
+  LoadingOverlay,
 } from "@mantine/core";
+import { notifications } from "@mantine/notifications";
 import {
   IconCurrencyDollar,
   IconReceipt,
@@ -21,14 +26,116 @@ import {
   IconCash,
   IconReportMoney,
   IconWallet,
+  IconCheck,
+  IconDeviceFloppy,
+  IconRefresh,
 } from "@tabler/icons-react";
 import { StatCard } from "../../../components/ui/StatCard";
 import { PaymentsTable } from "../components/PaymentsTable";
+import { useMonedas, useUpdateTasa, useFinanceStats } from "../../../services";
+
+interface RateConfig {
+  code: string;
+  name: string;
+  symbol: string;
+  color: string;
+  bgFrom: string;
+  bgBorder: string;
+}
+
+const RATE_CONFIGS: RateConfig[] = [
+  {
+    code: "VES",
+    name: "Bolívar Digital",
+    symbol: "Bs.",
+    color: "blue",
+    bgFrom: "rgba(59, 130, 246, 0.08)",
+    bgBorder: "rgba(59, 130, 246, 0.15)",
+  },
+  {
+    code: "COP",
+    name: "Peso Colombiano",
+    symbol: "$",
+    color: "yellow",
+    bgFrom: "rgba(245, 158, 11, 0.08)",
+    bgBorder: "rgba(245, 158, 11, 0.15)",
+  },
+];
 
 export function FinancePage() {
+  // -- API hooks --
+  const { data: monedas = [], isLoading } = useMonedas();
+  const updateTasa = useUpdateTasa();
+  const { data: stats } = useFinanceStats();
+
+  // Build a map: code -> { id, tasa_cambio }
+  const monedaMap = Object.fromEntries(
+    monedas.map((m) => [m.codigo, { id: m.id, tasa: m.tasa_cambio }]),
+  );
+
+  // Local editing state
+  const [editRates, setEditRates] = useState<Record<string, number>>({});
+  const [showSaved, setShowSaved] = useState(false);
+
+  // Sync edit state when monedas load from API
+  useEffect(() => {
+    if (monedas.length > 0) {
+      const rates: Record<string, number> = {};
+      for (const m of monedas) {
+        rates[m.codigo] = m.tasa_cambio;
+      }
+      setEditRates(rates);
+    }
+  }, [monedas]);
+
+  const hasChanges = RATE_CONFIGS.some(
+    (r) => editRates[r.code] !== monedaMap[r.code]?.tasa,
+  );
+
+  const formattedLastUpdated = "—";
+
+  const handleSaveRates = async () => {
+    try {
+      const promises = RATE_CONFIGS.map((r) => {
+        const moneda = monedaMap[r.code];
+        if (moneda && editRates[r.code] !== moneda.tasa) {
+          return updateTasa.mutateAsync({
+            id: moneda.id,
+            tasa_cambio: editRates[r.code],
+          });
+        }
+        return Promise.resolve();
+      });
+      await Promise.all(promises);
+      setShowSaved(true);
+      setTimeout(() => setShowSaved(false), 2500);
+      notifications.show({
+        title: "Tasas actualizadas",
+        message: "Las tasas de cambio fueron guardadas correctamente",
+        color: "green",
+      });
+    } catch {
+      notifications.show({
+        title: "Error",
+        message: "No se pudieron guardar las tasas",
+        color: "red",
+      });
+    }
+  };
+
+  const handleResetRates = () => {
+    const rates: Record<string, number> = {};
+    for (const m of monedas) {
+      rates[m.codigo] = m.tasa_cambio;
+    }
+    setEditRates(rates);
+  };
+
   return (
-    <Stack gap="xl">
-      {/* Header — matching Stitch "Gestión Financiera" */}
+    <Stack gap="xl" pos="relative">
+      <LoadingOverlay visible={isLoading} />
+
+      {/* Header */}
       <Group gap="xs">
         <IconWallet size={24} color="#22C55E" />
         <Title order={2} c="gray.1">
@@ -36,7 +143,7 @@ export function FinancePage() {
         </Title>
       </Group>
 
-      {/* Two-column: Currency rates + KPIs — matching Stitch layout */}
+      {/* Two-column: Currency rates + KPIs */}
       <Grid gutter="md">
         {/* Left: Multimoneda & Tasas */}
         <Grid.Col span={{ base: 12, md: 5 }}>
@@ -44,20 +151,25 @@ export function FinancePage() {
             p="lg"
             radius="lg"
             style={{
-              background: "#1E293B",
-              border: "1px solid rgba(255, 255, 255, 0.06)",
+              background: "var(--bg-card)",
+              border: "1px solid var(--border-subtle)",
               height: "100%",
             }}
           >
-            <Group gap="xs" mb="lg">
-              <IconArrowsExchange size={18} color="#3B82F6" />
-              <Text size="sm" fw={600} c="gray.1">
-                Multimoneda & Tasas
-              </Text>
+            <Group justify="space-between" mb="lg">
+              <Group gap="xs">
+                <IconArrowsExchange size={18} color="#3B82F6" />
+                <Text size="sm" fw={600} c="gray.1">
+                  Multimoneda & Tasas
+                </Text>
+              </Group>
+              <Badge variant="dot" color="brand" size="xs">
+                {formattedLastUpdated}
+              </Badge>
             </Group>
 
             <Stack gap="md">
-              {/* USD */}
+              {/* USD – base */}
               <Paper
                 p="sm"
                 radius="md"
@@ -81,132 +193,167 @@ export function FinancePage() {
                 </Group>
               </Paper>
 
-              {/* VES */}
-              <Paper
-                p="sm"
-                radius="md"
-                style={{
-                  background: "rgba(59, 130, 246, 0.08)",
-                  border: "1px solid rgba(59, 130, 246, 0.15)",
-                }}
-              >
-                <Group justify="space-between">
-                  <div>
-                    <Badge variant="light" color="blue" size="sm" mb={4}>
-                      VES
-                    </Badge>
-                    <Text size="xs" c="dimmed">
-                      Bolívar Digital
-                    </Text>
-                  </div>
-                  <NumberInput
-                    value={40.5}
-                    decimalScale={2}
-                    fixedDecimalScale
-                    prefix="Bs."
-                    size="sm"
-                    variant="unstyled"
-                    styles={{
-                      input: {
-                        fontFamily: '"Fira Code", monospace',
-                        fontWeight: 700,
-                        fontSize: "18px",
-                        color: "#F8FAFC",
-                        padding: 0,
-                        textAlign: "right",
-                      },
-                    }}
-                    readOnly
-                  />
-                </Group>
-              </Paper>
+              {/* Editable rates */}
+              {RATE_CONFIGS.map((r) => (
+                <Paper
+                  key={r.code}
+                  p="sm"
+                  radius="md"
+                  style={{
+                    background: r.bgFrom,
+                    border: `1px solid ${r.bgBorder}`,
+                    transition: "box-shadow 200ms ease",
+                    boxShadow:
+                      editRates[r.code] !== monedaMap[r.code]?.tasa
+                        ? "0 0 0 2px rgba(59,130,246,0.3)"
+                        : "none",
+                  }}
+                >
+                  <Group justify="space-between">
+                    <div>
+                      <Group gap={6} mb={4}>
+                        <Badge variant="light" color={r.color} size="sm">
+                          {r.code}
+                        </Badge>
+                        {editRates[r.code] !== monedaMap[r.code]?.tasa && (
+                          <Badge variant="outline" color="blue" size="xs">
+                            Modificado
+                          </Badge>
+                        )}
+                      </Group>
+                      <Text size="xs" c="dimmed">
+                        {r.name}
+                      </Text>
+                      <Text size="xs" c="dimmed" mt={2}>
+                        1 USD = {r.symbol}{" "}
+                        {editRates[r.code]?.toLocaleString("es-VE", {
+                          minimumFractionDigits: 2,
+                        })}
+                      </Text>
+                    </div>
+                    <NumberInput
+                      value={editRates[r.code] ?? 0}
+                      onChange={(v) =>
+                        setEditRates((prev) => ({
+                          ...prev,
+                          [r.code]: Number(v) || 0,
+                        }))
+                      }
+                      decimalScale={2}
+                      fixedDecimalScale
+                      prefix={`${r.symbol} `}
+                      size="sm"
+                      hideControls
+                      w={140}
+                      min={0}
+                      styles={{
+                        input: {
+                          fontFamily: '"Fira Code", monospace',
+                          fontWeight: 700,
+                          fontSize: "18px",
+                          color: "#F8FAFC",
+                          textAlign: "right",
+                          background: "rgba(255,255,255,0.05)",
+                          border: "1px solid rgba(255,255,255,0.1)",
+                          borderRadius: "var(--mantine-radius-sm)",
+                        },
+                      }}
+                    />
+                  </Group>
+                </Paper>
+              ))}
 
-              {/* COP */}
-              <Paper
-                p="sm"
-                radius="md"
-                style={{
-                  background: "rgba(245, 158, 11, 0.08)",
-                  border: "1px solid rgba(245, 158, 11, 0.15)",
-                }}
-              >
-                <Group justify="space-between">
-                  <div>
-                    <Badge variant="light" color="yellow" size="sm" mb={4}>
-                      COP
-                    </Badge>
-                    <Text size="xs" c="dimmed">
-                      Peso Colombiano
-                    </Text>
-                  </div>
-                  <NumberInput
-                    value={4150}
-                    decimalScale={2}
-                    fixedDecimalScale
-                    prefix="$"
-                    size="sm"
-                    variant="unstyled"
-                    styles={{
-                      input: {
-                        fontFamily: '"Fira Code", monospace',
-                        fontWeight: 700,
-                        fontSize: "18px",
-                        color: "#F8FAFC",
-                        padding: 0,
-                        textAlign: "right",
-                      },
-                    }}
-                    readOnly
-                  />
-                </Group>
-              </Paper>
+              {/* Action buttons */}
+              <Group justify="flex-end" gap="xs" mt="xs">
+                {hasChanges && (
+                  <Tooltip label="Deshacer cambios">
+                    <Button
+                      variant="subtle"
+                      color="gray"
+                      size="xs"
+                      leftSection={<IconRefresh size={14} />}
+                      onClick={handleResetRates}
+                    >
+                      Deshacer
+                    </Button>
+                  </Tooltip>
+                )}
+                <Button
+                  size="xs"
+                  leftSection={<IconDeviceFloppy size={14} />}
+                  disabled={!hasChanges}
+                  onClick={handleSaveRates}
+                  loading={updateTasa.isPending}
+                  variant={hasChanges ? "filled" : "light"}
+                >
+                  Guardar Tasas
+                </Button>
+              </Group>
             </Stack>
           </Paper>
         </Grid.Col>
 
-        {/* Right: 4 Financial KPIs — matching Stitch */}
+        {/* Right: 4 Financial KPIs */}
         <Grid.Col span={{ base: 12, md: 7 }}>
           <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
             <StatCard
               title="Ingresos del Día"
-              value="$1,245.50"
+              value={`$${(stats?.ingresosHoy ?? 0).toFixed(2)}`}
               icon={<IconCurrencyDollar size={20} />}
               accentColor="#22C55E"
             />
             <StatCard
-              title="Egresos Totales"
-              value="-$210.00"
+              title="Egresos del Día"
+              value={`-$${(stats?.egresosHoy ?? 0).toFixed(2)}`}
               icon={<IconTrendingDown size={20} />}
               accentColor="#EF4444"
-              subtitle="Promedio de gasto operativo"
+              subtitle="Compras de inventario y gastos"
             />
             <StatCard
               title="Balance Neto"
-              value="$1,035.50"
+              value={`$${(stats?.balanceHoy ?? 0).toFixed(2)}`}
               icon={<IconTrendingUp size={20} />}
               accentColor="#3B82F6"
             />
             <StatCard
               title="Tickets Cobrados"
-              value="18"
+              value={String(stats?.ticketsCobradosHoy ?? 0)}
               icon={<IconReceipt size={20} />}
               accentColor="#8B5CF6"
-              subtitle="Avg. $69.20 p/ ticket"
             />
           </SimpleGrid>
         </Grid.Col>
       </Grid>
 
+      {/* Saved notification */}
+      {showSaved && (
+        <Notification
+          icon={<IconCheck size={18} />}
+          color="green"
+          title="Tasas actualizadas"
+          withCloseButton={false}
+          style={{
+            position: "fixed",
+            bottom: 20,
+            right: 20,
+            zIndex: 1000,
+            maxWidth: 320,
+          }}
+        >
+          Tasas guardadas en la base de datos
+        </Notification>
+      )}
+
       {/* Payments Table */}
       <PaymentsTable />
 
-      {/* Arqueo de Caja — matching Stitch */}
+      {/* Arqueo de Caja */}
       <Paper
         p="lg"
         radius="lg"
         style={{
-          background: "#1E293B",
-          border: "1px solid rgba(255, 255, 255, 0.06)",
+          background: "var(--bg-card)",
+          border: "1px solid var(--border-subtle)",
         }}
       >
         <Group justify="space-between" mb="md">
@@ -240,7 +387,7 @@ export function FinancePage() {
               Fondo USD
             </Text>
             <Text ff="monospace" fw={700} size="xl" c="brand.6">
-              $420.00
+              ${(stats?.ingresosHoy ?? 0).toFixed(2)}
             </Text>
           </Box>
           <Box>
@@ -248,7 +395,7 @@ export function FinancePage() {
               Fondo VES
             </Text>
             <Text ff="monospace" fw={700} size="xl" c="blue.5">
-              Bs. 8,450.00
+              Bs. 0.00
             </Text>
           </Box>
           <Box>
