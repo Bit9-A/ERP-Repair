@@ -5,7 +5,6 @@ import {
   Group,
   Avatar,
   LoadingOverlay,
-  Stack,
 } from "@mantine/core";
 import { IconUser } from "@tabler/icons-react";
 import { TicketStatusBadge } from "../../../components/ui/StatusBadge";
