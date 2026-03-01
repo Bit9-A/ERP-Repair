@@ -68,4 +68,9 @@ export const queryKeys = {
     categorias: (desde?: string, hasta?: string) =>
       ["transactions", "categorias", { desde, hasta }] as const,
   },
+
+  // -- Dashboard --
+  dashboard: {
+    data: ["dashboard", "data"] as const,
+  },
 } as const;

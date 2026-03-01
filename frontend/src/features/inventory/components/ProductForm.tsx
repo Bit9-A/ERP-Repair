@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
   Modal,
   TextInput,
@@ -9,16 +9,38 @@ import {
   Select,
   SimpleGrid,
   Divider,
+  ActionIcon,
+  Tooltip,
+  Loader,
+  Paper,
+  Text,
+  Badge,
 } from "@mantine/core";
+import { IconScan, IconPlus, IconPackage } from "@tabler/icons-react";
 import { useForm } from "@mantine/form";
+import { notifications } from "@mantine/notifications";
+import { BarcodeScanner } from "../../sales/components/BarcodeScanner";
+import {
+  useMarcas,
+  useCreateMarca,
+  useModelosByMarca,
+  useCreateModelo,
+} from "../../../services";
 import type { Producto } from "../../../types";
 import type { ProductFormValues } from "../types/inventory.types";
 
 interface ProductFormProps {
   opened: boolean;
   onClose: () => void;
-  onSubmit: (values: ProductFormValues) => void;
+  onSubmit: (
+    values: ProductFormValues & {
+      id?: string;
+      isQuickAdd?: boolean;
+      qtyAdded?: number;
+    },
+  ) => void;
   initialData?: Producto | null;
+  allProducts?: Producto[];
 }
 
 export function ProductForm({
@@ -26,7 +48,23 @@ export function ProductForm({
   onClose,
   onSubmit,
   initialData,
+  allProducts = [],
 }: ProductFormProps) {
+  const [scannerOpen, setScannerOpen] = useState(false);
+  const [stockToAdd, setStockToAdd] = useState<number | string>("");
+
+  // -- Brand and Model State & Queries --
+  const [selectedMarcaId, setSelectedMarcaId] = useState<string | null>(null);
+  const [marcaSearch, setMarcaSearch] = useState("");
+  const [modeloSearch, setModeloSearch] = useState("");
+
+  const { data: marcas = [], isLoading: loadingMarcas } = useMarcas();
+  const createMarca = useCreateMarca();
+  const { data: modelos = [], isLoading: loadingModelos } = useModelosByMarca(
+    selectedMarcaId ?? undefined,
+  );
+  const createModelo = useCreateModelo();
+
   const form = useForm<ProductFormValues>({
     initialValues: {
       sku: "",
@@ -67,17 +105,132 @@ export function ProductForm({
           costo_usd: initialData.costo_usd,
           precio_usd: initialData.precio_usd,
         });
+
+        const marca = marcas.find((m) => m.nombre === initialData.marca_comp);
+        if (marca) setSelectedMarcaId(marca.id);
       } else {
         form.reset();
+        setSelectedMarcaId(null);
       }
     }
-  }, [opened, initialData]);
+  }, [opened, initialData, marcas]);
+
+  // -- Quick Add Logic --
+  // Helper to normalize sku comparison (handle UPCA/EAN13 zeroes)
+  const stripLeadingZeros = (str: string) =>
+    str.replace(/^0+/, "").toLowerCase();
+
+  // Is this an existing product we scanned/typed? (Only applies when NOT editing an existing product directly)
+  const existingProductMatch =
+    !initialData && form.values.sku.trim().length > 1
+      ? allProducts.find(
+          (p) =>
+            stripLeadingZeros(p.sku) === stripLeadingZeros(form.values.sku),
+        )
+      : null;
 
   const handleSubmit = (values: ProductFormValues) => {
-    onSubmit(values);
+    if (existingProductMatch) {
+      const qtyToAdd = Number(stockToAdd);
+
+      if (!qtyToAdd || qtyToAdd <= 0) {
+        notifications.show({
+          title: "Inválido",
+          message: "Ingrese una cantidad válida mayor a 0",
+          color: "red",
+        });
+        return;
+      }
+
+      // Submit a partial update with a flag for InventoryPage to use adjustStock
+      onSubmit({
+        ...existingProductMatch,
+        id: existingProductMatch.id,
+        marca_comp: existingProductMatch.marca_comp || "",
+        modelo_comp: existingProductMatch.modelo_comp || "",
+        propietario: existingProductMatch.propietario || "",
+        stock_actual: existingProductMatch.stock_actual + qtyToAdd,
+        isQuickAdd: true,
+        qtyAdded: qtyToAdd,
+      });
+      setStockToAdd("");
+    } else {
+      onSubmit(values);
+    }
+
     form.reset();
     onClose();
   };
+
+  const handleBarcodeScan = (code: string) => {
+    // Strip leading zeros for standardized format
+    const cleanCode = code.replace(/^0+/, "").toLowerCase();
+
+    form.setFieldValue("sku", cleanCode);
+    setScannerOpen(false);
+  };
+
+  const handleMarcaChange = (value: string | null) => {
+    form.setFieldValue("marca_comp", value || "");
+    form.setFieldValue("modelo_comp", ""); // reset modelo when marca changes
+    const marca = marcas.find((m) => m.nombre === value);
+    setSelectedMarcaId(marca?.id ?? null);
+  };
+
+  const handleCreateMarcaInline = async () => {
+    if (!marcaSearch.trim()) return;
+    try {
+      const newMarca = await createMarca.mutateAsync(marcaSearch.trim());
+      form.setFieldValue("marca_comp", newMarca.nombre);
+      setSelectedMarcaId(newMarca.id);
+      setMarcaSearch("");
+      notifications.show({
+        title: "Marca creada",
+        message: `"${newMarca.nombre}" fue agregada`,
+        color: "green",
+      });
+    } catch {
+      notifications.show({
+        title: "Error",
+        message: "No se pudo crear la marca",
+        color: "red",
+      });
+    }
+  };
+
+  const handleCreateModeloInline = async () => {
+    if (!modeloSearch.trim() || !selectedMarcaId) return;
+    try {
+      const newModelo = await createModelo.mutateAsync({
+        marcaId: selectedMarcaId,
+        nombre: modeloSearch.trim(),
+      });
+      form.setFieldValue("modelo_comp", newModelo.nombre);
+      setModeloSearch("");
+      notifications.show({
+        title: "Modelo creado",
+        message: `"${newModelo.nombre}" fue agregado`,
+        color: "green",
+      });
+    } catch {
+      notifications.show({
+        title: "Error",
+        message: "No se pudo crear el modelo",
+        color: "red",
+      });
+    }
+  };
+
+  const marcaOptions = marcas.map((m) => ({
+    value: m.nombre,
+    label: m.nombre,
+  }));
+
+  const modeloOptions = selectedMarcaId
+    ? modelos.map((m) => ({ value: m.nombre, label: m.nombre }))
+    : marcas
+        .find((m) => m.nombre === form.values.marca_comp)
+        ?.modelos?.map((m) => ({ value: m.nombre, label: m.nombre })) || [];
 
   const margen =
     form.values.precio_usd > 0 && form.values.costo_usd > 0
@@ -89,127 +242,256 @@ export function ProductForm({
       : "0.0";
 
   return (
-    <Modal
-      opened={opened}
-      onClose={onClose}
-      title={initialData ? "Editar Producto" : "Nuevo Producto"}
-      size="lg"
-    >
-      <form onSubmit={form.onSubmit(handleSubmit)}>
-        <Stack gap="md">
-          <Divider label="Información General" labelPosition="center" />
-          <SimpleGrid cols={2}>
-            <TextInput
-              label="SKU"
-              placeholder="Ej: PANT-LCD-A54"
-              required
-              {...form.getInputProps("sku")}
-            />
-            <TextInput
-              label="Nombre del Producto"
-              placeholder="Ej: Pantalla LCD Samsung A54"
-              required
-              {...form.getInputProps("nombre")}
-            />
-          </SimpleGrid>
+    <>
+      <Modal
+        opened={opened}
+        onClose={onClose}
+        title={initialData ? "Editar Producto" : "Nuevo Producto"}
+        size="lg"
+      >
+        <form
+          onSubmit={
+            existingProductMatch
+              ? (e) => {
+                  e.preventDefault();
+                  handleSubmit(form.values);
+                }
+              : form.onSubmit(handleSubmit)
+          }
+        >
+          <Stack gap="md">
+            <Divider label="Información General" labelPosition="center" />
+            <SimpleGrid cols={2}>
+              <TextInput
+                label="SKU / Código"
+                placeholder="Ej: PANT-LCD-A54"
+                required
+                {...form.getInputProps("sku")}
+                rightSection={
+                  <Tooltip label="Escanear Código">
+                    <ActionIcon
+                      variant="subtle"
+                      color="brand"
+                      onClick={() => setScannerOpen(true)}
+                    >
+                      <IconScan size={18} />
+                    </ActionIcon>
+                  </Tooltip>
+                }
+              />
+              {!existingProductMatch && (
+                <TextInput
+                  label="Nombre del Producto"
+                  placeholder="Ej: Pantalla LCD Samsung A54"
+                  required
+                  {...form.getInputProps("nombre")}
+                />
+              )}
+            </SimpleGrid>
 
-          <SimpleGrid cols={2}>
-            <TextInput
-              label="Marca Compatible"
-              placeholder="Ej: Samsung"
-              {...form.getInputProps("marca_comp")}
-            />
-            <TextInput
-              label="Modelo Compatible"
-              placeholder="Ej: A54"
-              {...form.getInputProps("modelo_comp")}
-            />
-          </SimpleGrid>
+            {/* Quick Add Interface vs Normal Interface */}
+            {existingProductMatch ? (
+              <Paper p="md" radius="md" bg="brand.9" c="white">
+                <Group justify="space-between" mb="sm">
+                  <Group gap="xs">
+                    <IconPackage size={20} />
+                    <Text fw={600}>{existingProductMatch.nombre}</Text>
+                  </Group>
+                  <Badge color="white" c="brand" variant="filled">
+                    Stock: {existingProductMatch.stock_actual}
+                  </Badge>
+                </Group>
 
-          <Divider label="Clasificación" labelPosition="center" />
-          <SimpleGrid cols={2}>
-            <Select
-              label="Categoría"
-              data={[
-                { value: "EQUIPO", label: "📱 Equipo" },
-                { value: "ACCESORIO", label: "🎧 Accesorio" },
-                { value: "REPUESTO", label: "🔧 Repuesto" },
-              ]}
-              {...form.getInputProps("categoria")}
-            />
-            <Select
-              label="Propiedad"
-              data={[
-                { value: "PROPIA", label: "🏠 Propia" },
-                { value: "PRESTADA", label: "🤝 Prestada (Consignación)" },
-              ]}
-              {...form.getInputProps("propiedad")}
-            />
-          </SimpleGrid>
+                <Text size="sm" mb="md" opacity={0.8}>
+                  Este producto ya existe en el inventario. ¿Deseas agregar más
+                  unidades?
+                </Text>
 
-          {form.values.propiedad === "PRESTADA" && (
-            <TextInput
-              label="Propietario / Dueño"
-              placeholder="Nombre del dueño de la mercancía"
-              required
-              {...form.getInputProps("propietario")}
-            />
-          )}
+                <NumberInput
+                  label="Cantidad a añadir"
+                  placeholder="Ej: 10"
+                  min={1}
+                  value={stockToAdd}
+                  onChange={setStockToAdd}
+                  required
+                  autoFocus
+                  styles={{
+                    label: { color: "rgba(255, 255, 255, 0.9)" },
+                    input: {
+                      background: "rgba(255,255,255,0.1)",
+                      color: "white",
+                      border: "none",
+                    },
+                  }}
+                />
+              </Paper>
+            ) : (
+              <>
+                <SimpleGrid cols={2}>
+                  <Select
+                    label="Marca Compatible"
+                    placeholder="Buscar marca..."
+                    data={marcaOptions}
+                    value={form.values.marca_comp || null}
+                    onChange={handleMarcaChange}
+                    searchable
+                    onSearchChange={setMarcaSearch}
+                    searchValue={marcaSearch}
+                    clearable
+                    rightSection={
+                      loadingMarcas ? <Loader size={14} /> : undefined
+                    }
+                    nothingFoundMessage={
+                      marcaSearch.trim() ? (
+                        <Button
+                          variant="subtle"
+                          size="compact-sm"
+                          leftSection={<IconPlus size={14} />}
+                          fullWidth
+                          onClick={handleCreateMarcaInline}
+                          loading={createMarca.isPending}
+                        >
+                          Crear "{marcaSearch.trim()}"
+                        </Button>
+                      ) : (
+                        "Escribe para buscar"
+                      )
+                    }
+                  />
+                  <Select
+                    label="Modelo Compatible"
+                    placeholder={
+                      selectedMarcaId
+                        ? "Buscar modelo..."
+                        : "Selecciona marca primero"
+                    }
+                    data={modeloOptions}
+                    value={form.values.modelo_comp || null}
+                    onChange={(v) => form.setFieldValue("modelo_comp", v || "")}
+                    searchable
+                    onSearchChange={setModeloSearch}
+                    searchValue={modeloSearch}
+                    disabled={!form.values.marca_comp}
+                    clearable
+                    rightSection={
+                      loadingModelos ? <Loader size={14} /> : undefined
+                    }
+                    nothingFoundMessage={
+                      modeloSearch.trim() && selectedMarcaId ? (
+                        <Button
+                          variant="subtle"
+                          size="compact-sm"
+                          leftSection={<IconPlus size={14} />}
+                          fullWidth
+                          onClick={handleCreateModeloInline}
+                          loading={createModelo.isPending}
+                        >
+                          Crear "{modeloSearch.trim()}"
+                        </Button>
+                      ) : (
+                        "Escribe para buscar"
+                      )
+                    }
+                  />
+                </SimpleGrid>
 
-          <Divider label="Stock y Precios" labelPosition="center" />
-          <SimpleGrid cols={2}>
-            <NumberInput
-              label="Stock Actual"
-              min={0}
-              {...form.getInputProps("stock_actual")}
-            />
-            <NumberInput
-              label="Stock Mínimo"
-              min={0}
-              {...form.getInputProps("stock_minimo")}
-            />
-          </SimpleGrid>
+                <Divider label="Clasificación" labelPosition="center" />
+                <SimpleGrid cols={2}>
+                  <Select
+                    label="Categoría"
+                    data={[
+                      { value: "EQUIPO", label: "📱 Equipo" },
+                      { value: "ACCESORIO", label: "🎧 Accesorio" },
+                      { value: "REPUESTO", label: "🔧 Repuesto" },
+                    ]}
+                    {...form.getInputProps("categoria")}
+                  />
+                  <Select
+                    label="Propiedad"
+                    data={[
+                      { value: "PROPIA", label: "🏠 Propia" },
+                      {
+                        value: "PRESTADA",
+                        label: "🤝 Prestada (Consignación)",
+                      },
+                    ]}
+                    {...form.getInputProps("propiedad")}
+                  />
+                </SimpleGrid>
 
-          <SimpleGrid cols={3}>
-            <NumberInput
-              label="Costo ($)"
-              min={0}
-              decimalScale={2}
-              fixedDecimalScale
-              prefix="$"
-              {...form.getInputProps("costo_usd")}
-            />
-            <NumberInput
-              label="Precio ($)"
-              min={0}
-              decimalScale={2}
-              fixedDecimalScale
-              prefix="$"
-              {...form.getInputProps("precio_usd")}
-            />
-            <TextInput
-              label="Margen"
-              value={`${margen}%`}
-              readOnly
-              styles={{
-                input: {
-                  fontWeight: 700,
-                  color: Number(margen) > 0 ? "#22C55E" : "#EF4444",
-                },
-              }}
-            />
-          </SimpleGrid>
+                {form.values.propiedad === "PRESTADA" && (
+                  <TextInput
+                    label="Propietario / Dueño"
+                    placeholder="Nombre del dueño de la mercancía"
+                    required
+                    {...form.getInputProps("propietario")}
+                  />
+                )}
 
-          <Group justify="flex-end" mt="md">
-            <Button variant="subtle" onClick={onClose}>
-              Cancelar
-            </Button>
-            <Button type="submit">
-              {initialData ? "Guardar Cambios" : "Agregar Producto"}
-            </Button>
-          </Group>
-        </Stack>
-      </form>
-    </Modal>
+                <Divider label="Stock y Precios" labelPosition="center" />
+                <SimpleGrid cols={2}>
+                  <NumberInput
+                    label="Stock Actual"
+                    min={0}
+                    {...form.getInputProps("stock_actual")}
+                  />
+                  <NumberInput
+                    label="Stock Mínimo"
+                    min={0}
+                    {...form.getInputProps("stock_minimo")}
+                  />
+                </SimpleGrid>
+
+                <SimpleGrid cols={3}>
+                  <NumberInput
+                    label="Costo ($)"
+                    min={0}
+                    decimalScale={2}
+                    fixedDecimalScale
+                    prefix="$"
+                    {...form.getInputProps("costo_usd")}
+                  />
+                  <NumberInput
+                    label="Precio ($)"
+                    min={0}
+                    decimalScale={2}
+                    fixedDecimalScale
+                    prefix="$"
+                    {...form.getInputProps("precio_usd")}
+                  />
+                  <TextInput
+                    label="Margen"
+                    value={`${margen}%`}
+                    readOnly
+                    styles={{
+                      input: {
+                        fontWeight: 700,
+                        color: Number(margen) > 0 ? "#22C55E" : "#EF4444",
+                      },
+                    }}
+                  />
+                </SimpleGrid>
+              </>
+            )}
+
+            <Group justify="flex-end" mt="md">
+              <Button variant="subtle" onClick={onClose}>
+                Cancelar
+              </Button>
+              <Button type="submit">
+                {initialData ? "Guardar Cambios" : "Agregar Producto"}
+              </Button>
+            </Group>
+          </Stack>
+        </form>
+      </Modal>
+
+      {/* Scanner Modal overlay */}
+      <BarcodeScanner
+        opened={scannerOpen}
+        onClose={() => setScannerOpen(false)}
+        onDetected={handleBarcodeScan}
+      />
+    </>
   );
 }

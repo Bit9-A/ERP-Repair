@@ -60,6 +60,15 @@
   border-color: rgba(255, 255, 255, 0.12) !important;
 }
 
+/* NavLink hover and active states (moved from theme.ts) */
+.mantine-NavLink-root:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+}
+.mantine-NavLink-root[data-active] {
+  background-color: var(--brand-600);
+  color: #ffffff;
+}
+
 /* Kanban ticket card hover */
 .kanban-card:hover {
   box-shadow: 0 10px 15px rgba(0, 0, 0, 0.15);
@@ -102,5 +111,65 @@
   .quick-action-card:hover,
   .kanban-card:hover {
     transform: none !important;
+  }
+}
+
+/* ============================================
+   Mobile Responsive
+   ============================================ */
+
+@media (max-width: 48em) {
+  /* Sidebar: constrain width on mobile (override Mantine's 100% default) */
+  .mantine-AppShell-navbar {
+    max-width: 280px !important;
+  }
+
+  /* Tables: horizontal scroll on mobile */
+  .mantine-Table-scrollContainer,
+  .mantine-Paper-root > .mantine-Table-table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Full-width modals on mobile */
+  .mantine-Modal-content {
+    max-height: 95dvh;
+  }
+
+  .mantine-Modal-inner {
+    padding: 8px;
+  }
+
+  /* Stat cards: no hover transform on mobile (touch) */
+  .stat-card:hover,
+  .quick-action-card:hover {
+    transform: none !important;
+  }
+
+  /* KanbanBoard horizontal scroll */
+  .kanban-columns {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x mandatory;
+    padding-bottom: 8px;
+  }
+
+  .kanban-columns > * {
+    scroll-snap-align: start;
+    min-width: 280px;
+    flex-shrink: 0;
+  }
+
+  /* Page titles smaller on mobile */
+  .mantine-Title-root {
+    font-size: 1.25rem !important;
+  }
+}
+
+/* Small phones */
+@media (max-width: 30em) {
+  .mantine-Modal-inner {
+    padding: 4px;
   }
 }

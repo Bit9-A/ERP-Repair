@@ -30,10 +30,12 @@ export interface CierreDeCaja {
 }
 
 export interface FinanceStats {
-  totalMonedas: number;
-  ingresosMes: number;
-  egresosMes: number;
-  balanceMes: number;
+  ingresosHoy: number;
+  egresosHoy: number;
+  balanceHoy: number;
+  ticketsCobradosHoy: number;
+  cantidadEgresosHoy: number;
+  totalPagosHistorico: number;
 }
 
 // -- Monedas --

@@ -16,9 +16,9 @@ router.get("/pagos", ctrl.findPagos);
 router.post("/pagos", ctrl.registrarPago);
 
 // Cierre de caja
-router.get("/cierre", ctrl.cierreDeCaja);
+router.get("/cierre", requireRole("ADMIN", "TECNICO"), ctrl.cierreDeCaja);
 
 // Stats
-router.get("/stats", ctrl.getStats);
+router.get("/stats", requireRole("ADMIN", "TECNICO"), ctrl.getStats);
 
 export default router;

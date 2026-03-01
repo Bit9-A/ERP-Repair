@@ -41,17 +41,44 @@ export async function registrarPago(data: {
     moneda.tasa_cambio,
   );
 
-  return prisma.pago.create({
-    data: {
-      ticketId: data.ticketId,
-      ventaId: data.ventaId,
-      monedaId: data.monedaId,
-      monto_moneda_local: data.monto_moneda_local,
-      equivalente_usd,
-      metodo: data.metodo,
-      referencia: data.referencia,
-    },
-    include: { moneda: true },
+  return prisma.$transaction(async (tx) => {
+    const pago = await tx.pago.create({
+      data: {
+        ticketId: data.ticketId,
+        ventaId: data.ventaId,
+        monedaId: data.monedaId,
+        monto_moneda_local: data.monto_moneda_local,
+        equivalente_usd,
+        metodo: data.metodo,
+        referencia: data.referencia,
+      },
+      include: { moneda: true },
+    });
+
+    // Determine category and concept
+    let categoria = "OPERATIVO";
+    let concepto = `Pago recibido - ${data.metodo}`;
+
+    if (data.ticketId) {
+      categoria = "REPARACION";
+      concepto = `Cobro Ticket #${data.ticketId.slice(0, 8)}`;
+    } else if (data.ventaId) {
+      categoria = "VENTA";
+      concepto = `Cobro Venta #${data.ventaId.slice(0, 8)}`;
+    }
+
+    await tx.transaccionFinanciera.create({
+      data: {
+        tipo: "INGRESO",
+        monto_usd: parseFloat(equivalente_usd.toFixed(2)),
+        concepto,
+        categoria,
+        ticketId: data.ticketId,
+        ventaId: data.ventaId,
+      },
+    });
+
+    return pago;
   });
 }
 
@@ -138,18 +165,35 @@ export async function getStats() {
   const endOfDay = new Date(today);
   endOfDay.setHours(23, 59, 59, 999);
 
-  const [ingresosHoy, totalPagos] = await Promise.all([
-    prisma.pago.aggregate({
-      where: { fecha_pago: { gte: startOfDay, lte: endOfDay } },
-      _sum: { equivalente_usd: true },
+  const [ingresosHoy, egresosHoy, totalPagos] = await Promise.all([
+    prisma.transaccionFinanciera.aggregate({
+      where: {
+        tipo: "INGRESO",
+        createdAt: { gte: startOfDay, lte: endOfDay },
+      },
+      _sum: { monto_usd: true },
+      _count: true,
+    }),
+    prisma.transaccionFinanciera.aggregate({
+      where: {
+        tipo: "EGRESO",
+        createdAt: { gte: startOfDay, lte: endOfDay },
+      },
+      _sum: { monto_usd: true },
       _count: true,
     }),
     prisma.pago.count(),
   ]);
 
+  const ingresos = ingresosHoy._sum.monto_usd || 0;
+  const egresos = egresosHoy._sum.monto_usd || 0;
+
   return {
-    ingresosHoy: ingresosHoy._sum.equivalente_usd || 0,
+    ingresosHoy: parseFloat(ingresos.toFixed(2)),
+    egresosHoy: parseFloat(egresos.toFixed(2)),
+    balanceHoy: parseFloat((ingresos - egresos).toFixed(2)),
     ticketsCobradosHoy: ingresosHoy._count,
+    cantidadEgresosHoy: egresosHoy._count,
     totalPagosHistorico: totalPagos,
   };
 }

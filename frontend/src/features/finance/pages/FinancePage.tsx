@@ -312,15 +312,15 @@ export function FinancePage() {
               accentColor="#22C55E"
             />
             <StatCard
-              title="Egresos Totales"
-              value="-$0.00"
+              title="Egresos del Día"
+              value={`-$${(stats?.egresosHoy ?? 0).toFixed(2)}`}
               icon={<IconTrendingDown size={20} />}
               accentColor="#EF4444"
-              subtitle="Promedio de gasto operativo"
+              subtitle="Compras de inventario y gastos"
             />
             <StatCard
               title="Balance Neto"
-              value={`$${(stats?.ingresosHoy ?? 0).toFixed(2)}`}
+              value={`$${(stats?.balanceHoy ?? 0).toFixed(2)}`}
               icon={<IconTrendingUp size={20} />}
               accentColor="#3B82F6"
             />

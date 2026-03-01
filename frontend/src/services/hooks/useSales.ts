@@ -9,7 +9,7 @@ import type { SalesFilters, CreateSalePayload } from "../sales.service";
 
 export function useSales(filters?: SalesFilters) {
   return useQuery({
-    queryKey: queryKeys.sales.all(filters),
+    queryKey: filters ? (["sales", filters] as const) : (["sales"] as const),
     queryFn: () => salesService.getAll(filters),
   });
 }
@@ -37,6 +37,8 @@ export function useCreateSale() {
       qc.invalidateQueries({ queryKey: ["sales"] });
       qc.invalidateQueries({ queryKey: ["inventory"] });
       qc.invalidateQueries({ queryKey: ["transactions"] });
+      qc.invalidateQueries({ queryKey: ["finance"] });
+      qc.invalidateQueries({ queryKey: ["dashboard"] });
     },
   });
 }
@@ -49,6 +51,8 @@ export function useMarcarPagada() {
       qc.invalidateQueries({ queryKey: ["sales"] });
       qc.invalidateQueries({ queryKey: queryKeys.sales.detail(id) });
       qc.invalidateQueries({ queryKey: ["transactions"] });
+      qc.invalidateQueries({ queryKey: ["finance"] });
+      qc.invalidateQueries({ queryKey: ["dashboard"] });
     },
   });
 }
@@ -62,6 +66,8 @@ export function useAnularVenta() {
       qc.invalidateQueries({ queryKey: queryKeys.sales.detail(id) });
       qc.invalidateQueries({ queryKey: ["inventory"] });
       qc.invalidateQueries({ queryKey: ["transactions"] });
+      qc.invalidateQueries({ queryKey: ["finance"] });
+      qc.invalidateQueries({ queryKey: ["dashboard"] });
     },
   });
 }

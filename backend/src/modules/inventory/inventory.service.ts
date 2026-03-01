@@ -90,6 +90,17 @@ export async function create(data: {
         nota: "Stock inicial al crear producto",
       },
     });
+
+    // Register EGRESO transaction for inventory purchase
+    const costoTotal = data.costo_usd * initialStock;
+    await prisma.transaccionFinanciera.create({
+      data: {
+        tipo: "EGRESO",
+        monto_usd: parseFloat(costoTotal.toFixed(2)),
+        concepto: `Compra de inventario: ${data.nombre} (x${initialStock})`,
+        categoria: "INVENTARIO",
+      },
+    });
   }
 
   return product;
@@ -132,8 +143,8 @@ export async function adjustStock(id: string, cantidad: number, nota?: string) {
     );
   }
 
-  return prisma.$transaction([
-    prisma.movimientoStock.create({
+  return prisma.$transaction(async (tx) => {
+    await tx.movimientoStock.create({
       data: {
         productoId: id,
         tipo: cantidad > 0 ? "ENTRADA" : "AJUSTE",
@@ -141,12 +152,28 @@ export async function adjustStock(id: string, cantidad: number, nota?: string) {
         nota:
           nota || (cantidad > 0 ? "Entrada de inventario" : "Ajuste manual"),
       },
-    }),
-    prisma.producto.update({
+    });
+
+    const updated = await tx.producto.update({
       where: { id },
       data: { stock_actual: { increment: cantidad } },
-    }),
-  ]);
+    });
+
+    // Register EGRESO transaction when adding stock (purchase)
+    if (cantidad > 0) {
+      const costoTotal = product.costo_usd * cantidad;
+      await tx.transaccionFinanciera.create({
+        data: {
+          tipo: "EGRESO",
+          monto_usd: parseFloat(costoTotal.toFixed(2)),
+          concepto: `Compra de inventario: ${product.nombre} (x${cantidad})`,
+          categoria: "INVENTARIO",
+        },
+      });
+    }
+
+    return updated;
+  });
 }
 
 // ── Delete ──

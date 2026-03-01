@@ -87,6 +87,8 @@ export function SalesPage() {
           cantidad: i.cantidad,
         })),
         descuento_usd: values.descuento_usd,
+        // ✅ Pasar los datos de pago para que el backend registre el INGRESO
+        pago: values.pago,
       });
       notifications.show({
         title: "Venta registrada",
@@ -143,7 +145,7 @@ export function SalesPage() {
       <LoadingOverlay visible={isLoading} />
 
       {/* Header */}
-      <Group justify="space-between" align="center">
+      <Group justify="space-between" align="center" wrap="wrap" gap="sm">
         <Group gap="xs">
           <IconShoppingCart size={24} color="var(--primary)" />
           <Title order={2} c="gray.1">
@@ -244,119 +246,124 @@ export function SalesPage() {
 
         <Divider color="dark.6" />
 
-        <Table
-          highlightOnHover
-          horizontalSpacing="md"
-          verticalSpacing="sm"
-          styles={{
-            tr: { transition: "background 200ms ease", cursor: "pointer" },
-            th: {
-              color: "#94A3B8",
-              fontSize: "12px",
-              textTransform: "uppercase",
-              letterSpacing: "0.05em",
-            },
-            td: { borderColor: "rgba(255,255,255,0.04)" },
-          }}
-        >
-          <Table.Thead>
-            <Table.Tr>
-              <Table.Th>Código</Table.Th>
-              <Table.Th>Cliente</Table.Th>
-              <Table.Th>Vendedor</Table.Th>
-              <Table.Th style={{ textAlign: "right" }}>Total</Table.Th>
-              <Table.Th>Estado</Table.Th>
-              <Table.Th>Fecha</Table.Th>
-              <Table.Th style={{ textAlign: "center" }}>Acciones</Table.Th>
-            </Table.Tr>
-          </Table.Thead>
-          <Table.Tbody>
-            {filtered.map((sale) => {
-              const status = SALE_STATUS[sale.estado];
-              return (
-                <Table.Tr key={sale.id} onClick={() => handleViewDetail(sale)}>
-                  <Table.Td>
-                    <Text ff="monospace" size="sm" fw={600} c="gray.1">
-                      V-{sale.numero}
-                    </Text>
-                  </Table.Td>
-                  <Table.Td>
-                    <Text size="sm" c="gray.2">
-                      {sale.cliente?.nombre || "Sin cliente"}
-                    </Text>
-                  </Table.Td>
-                  <Table.Td>
-                    <Text size="sm" c="gray.2">
-                      {sale.vendedor?.nombre || "N/A"}
-                    </Text>
-                  </Table.Td>
-                  <Table.Td style={{ textAlign: "right" }}>
-                    <Text ff="monospace" size="sm" fw={700} c="gray.1">
-                      ${sale.total_usd.toFixed(2)}
-                    </Text>
-                  </Table.Td>
-                  <Table.Td>
-                    <Badge variant="light" color={status.color} size="sm">
-                      {status.label}
-                    </Badge>
-                  </Table.Td>
-                  <Table.Td>
-                    <Text size="xs" c="dimmed">
-                      {new Date(sale.createdAt).toLocaleDateString("es-VE")}
-                    </Text>
-                  </Table.Td>
-                  <Table.Td>
-                    <Group gap="xs" justify="center">
-                      <Tooltip label="Ver detalle">
-                        <ActionIcon
-                          variant="subtle"
-                          color="blue"
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleViewDetail(sale);
-                          }}
-                        >
-                          <IconEye size={16} />
-                        </ActionIcon>
-                      </Tooltip>
-                      {sale.estado === "PENDIENTE" && (
-                        <>
-                          <Tooltip label="Marcar pagada">
-                            <ActionIcon
-                              variant="subtle"
-                              color="green"
-                              size="sm"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleMarcarPagada(sale.id);
-                              }}
-                            >
-                              <IconCheck size={16} />
-                            </ActionIcon>
-                          </Tooltip>
-                          <Tooltip label="Anular">
-                            <ActionIcon
-                              variant="subtle"
-                              color="red"
-                              size="sm"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleAnular(sale.id);
-                              }}
-                            >
-                              <IconBan size={16} />
-                            </ActionIcon>
-                          </Tooltip>
-                        </>
-                      )}
-                    </Group>
-                  </Table.Td>
-                </Table.Tr>
-              );
-            })}
-          </Table.Tbody>
-        </Table>
+        <div style={{ overflowX: "auto" }}>
+          <Table
+            highlightOnHover
+            horizontalSpacing="md"
+            verticalSpacing="sm"
+            styles={{
+              tr: { transition: "background 200ms ease", cursor: "pointer" },
+              th: {
+                color: "#94A3B8",
+                fontSize: "12px",
+                textTransform: "uppercase",
+                letterSpacing: "0.05em",
+              },
+              td: { borderColor: "rgba(255,255,255,0.04)" },
+            }}
+          >
+            <Table.Thead>
+              <Table.Tr>
+                <Table.Th>Código</Table.Th>
+                <Table.Th>Cliente</Table.Th>
+                <Table.Th>Vendedor</Table.Th>
+                <Table.Th style={{ textAlign: "right" }}>Total</Table.Th>
+                <Table.Th>Estado</Table.Th>
+                <Table.Th>Fecha</Table.Th>
+                <Table.Th style={{ textAlign: "center" }}>Acciones</Table.Th>
+              </Table.Tr>
+            </Table.Thead>
+            <Table.Tbody>
+              {filtered.map((sale) => {
+                const status = SALE_STATUS[sale.estado];
+                return (
+                  <Table.Tr
+                    key={sale.id}
+                    onClick={() => handleViewDetail(sale)}
+                  >
+                    <Table.Td>
+                      <Text ff="monospace" size="sm" fw={600} c="gray.1">
+                        V-{sale.numero}
+                      </Text>
+                    </Table.Td>
+                    <Table.Td>
+                      <Text size="sm" c="gray.2">
+                        {sale.cliente?.nombre || "Sin cliente"}
+                      </Text>
+                    </Table.Td>
+                    <Table.Td>
+                      <Text size="sm" c="gray.2">
+                        {sale.vendedor?.nombre || "N/A"}
+                      </Text>
+                    </Table.Td>
+                    <Table.Td style={{ textAlign: "right" }}>
+                      <Text ff="monospace" size="sm" fw={700} c="gray.1">
+                        ${sale.total_usd.toFixed(2)}
+                      </Text>
+                    </Table.Td>
+                    <Table.Td>
+                      <Badge variant="light" color={status.color} size="sm">
+                        {status.label}
+                      </Badge>
+                    </Table.Td>
+                    <Table.Td>
+                      <Text size="xs" c="dimmed">
+                        {new Date(sale.createdAt).toLocaleDateString("es-VE")}
+                      </Text>
+                    </Table.Td>
+                    <Table.Td>
+                      <Group gap="xs" justify="center">
+                        <Tooltip label="Ver detalle">
+                          <ActionIcon
+                            variant="subtle"
+                            color="blue"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleViewDetail(sale);
+                            }}
+                          >
+                            <IconEye size={16} />
+                          </ActionIcon>
+                        </Tooltip>
+                        {sale.estado === "PENDIENTE" && (
+                          <>
+                            <Tooltip label="Marcar pagada">
+                              <ActionIcon
+                                variant="subtle"
+                                color="green"
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleMarcarPagada(sale.id);
+                                }}
+                              >
+                                <IconCheck size={16} />
+                              </ActionIcon>
+                            </Tooltip>
+                            <Tooltip label="Anular">
+                              <ActionIcon
+                                variant="subtle"
+                                color="red"
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleAnular(sale.id);
+                                }}
+                              >
+                                <IconBan size={16} />
+                              </ActionIcon>
+                            </Tooltip>
+                          </>
+                        )}
+                      </Group>
+                    </Table.Td>
+                  </Table.Tr>
+                );
+              })}
+            </Table.Tbody>
+          </Table>
+        </div>
 
         {filtered.length === 0 && !isLoading && (
           <Text ta="center" c="dimmed" py="xl">

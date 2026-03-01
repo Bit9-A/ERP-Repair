@@ -58,6 +58,7 @@ export function useRegistrarPago() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["finance"] });
       qc.invalidateQueries({ queryKey: ["transactions"] });
+      qc.invalidateQueries({ queryKey: ["dashboard"] });
     },
   });
 }
@@ -77,5 +78,8 @@ export function useFinanceStats() {
   return useQuery({
     queryKey: queryKeys.finance.stats,
     queryFn: financeService.getStats,
+    staleTime: 0,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
   });
 }

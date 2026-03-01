@@ -145,6 +145,17 @@ export async function create(data: CreateVentaDTO) {
           referencia: data.pago.referencia,
         },
       });
+
+      // Register matching INGRESO transaction
+      await tx.transaccionFinanciera.create({
+        data: {
+          tipo: "INGRESO",
+          monto_usd: parseFloat(data.pago.equivalente_usd.toFixed(2)),
+          concepto: `Venta Comercial #${newVenta.numero || newVenta.id.slice(0, 8)}`,
+          categoria: "VENTA",
+          ventaId: newVenta.id,
+        },
+      });
     }
 
     return newVenta;

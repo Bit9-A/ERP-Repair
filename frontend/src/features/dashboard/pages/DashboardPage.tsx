@@ -2,7 +2,6 @@ import {
   SimpleGrid,
   Stack,
   Title,
-  Text,
   Grid,
   Box,
   LoadingOverlay,
@@ -18,47 +17,45 @@ import { KanbanPreview } from "../components/KanbanPreview";
 import { RecentTickets } from "../components/RecentTickets";
 import { QuickActions } from "../components/QuickActions";
 import { useAuthStore } from "../../auth/store/auth.store";
-import { useKanbanCounts } from "../../../services";
-import { useProducts, useRepairs } from "../../../services";
+import { useDashboardData, useFinanceStats } from "../../../services";
 
 export function DashboardPage() {
   const user = useAuthStore((s) => s.user);
 
-  const { data: kanbanCounts } = useKanbanCounts();
-  const { data: products = [] } = useProducts();
-  const { data: repairs = [], isLoading } = useRepairs();
+  const { data: dashboardData, isLoading } = useDashboardData();
+  const { data: financeStats } = useFinanceStats();
+  console.log("dashboardData", dashboardData);
+  console.log("financeStats", financeStats);
+
+  const { kanbanCounts, metrics } = dashboardData || {
+    kanbanCounts: {
+      RECIBIDO: 0,
+      EN_REVISION: 0,
+      ESPERANDO_REPUESTO: 0,
+      REPARADO: 0,
+      ENTREGADO: 0,
+      ABANDONO: 0,
+    },
+    metrics: {
+      activeTickets: 0,
+      waitingParts: 0,
+      lowStockCount: 0,
+      todayRevenue: 0,
+    },
+  };
+
+  const { activeTickets, waitingParts, lowStockCount } = metrics;
+  const todayRevenue = financeStats?.ingresosHoy ?? 0;
+  const counts: Record<string, number> = kanbanCounts as unknown as Record<
+    string,
+    number
+  >;
 
   const getGreeting = () => {
     const hour = new Date().getHours();
     if (hour < 12) return "Buenos días";
     if (hour < 18) return "Buenas tardes";
     return "Buenas noches";
-  };
-
-  // KPI calculations from real data
-  const activeTickets = repairs.filter((r) => r.estado !== "ENTREGADO").length;
-  const waitingParts = repairs.filter(
-    (r) => r.estado === "ESPERANDO_REPUESTO",
-  ).length;
-  const lowStockCount = products.filter(
-    (p) => p.stock_actual > 0 && p.stock_actual <= p.stock_minimo,
-  ).length;
-
-  // Approximate today's revenue from delivered tickets
-  const todayRevenue = repairs
-    .filter((r) => {
-      if (!r.fecha_ingreso) return false;
-      const today = new Date().toDateString();
-      return new Date(r.fecha_ingreso).toDateString() === today;
-    })
-    .reduce((sum, r) => sum + (r.precio_total_usd || 0), 0);
-
-  const counts = kanbanCounts || {
-    RECIBIDO: 0,
-    EN_REVISION: 0,
-    ESPERANDO_REPUESTO: 0,
-    REPARADO: 0,
-    ENTREGADO: 0,
   };
 
   return (

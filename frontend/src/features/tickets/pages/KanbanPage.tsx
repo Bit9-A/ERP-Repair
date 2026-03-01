@@ -95,7 +95,7 @@ export function KanbanPage() {
     <Stack gap="xl" pos="relative">
       <LoadingOverlay visible={isLoading} />
 
-      <Group justify="space-between" align="center">
+      <Group justify="space-between" align="center" wrap="wrap" gap="sm">
         <Group gap="md">
           <Title order={3} c="gray.1">
             Reparaciones
