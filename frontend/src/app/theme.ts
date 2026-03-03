@@ -1,9 +1,9 @@
-import { createTheme } from "@mantine/core";
+import { createTheme, type MantineColorsTuple } from "@mantine/core";
 
 // Pro Max Design System — RepairShop ERP
 // Source: design-system/repairshop-erp/MASTER.md
 
-const brand = [
+const brand: MantineColorsTuple = [
   "#edf7ff", // 0
   "#d6ebff", // 1
   "#b5dbff", // 2
@@ -14,7 +14,21 @@ const brand = [
   "#154a80", // 7
   "#0e3155", // 8 — sidebar bg
   "#07182b", // 9
-] as const;
+];
+
+// Dark-mode palette (used when colorScheme = "dark")
+const darkPalette: MantineColorsTuple = [
+  "#C1C2C5", // 0 — muted text
+  "#A6A7AB", // 1
+  "#909296", // 2
+  "#5C5F66", // 3
+  "#373A40", // 4
+  "#2C2E33", // 5
+  "#1E293B", // 6 — card surface
+  "#0F172A", // 7 — main content bg
+  "#0B1120", // 8
+  "#020617", // 9 — deepest bg / sidebar
+];
 
 export const theme = createTheme({
   // -- Colors --
@@ -22,18 +36,7 @@ export const theme = createTheme({
   primaryShade: { light: 5, dark: 5 },
   colors: {
     brand,
-    dark: [
-      "#C1C2C5", // 0 — muted text
-      "#A6A7AB", // 1
-      "#909296", // 2
-      "#5C5F66", // 3
-      "#373A40", // 4
-      "#2C2E33", // 5
-      "#1E293B", // 6 — card surface
-      "#0F172A", // 7 — main content bg
-      "#0B1120", // 8
-      "#020617", // 9 — deepest bg / sidebar
-    ],
+    dark: darkPalette,
   },
 
   // -- Typography (Fira Code + Fira Sans) --

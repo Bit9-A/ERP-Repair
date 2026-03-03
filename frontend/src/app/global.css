@@ -22,29 +22,132 @@
   --primary-hover: var(--brand-600);
   --primary-light: var(--brand-400);
 
-  /* ── Surfaces ── */
-  --bg-main: #0f172a;
-  --bg-card: #1e293b;
-  --bg-elevated: #263548;
-  --sidebar-bg: var(--brand-800);
-  --sidebar-active: var(--brand-700);
-
-  /* ── Text (WCAG AA 4.5:1 on dark bg) ── */
-  --text-primary: #f1f5f9; /* slate-100 — ratio ~15:1 on #0f172a */
-  --text-secondary: #94a3b8; /* slate-400 — ratio ~5.5:1 on #0f172a */
-  --text-muted: #64748b; /* slate-500 — ratio ~3.5:1 (large text OK) */
-  --text-on-brand: #ffffff;
-
-  /* ── Borders ── */
-  --border-subtle: rgba(255, 255, 255, 0.06);
-  --border-default: rgba(255, 255, 255, 0.12);
-  --border-strong: rgba(255, 255, 255, 0.2);
-
   /* ── Status Colors ── */
   --success: #22c55e;
   --warning: #f59e0b;
   --danger: #ef4444;
   --info: var(--brand-400);
+
+  /* ── Sidebar (FIXED — never changes between modes) ── */
+  --sidebar-bg: var(--brand-800);
+  --sidebar-active: var(--brand-700);
+
+  /* ── Text on brand ── */
+  --text-on-brand: #ffffff;
+}
+
+/* ── Dark Mode (default) ── */
+[data-mantine-color-scheme="dark"] {
+  --bg-main: #0f172a;
+  --bg-card: #1e293b;
+  --bg-elevated: #263548;
+
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --border-default: rgba(255, 255, 255, 0.12);
+  --border-strong: rgba(255, 255, 255, 0.2);
+}
+
+/* ── Light Mode ── */
+[data-mantine-color-scheme="light"] {
+  /* -- App custom vars -- */
+  --bg-main: #f1f5f9;
+  --bg-card: #ffffff;
+  --bg-elevated: #e8edf3;
+  --text-primary: #1e293b;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
+  --border-subtle: rgba(0, 0, 0, 0.06);
+  --border-default: rgba(0, 0, 0, 0.12);
+  --border-strong: rgba(0, 0, 0, 0.2);
+
+  /* -- Mantine global tokens (body bg, default text) -- */
+  --mantine-color-body: #f1f5f9 !important;
+  --mantine-color-text: #1e293b !important;
+  --mantine-color-dimmed: #475569 !important;
+  --mantine-color-default: #ffffff !important;
+  --mantine-color-default-hover: #e8edf3 !important;
+  --mantine-color-default-color: #1e293b !important;
+  --mantine-color-placeholder: #94a3b8 !important;
+
+  /* NOTE: We do NOT remap --mantine-color-gray-* or --mantine-color-dark-*
+     here because those variables are also used for bg/border which must stay
+     their natural values. Text colour is handled via the !important CSS rules
+     below that target the color property directly. */
+}
+
+/* ── Light Mode: Force dark text in main content area ──
+   Excludes: svg/path, button elements, children of [data-variant="filled"] */
+[data-mantine-color-scheme="light"]
+  .mantine-AppShell-main
+  *:not(svg):not(path):not(button),
+[data-mantine-color-scheme="light"]
+  .mantine-AppShell-header
+  *:not(svg):not(path):not(button) {
+  color: #1e293b !important;
+}
+
+/* ── White text on filled/colored elements ──
+   Specificity of this rule: [data-mantine-color-scheme] + .mantine-AppShell-{main|header} +
+   [data-variant="filled"] = (0,3,0) which beats the (0,2,3) of the universal dark-text rule.
+   This covers Button[variant=filled], ActionIcon[variant=filled], and ALL their children. */
+[data-mantine-color-scheme="light"] .mantine-AppShell-main [data-variant="filled"],
+[data-mantine-color-scheme="light"] .mantine-AppShell-main [data-variant="filled"] *,
+[data-mantine-color-scheme="light"] .mantine-AppShell-header [data-variant="filled"],
+[data-mantine-color-scheme="light"] .mantine-AppShell-header [data-variant="filled"] *,
+/* Also cover portals (modals, dropdowns when button is there) */
+[data-mantine-color-scheme="light"] .mantine-Modal-content [data-variant="filled"],
+[data-mantine-color-scheme="light"] .mantine-Modal-content [data-variant="filled"] * {
+  color: #ffffff !important;
+}
+
+/* Muted / secondary text */
+[data-mantine-color-scheme="light"]
+  .mantine-AppShell-main
+  .mantine-InputWrapper-description {
+  color: #64748b !important;
+}
+
+/* Placeholder */
+[data-mantine-color-scheme="light"] .mantine-Input-input::placeholder {
+  color: #94a3b8 !important;
+}
+
+/* ── Light Mode portals (Modals, Dropdowns) — dark text by default ──
+   Mantine renders these outside AppShell, so we need a separate rule. */
+[data-mantine-color-scheme="light"] .mantine-Modal-content *:not(svg):not(path),
+[data-mantine-color-scheme="light"]
+  .mantine-Popover-dropdown
+  *:not(svg):not(path),
+[data-mantine-color-scheme="light"] .mantine-Menu-dropdown *:not(svg):not(path),
+[data-mantine-color-scheme="light"]
+  .mantine-Combobox-dropdown
+  *:not(svg):not(path),
+[data-mantine-color-scheme="light"]
+  .mantine-Select-dropdown
+  *:not(svg):not(path),
+[data-mantine-color-scheme="light"]
+  .mantine-Tooltip-tooltip
+  *:not(svg):not(path) {
+  color: #1e293b !important;
+}
+
+/* Keep sidebar text always white (sidebar bg is always dark).
+   !important needed to beat Mantine's inline CSS variable color. */
+[data-mantine-color-scheme="light"]
+  .mantine-AppShell-navbar
+  *:not(svg):not(path) {
+  color: #ffffff !important;
+}
+/* But preserve badge/status colors inside the navbar */
+[data-mantine-color-scheme="light"]
+  .mantine-AppShell-navbar
+  .mantine-Badge-root
+  * {
+  color: inherit !important;
 }
 
 /* Stat card hover */
@@ -57,14 +160,15 @@
 .quick-action-card:hover {
   box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
   transform: translateY(-2px);
-  border-color: rgba(255, 255, 255, 0.12) !important;
+  border-color: var(--border-default) !important;
 }
 
-/* NavLink hover and active states (moved from theme.ts) */
-.mantine-NavLink-root:hover {
+/* NavLink hover and active states — sidebar always uses dark colours */
+/* These rules target the sidebar only (sidebar bg is always dark) */
+.mantine-AppShell-navbar .mantine-NavLink-root:hover {
   background-color: rgba(255, 255, 255, 0.08);
 }
-.mantine-NavLink-root[data-active] {
+.mantine-AppShell-navbar .mantine-NavLink-root[data-active] {
   background-color: var(--brand-600);
   color: #ffffff;
 }
@@ -75,9 +179,12 @@
   transform: translateY(-2px);
 }
 
-/* Table row hover override for dark theme */
-.mantine-Table-tr:hover {
+/* Table row hover — adapts to both modes */
+[data-mantine-color-scheme="dark"] .mantine-Table-tr:hover {
   background-color: rgba(255, 255, 255, 0.03) !important;
+}
+[data-mantine-color-scheme="light"] .mantine-Table-tr:hover {
+  background-color: rgba(0, 0, 0, 0.03) !important;
 }
 
 /* Scrollbar styling for dark theme */
@@ -96,7 +203,7 @@
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #334155;
+  background: var(--bg-elevated);
 }
 
 /* Reduced motion */

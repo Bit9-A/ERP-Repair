@@ -6,6 +6,7 @@ import {
   Burger,
   Menu,
   rem,
+  Tooltip,
 } from "@mantine/core";
 import {
   IconBell,
@@ -14,23 +15,33 @@ import {
   IconTool,
   IconShoppingCart,
   IconPackage,
+  IconSun,
+  IconMoon,
 } from "@tabler/icons-react";
 import { useNavigate } from "react-router-dom";
+import { useThemeStore } from "../../stores/theme.store";
 
 interface TopBarProps {
   opened?: boolean;
   toggle?: () => void;
-  onNewTicket?: () => void; // Keep for backwards compatibility if still used
+  onNewTicket?: () => void;
   isMobile?: boolean;
 }
 
 export function TopBar({ opened, toggle, onNewTicket, isMobile }: TopBarProps) {
   const navigate = useNavigate();
+  const { colorScheme, toggle: toggleTheme } = useThemeStore();
+  const isDark = colorScheme === "dark";
 
   return (
     <Group h="100%" px="md" justify="space-between" wrap="nowrap">
       <Group gap="sm" wrap="nowrap">
-        <Burger opened={opened} onClick={toggle} size="sm" color="gray.4" />
+        <Burger
+          opened={opened}
+          onClick={toggle}
+          size="md"
+          color={colorScheme === "dark" ? "white" : "black"}
+        />
         {/* Hide search on very small screens */}
         {!isMobile && (
           <TextInput
@@ -49,6 +60,29 @@ export function TopBar({ opened, toggle, onNewTicket, isMobile }: TopBarProps) {
       </Group>
 
       <Group gap="sm" wrap="nowrap">
+        {/* Theme toggle */}
+        <Tooltip
+          label={isDark ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}
+          position="bottom"
+          withArrow
+        >
+          <ActionIcon
+            variant="subtle"
+            size="lg"
+            radius="md"
+            color={isDark ? "yellow" : "blue"}
+            onClick={toggleTheme}
+            aria-label="Cambiar tema"
+            style={{ transition: "all 200ms ease" }}
+          >
+            {isDark ? (
+              <IconSun size={20} stroke={1.5} />
+            ) : (
+              <IconMoon size={20} stroke={1.5} />
+            )}
+          </ActionIcon>
+        </Tooltip>
+
         <Indicator color="red" size={8} offset={4}>
           <ActionIcon variant="subtle" size="lg" radius="md" color="gray">
             <IconBell size={20} stroke={1.5} />

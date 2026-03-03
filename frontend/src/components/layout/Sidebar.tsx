@@ -171,6 +171,7 @@ export function Sidebar({
                 variant="filled"
                 styles={{
                   root: {
+                    color: "#ffffff",
                     borderRadius: "var(--mantine-radius-md)",
                     transition: "all 200ms ease",
                     // Larger touch target on mobile
