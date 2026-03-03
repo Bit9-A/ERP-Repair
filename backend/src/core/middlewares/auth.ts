@@ -5,6 +5,7 @@ import { env } from "../../config/env";
 export interface AuthPayload {
   userId: string;
   rol: string;
+  sucursalId?: string; // Feature 4: branch the user belongs to
 }
 
 // Extend Express Request

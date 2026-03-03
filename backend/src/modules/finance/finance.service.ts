@@ -49,7 +49,8 @@ export async function registrarPago(data: {
         monedaId: data.monedaId,
         monto_moneda_local: data.monto_moneda_local,
         equivalente_usd,
-        metodo: data.metodo,
+        metodo:
+          data.metodo as import("../../generated/prisma/client").$Enums.MetodoPago,
         referencia: data.referencia,
       },
       include: { moneda: true },

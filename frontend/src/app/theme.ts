@@ -39,12 +39,12 @@ export const theme = createTheme({
     dark: darkPalette,
   },
 
-  // -- Typography (Fira Code + Fira Sans) --
+  // -- Typography (Outfit + Plus Jakarta Sans + Fira Code) --
   fontFamily:
-    '"Fira Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+    '"Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
   fontFamilyMonospace: '"Fira Code", "JetBrains Mono", monospace',
   headings: {
-    fontFamily: '"Fira Code", monospace',
+    fontFamily: '"Outfit", sans-serif',
     fontWeight: "600",
   },
 

@@ -19,7 +19,7 @@ export function ExchangeRates() {
     <Stack gap="md">
       <Group gap="xs" mb={4}>
         <IconArrowsExchange size={18} color="#3B82F6" />
-        <Text size="sm" fw={600} c="gray.1">
+        <Text size="sm" fw={600}>
           Tasas de Cambio
         </Text>
       </Group>
@@ -56,7 +56,7 @@ export function ExchangeRates() {
               {rate.name}
             </Text>
             {rate.code === "USD" ? (
-              <Text ff="monospace" size="lg" fw={700} c="gray.1">
+              <Text ff="monospace" size="lg" fw={700}>
                 Moneda Base
               </Text>
             ) : (
@@ -72,7 +72,6 @@ export function ExchangeRates() {
                     fontFamily: '"Fira Code", monospace',
                     fontWeight: 700,
                     fontSize: "18px",
-                    color: "#F8FAFC",
                     padding: 0,
                   },
                 }}

@@ -7,6 +7,7 @@ import {
   Tooltip,
   Paper,
   ScrollArea,
+  Select,
 } from "@mantine/core";
 import {
   IconEye,
@@ -21,6 +22,7 @@ import dayjs from "dayjs";
 interface TicketListViewProps {
   tickets: TicketReparacion[];
   onTicketClick?: (ticket: TicketReparacion) => void;
+  onMoveTicket?: (ticketId: string, newEstado: EstadoTicket) => void;
 }
 
 const STATUS_COLORS: Record<string, string> = {
@@ -35,7 +37,14 @@ const STATUS_COLORS: Record<string, string> = {
 export function TicketListView({
   tickets,
   onTicketClick,
+  onMoveTicket,
 }: TicketListViewProps) {
+  const statusOptions = Object.entries(TICKET_STATUS).map(
+    ([value, { label }]) => ({
+      value,
+      label,
+    }),
+  );
   const rows = tickets.map((ticket) => {
     const diasTranscurridos = dayjs().diff(dayjs(ticket.fecha_ingreso), "day");
     const esAlerta = diasTranscurridos >= 60;
@@ -55,19 +64,19 @@ export function TicketListView({
         className="ticket-list-row"
       >
         <Table.Td>
-          <Text size="sm" fw={600} ff="monospace" c="gray.3">
+          <Text size="sm" fw={600} ff="monospace" c="dimmed">
             #T-{ticket.id.substring(0, 6)}
           </Text>
         </Table.Td>
         <Table.Td>
-          <Text size="sm" fw={500} c="gray.1">
+          <Text size="sm" fw={500}>
             {ticket.cliente?.nombre || "Sin cliente"}
           </Text>
         </Table.Td>
         <Table.Td>
           <Group gap={6} wrap="nowrap">
             <IconDeviceMobile size={14} />
-            <Text size="sm" c="gray.2">
+            <Text size="sm">
               {ticket.marca} {ticket.modelo}
             </Text>
           </Group>
@@ -78,9 +87,29 @@ export function TicketListView({
           </Text>
         </Table.Td>
         <Table.Td>
-          <Badge variant="light" color={color} size="sm">
-            {status?.label || ticket.estado}
-          </Badge>
+          <Select
+            size="xs"
+            variant="filled"
+            data={statusOptions}
+            value={ticket.estado}
+            onChange={(v) => {
+              if (v && onMoveTicket) {
+                onMoveTicket(ticket.id, v as EstadoTicket);
+              }
+            }}
+            onClick={(e) => e.stopPropagation()}
+            styles={{
+              input: {
+                backgroundColor: `var(--mantine-color-${color}-filled)`,
+                color: "var(--mantine-color-white)",
+                fontWeight: 700,
+                border: "none",
+                fontSize: "12px",
+                height: "26px",
+                minHeight: "26px",
+              },
+            }}
+          />
         </Table.Td>
         <Table.Td>
           <Group gap={4} wrap="nowrap">

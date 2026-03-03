@@ -64,7 +64,7 @@ export function DashboardPage() {
 
       {/* Greeting */}
       <Box>
-        <Title order={2} c="gray.1">
+        <Title order={2}>
           {getGreeting()}, {user?.nombre || "Admin"}
         </Title>
       </Box>

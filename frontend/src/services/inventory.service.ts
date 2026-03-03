@@ -38,6 +38,15 @@ export interface AdjustStockPayload {
   nota?: string;
 }
 
+// Feature 2 & 3: add stock with supplier price and branch
+export interface AddStockPayload {
+  cantidad: number;
+  nota?: string;
+  costo_unitario_usd?: number; // supplier price for this entry
+  actualizar_costo?: boolean; // whether to update Producto.costo_usd
+  sucursalId?: string; // which branch receives the stock
+}
+
 export interface InventoryStats {
   totalProductos: number;
   totalUnidades: number;
@@ -78,7 +87,7 @@ export async function update(
   return data.data;
 }
 
-/** PATCH /inventory/:id/stock */
+/** PATCH /inventory/:id/stock — adjust stock (manual) */
 export async function adjustStock(
   id: string,
   payload: AdjustStockPayload,
@@ -86,6 +95,28 @@ export async function adjustStock(
   const { data } = await api.patch<ApiResponse<Producto>>(
     `/inventory/${id}/stock`,
     payload,
+  );
+  return data.data;
+}
+
+/** POST /inventory/:id/add-stock — add incoming stock with supplier price (Feature 2 & 3) */
+export async function addStock(
+  id: string,
+  payload: AddStockPayload,
+): Promise<Producto> {
+  const { data } = await api.post<ApiResponse<Producto>>(
+    `/inventory/${id}/add-stock`,
+    payload,
+  );
+  return data.data;
+}
+
+/** GET /inventory/:id/historial-precios — supplier price history (Feature 2) */
+export async function getHistorialPrecios(
+  id: string,
+): Promise<MovimientoStock[]> {
+  const { data } = await api.get<ApiResponse<MovimientoStock[]>>(
+    `/inventory/${id}/historial-precios`,
   );
   return data.data;
 }

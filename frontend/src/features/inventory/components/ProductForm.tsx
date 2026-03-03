@@ -4,6 +4,7 @@ import {
   TextInput,
   NumberInput,
   Stack,
+  Autocomplete,
   Button,
   Group,
   Select,
@@ -89,31 +90,38 @@ export function ProductForm({
     },
   });
 
+  // Initialize form when opened
   useEffect(() => {
-    if (opened) {
-      if (initialData) {
-        form.setValues({
-          sku: initialData.sku,
-          nombre: initialData.nombre,
-          marca_comp: initialData.marca_comp || "",
-          modelo_comp: initialData.modelo_comp || "",
-          categoria: initialData.categoria,
-          propiedad: initialData.propiedad,
-          propietario: initialData.propietario || "",
-          stock_actual: initialData.stock_actual,
-          stock_minimo: initialData.stock_minimo,
-          costo_usd: initialData.costo_usd,
-          precio_usd: initialData.precio_usd,
-        });
+    if (opened && initialData) {
+      form.setValues({
+        sku: initialData.sku,
+        nombre: initialData.nombre,
+        marca_comp: initialData.marca_comp || "",
+        modelo_comp: initialData.modelo_comp || "",
+        categoria: initialData.categoria,
+        propiedad: initialData.propiedad,
+        propietario: initialData.propietario || "",
+        stock_actual: initialData.stock_actual,
+        stock_minimo: initialData.stock_minimo,
+        costo_usd: initialData.costo_usd,
+        precio_usd: initialData.precio_usd,
+      });
 
-        const marca = marcas.find((m) => m.nombre === initialData.marca_comp);
-        if (marca) setSelectedMarcaId(marca.id);
-      } else {
-        form.reset();
-        setSelectedMarcaId(null);
-      }
+      const marca = marcas.find((m) => m.nombre === initialData.marca_comp);
+      if (marca) setSelectedMarcaId(marca.id);
+    } else if (opened && !initialData && !form.isDirty()) {
+      // Only reset if it's cleanly opened without data and we haven't typed anything yet
+      // Actually, it's safer to just handle reset on close.
     }
-  }, [opened, initialData, marcas]);
+  }, [opened, initialData]);
+
+  // Sync initial brand ID once marcas load if editing
+  useEffect(() => {
+    if (opened && initialData && marcas.length > 0 && !selectedMarcaId) {
+      const marca = marcas.find((m) => m.nombre === initialData.marca_comp);
+      if (marca) setSelectedMarcaId(marca.id);
+    }
+  }, [marcas, opened, initialData, selectedMarcaId]);
 
   // -- Quick Add Logic --
   // Helper to normalize sku comparison (handle UPCA/EAN13 zeroes)
@@ -124,9 +132,9 @@ export function ProductForm({
   const existingProductMatch =
     !initialData && form.values.sku.trim().length > 1
       ? allProducts.find(
-        (p) =>
-          stripLeadingZeros(p.sku) === stripLeadingZeros(form.values.sku),
-      )
+          (p) =>
+            stripLeadingZeros(p.sku) === stripLeadingZeros(form.values.sku),
+        )
       : null;
 
   const handleSubmit = (values: ProductFormValues) => {
@@ -159,6 +167,7 @@ export function ProductForm({
     }
 
     form.reset();
+    setSelectedMarcaId(null);
     onClose();
   };
 
@@ -171,16 +180,18 @@ export function ProductForm({
   };
 
   const handleMarcaChange = (value: string | null) => {
-    form.setFieldValue("marca_comp", value || "");
+    form.setFieldValue("marca_comp", (value || "").toUpperCase());
     form.setFieldValue("modelo_comp", ""); // reset modelo when marca changes
-    const marca = marcas.find((m) => m.nombre === value);
+    const marca = marcas.find((m) => m.nombre === (value || "").toUpperCase());
     setSelectedMarcaId(marca?.id ?? null);
   };
 
   const handleCreateMarcaInline = async () => {
     if (!marcaSearch.trim()) return;
     try {
-      const newMarca = await createMarca.mutateAsync(marcaSearch.trim());
+      const newMarca = await createMarca.mutateAsync(
+        marcaSearch.trim().toUpperCase(),
+      );
       form.setFieldValue("marca_comp", newMarca.nombre);
       setSelectedMarcaId(newMarca.id);
       setMarcaSearch("");
@@ -203,7 +214,7 @@ export function ProductForm({
     try {
       const newModelo = await createModelo.mutateAsync({
         marcaId: selectedMarcaId,
-        nombre: modeloSearch.trim(),
+        nombre: modeloSearch.trim().toUpperCase(),
       });
       form.setFieldValue("modelo_comp", newModelo.nombre);
       setModeloSearch("");
@@ -229,16 +240,16 @@ export function ProductForm({
   const modeloOptions = selectedMarcaId
     ? modelos.map((m) => ({ value: m.nombre, label: m.nombre }))
     : marcas
-      .find((m) => m.nombre === form.values.marca_comp)
-      ?.modelos?.map((m) => ({ value: m.nombre, label: m.nombre })) || [];
+        .find((m) => m.nombre === form.values.marca_comp)
+        ?.modelos?.map((m) => ({ value: m.nombre, label: m.nombre })) || [];
 
   const margen =
     form.values.precio_usd > 0 && form.values.costo_usd > 0
       ? (
-        ((form.values.precio_usd - form.values.costo_usd) /
-          form.values.costo_usd) *
-        100
-      ).toFixed(1)
+          ((form.values.precio_usd - form.values.costo_usd) /
+            form.values.costo_usd) *
+          100
+        ).toFixed(1)
       : "0.0";
 
   return (
@@ -255,19 +266,20 @@ export function ProductForm({
           onSubmit={
             existingProductMatch
               ? (e) => {
-                e.preventDefault();
-                handleSubmit(form.values);
-              }
+                  e.preventDefault();
+                  handleSubmit(form.values);
+                }
               : form.onSubmit(handleSubmit)
           }
         >
           <Stack gap="md">
             <Divider label="Información General" labelPosition="center" />
             <SimpleGrid cols={2}>
-              <TextInput
+              <Autocomplete
                 label="SKU / Código"
                 placeholder="Ej: PANT-LCD-A54"
                 required
+                data={allProducts.map((p) => p.sku)}
                 {...form.getInputProps("sku")}
                 rightSection={
                   <Tooltip label="Escanear Código">
@@ -361,7 +373,7 @@ export function ProductForm({
                     }
                   />
                   <Select
-                    label="Modelo Compatible"
+                    label="Modelo"
                     placeholder={
                       selectedMarcaId
                         ? "Buscar modelo..."
@@ -369,7 +381,9 @@ export function ProductForm({
                     }
                     data={modeloOptions}
                     value={form.values.modelo_comp || null}
-                    onChange={(v) => form.setFieldValue("modelo_comp", v || "")}
+                    onChange={(v) =>
+                      form.setFieldValue("modelo_comp", (v || "").toUpperCase())
+                    }
                     searchable
                     onSearchChange={setModeloSearch}
                     searchValue={modeloSearch}
@@ -446,7 +460,7 @@ export function ProductForm({
 
                 <SimpleGrid cols={3}>
                   <NumberInput
-                    label="Costo ($)"
+                    label="Precio de Proveedor ($)"
                     min={0}
                     decimalScale={2}
                     fixedDecimalScale
@@ -454,7 +468,7 @@ export function ProductForm({
                     {...form.getInputProps("costo_usd")}
                   />
                   <NumberInput
-                    label="Precio ($)"
+                    label="Precio de Cliente ($)"
                     min={0}
                     decimalScale={2}
                     fixedDecimalScale

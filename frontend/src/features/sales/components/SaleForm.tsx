@@ -51,11 +51,8 @@ export interface SaleFormValues {
   clienteId?: string;
   items: CartItem[];
   descuento_usd: number;
-  tasas_snapshot: {
-    VES: number;
-    COP: number;
-    timestamp: string;
-  };
+  // Feature 1: snapshot de todas las tasas al momento de la venta
+  tasas_cambio_snapshot: Record<string, number>;
   pago?: {
     monedaId: string;
     monto_moneda_local: number;
@@ -91,8 +88,25 @@ export function SaleForm({ opened, onClose, onSubmit }: SaleFormProps) {
   const [referencia, setReferencia] = useState("");
 
   const monedaUSD = monedas.find((m) => m.codigo === "USD");
-  const rateVES = monedas.find((m) => m.codigo === "VES")?.tasa_cambio ?? 1;
-  const rateCOP = monedas.find((m) => m.codigo === "COP")?.tasa_cambio ?? 1;
+
+  // Feature 1: editable rates (default from DB, user can override)
+  const [editableRates, setEditableRates] = useState<Record<string, number>>(
+    {},
+  );
+
+  // Sync editable rates from DB when monedas loads (only non-USD)
+  useEffect(() => {
+    if (monedas.length > 0) {
+      const rates: Record<string, number> = {};
+      monedas.forEach((m) => {
+        if (m.codigo !== "USD") rates[m.codigo] = m.tasa_cambio;
+      });
+      setEditableRates(rates);
+    }
+  }, [monedas]);
+
+  // Helper to get current editable rate
+  const getRate = (codigo: string) => editableRates[codigo] ?? 1;
 
   // Default USD
   useEffect(() => {
@@ -146,7 +160,7 @@ export function SaleForm({ opened, onClose, onSubmit }: SaleFormProps) {
   // Calculate payment data
   const selectedMonedaObj = monedas.find((m) => m.id === selectedMonedaId);
   const paymentRate = selectedMonedaObj?.tasa_cambio ?? 1;
-  const totalInSelectedCurrency = total * paymentRate;
+  void paymentRate; // kept for the payment description text below
 
   const addProduct = (product: Producto) => {
     setCart((prev) => [
@@ -286,19 +300,20 @@ export function SaleForm({ opened, onClose, onSubmit }: SaleFormProps) {
       clienteId,
       items: cart,
       descuento_usd: descuento,
-      tasas_snapshot: {
-        VES: rateVES,
-        COP: rateCOP,
-        timestamp: new Date().toISOString(),
-      },
+      // Feature 1: snapshot de todas las tasas editables
+      tasas_cambio_snapshot: editableRates,
       pago: selectedMonedaId
         ? {
-          monedaId: selectedMonedaId,
-          equivalente_usd: parseFloat(total.toFixed(2)),
-          monto_moneda_local: parseFloat(totalInSelectedCurrency.toFixed(2)),
-          metodo: selectedMetodo,
-          referencia: referencia.trim() || undefined,
-        }
+            monedaId: selectedMonedaId,
+            equivalente_usd: parseFloat(total.toFixed(2)),
+            monto_moneda_local: parseFloat(
+              (
+                total * (editableRates[selectedMonedaObj?.codigo ?? ""] ?? 1)
+              ).toFixed(2),
+            ),
+            metodo: selectedMetodo,
+            referencia: referencia.trim() || undefined,
+          }
         : undefined,
     });
     resetForm();
@@ -317,6 +332,12 @@ export function SaleForm({ opened, onClose, onSubmit }: SaleFormProps) {
     if (monedaUSD) setSelectedMonedaId(monedaUSD.id);
     setSelectedMetodo("EFECTIVO");
     setReferencia("");
+    // Reset editable rates to DB values
+    const rates: Record<string, number> = {};
+    monedas.forEach((m) => {
+      if (m.codigo !== "USD") rates[m.codigo] = m.tasa_cambio;
+    });
+    setEditableRates(rates);
   };
 
   return (
@@ -324,7 +345,6 @@ export function SaleForm({ opened, onClose, onSubmit }: SaleFormProps) {
       {/* Modal para crear una nueva venta que no se cierre al presionar enter */}
       <Modal
         opened={opened}
-
         onClose={() => {
           resetForm();
           onClose();
@@ -401,7 +421,7 @@ export function SaleForm({ opened, onClose, onSubmit }: SaleFormProps) {
                     color="var(--mantine-color-green-6)"
                   />
                   <div>
-                    <Text size="sm" fw={600} c="gray.1">
+                    <Text size="sm" fw={600}>
                       {foundClient.nombre}
                     </Text>
                     <Text size="xs" c="dimmed">
@@ -410,7 +430,7 @@ export function SaleForm({ opened, onClose, onSubmit }: SaleFormProps) {
                     </Text>
                   </div>
                 </Group>
-                <Badge variant="light" color="green" size="sm">
+                <Badge variant="filled" color="green" size="sm">
                   {foundClient._count?.tickets ?? 0} tickets
                 </Badge>
               </Group>
@@ -429,7 +449,7 @@ export function SaleForm({ opened, onClose, onSubmit }: SaleFormProps) {
             >
               <Group gap="xs" mb="sm">
                 <IconUserPlus size={16} color="var(--mantine-color-blue-6)" />
-                <Text size="sm" fw={600} c="gray.1">
+                <Text size="sm" fw={600}>
                   Nuevo Cliente
                 </Text>
               </Group>
@@ -567,13 +587,13 @@ export function SaleForm({ opened, onClose, onSubmit }: SaleFormProps) {
                       style={{
                         cursor: "pointer",
                         transition: "background 150ms",
-                        background: "rgba(255,255,255,0.03)",
+                        background: "var(--bg-elevated)",
                       }}
                       onClick={() => addProduct(product)}
                     >
                       <Group justify="space-between">
                         <Group gap="xs">
-                          <Badge variant="light" color={cat.color} size="xs">
+                          <Badge variant="filled" color={cat.color} size="xs">
                             {cat.label}
                           </Badge>
                           <Text size="sm" fw={500}>
@@ -622,6 +642,7 @@ export function SaleForm({ opened, onClose, onSubmit }: SaleFormProps) {
               style={{
                 background: "var(--bg-card)",
                 border: "1px solid var(--border-subtle)",
+                boxShadow: "0 4px 20px rgba(15, 23, 42, 0.03)",
                 overflow: "hidden",
               }}
             >
@@ -635,7 +656,7 @@ export function SaleForm({ opened, onClose, onSubmit }: SaleFormProps) {
                     textTransform: "uppercase",
                     letterSpacing: "0.05em",
                   },
-                  td: { borderColor: "rgba(255,255,255,0.04)" },
+                  td: { borderColor: "var(--border-subtle)" },
                 }}
               >
                 <Table.Thead>
@@ -788,7 +809,7 @@ export function SaleForm({ opened, onClose, onSubmit }: SaleFormProps) {
             <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
               {/* Divisa */}
               <Stack gap={4}>
-                <Text size="sm" fw={500} c="gray.3">
+                <Text size="sm" fw={500} c="dimmed">
                   Moneda de pago
                 </Text>
                 <Group gap="xs">
@@ -823,7 +844,7 @@ export function SaleForm({ opened, onClose, onSubmit }: SaleFormProps) {
 
               {/* Metodo */}
               <Stack gap={4}>
-                <Text size="sm" fw={500} c="gray.3">
+                <Text size="sm" fw={500} c="dimmed">
                   Método de Pago
                 </Text>
                 <Group gap="xs">
@@ -932,43 +953,74 @@ export function SaleForm({ opened, onClose, onSubmit }: SaleFormProps) {
                     </Text>
                   </Group>
 
-                  {/* Local currency equivalents */}
+                  {/* Feature 1: Tasas editables */}
                   <Divider variant="dashed" />
-                  <Group justify="space-between">
+                  <Text size="xs" fw={600} c="dimmed">
+                    Tasas de Cambio (editables)
+                  </Text>
+                  {Object.entries(editableRates).map(([codigo, tasa]) => (
+                    <Group key={codigo} justify="space-between" align="center">
+                      <Text size="xs" c="dimmed">
+                        {codigo}/USD
+                      </Text>
+                      <NumberInput
+                        value={tasa}
+                        onChange={(v) =>
+                          setEditableRates((prev) => ({
+                            ...prev,
+                            [codigo]: Number(v) || prev[codigo],
+                          }))
+                        }
+                        min={0.01}
+                        decimalScale={2}
+                        fixedDecimalScale
+                        size="xs"
+                        hideControls
+                        w={120}
+                        rightSection={
+                          <Text size="xs" c="dimmed" pr={6}>
+                            {codigo}
+                          </Text>
+                        }
+                        styles={{
+                          input: {
+                            textAlign: "right",
+                            fontFamily: "monospace",
+                            fontWeight: 700,
+                          },
+                        }}
+                      />
+                    </Group>
+                  ))}
+                  <Group justify="space-between" align="center">
                     <Text size="xs" c="dimmed">
-                      Equivalente VES
+                      Total VES
                     </Text>
                     <Text size="xs" ff="monospace" fw={600} c="blue">
                       Bs.{" "}
-                      {(total * rateVES).toLocaleString("es-VE", {
+                      {(total * getRate("VES")).toLocaleString("es-VE", {
                         minimumFractionDigits: 2,
                       })}
                     </Text>
                   </Group>
-                  <Group justify="space-between">
-                    <Text size="xs" c="dimmed">
-                      Equivalente COP
-                    </Text>
-                    <Text size="xs" ff="monospace" fw={600} c="yellow">
-                      $
-                      {(total * rateCOP).toLocaleString("es-VE", {
-                        minimumFractionDigits: 2,
-                      })}
-                    </Text>
-                  </Group>
-                  <Group justify="space-between">
-                    <Badge variant="light" color="blue" size="xs">
-                      Tasa VES: Bs. {rateVES.toFixed(2)}
-                    </Badge>
-                    <Badge variant="light" color="yellow" size="xs">
-                      Tasa COP: ${rateCOP.toFixed(2)}
-                    </Badge>
-                  </Group>
+                  {editableRates["COP"] && (
+                    <Group justify="space-between" align="center">
+                      <Text size="xs" c="dimmed">
+                        Total COP
+                      </Text>
+                      <Text size="xs" ff="monospace" fw={600} c="yellow">
+                        ${" "}
+                        {(total * getRate("COP")).toLocaleString("es-VE", {
+                          minimumFractionDigits: 2,
+                        })}
+                      </Text>
+                    </Group>
+                  )}
 
                   <Divider variant="dashed" />
                   <Group justify="space-between">
                     <Text size="xs" c="dimmed">
-                      Costo: ${costoTotal.toFixed(2)}
+                      Precio de Proveedor: ${costoTotal.toFixed(2)}
                     </Text>
                     <Text
                       size="xs"
@@ -1028,7 +1080,7 @@ export function SaleForm({ opened, onClose, onSubmit }: SaleFormProps) {
             <Paper p="sm" bg="gray.1" radius="md">
               <Group justify="space-between" mb="xs">
                 <Text fw={600}>{pendingScanProduct.nombre}</Text>
-                <Badge color="blue">
+                <Badge variant="filled" color="blue">
                   Stock: {pendingScanProduct.stock_actual}
                 </Badge>
               </Group>

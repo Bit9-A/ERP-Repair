@@ -7,11 +7,13 @@ import {
   Stack,
   Button,
   Group,
+  Divider,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { useEffect } from "react";
 import type { Usuario } from "../../../types";
 import type { UserFormValues } from "../types/users.types";
+import { useSucursales } from "../../../services";
 
 interface UserFormProps {
   opened: boolean;
@@ -27,6 +29,7 @@ export function UserForm({
   initialData,
 }: UserFormProps) {
   const isEditing = !!initialData;
+  const { data: sucursales = [] } = useSucursales();
 
   const form = useForm<UserFormValues>({
     initialValues: {
@@ -35,6 +38,7 @@ export function UserForm({
       password: "",
       rol: "TECNICO",
       porcentaje_comision_base: 0,
+      sucursalId: undefined,
     },
     validate: {
       nombre: (v) => (v.trim().length < 2 ? "Nombre requerido" : null),
@@ -55,6 +59,7 @@ export function UserForm({
         password: "",
         rol: initialData.rol,
         porcentaje_comision_base: initialData.porcentaje_comision_base,
+        sucursalId: initialData.sucursalId ?? undefined,
       });
     } else if (opened) {
       form.reset();
@@ -66,6 +71,11 @@ export function UserForm({
     form.reset();
     onClose();
   };
+
+  const sucursalOptions = sucursales.map((s) => ({
+    value: s.id,
+    label: s.nombre,
+  }));
 
   return (
     <Modal
@@ -116,6 +126,26 @@ export function UserForm({
               {...form.getInputProps("porcentaje_comision_base")}
             />
           </Group>
+
+          {/* Feature 4: Branch assignment */}
+          {form.values.rol !== "ADMIN" && (
+            <>
+              <Divider label="Asignación de Sucursal" labelPosition="center" />
+              <Select
+                label="Sucursal"
+                placeholder="Sin sucursal asignada"
+                data={sucursalOptions}
+                clearable
+                description={
+                  form.values.rol === "TECNICO"
+                    ? "El técnico solo verá los tickets de esta sucursal"
+                    : "El vendedor solo verá las ventas e inventario de esta sucursal"
+                }
+                {...form.getInputProps("sucursalId")}
+              />
+            </>
+          )}
+
           <Group justify="flex-end" mt="md">
             <Button variant="subtle" onClick={onClose}>
               Cancelar

@@ -6,15 +6,18 @@ import type { EstadoVenta } from "../../generated/prisma/client";
 export async function findAll(filters?: {
   estado?: EstadoVenta;
   clienteId?: string;
+  sucursalId?: string; // Feature 3
 }) {
   return prisma.venta.findMany({
     where: {
       ...(filters?.estado && { estado: filters.estado }),
       ...(filters?.clienteId && { clienteId: filters.clienteId }),
+      ...(filters?.sucursalId && { sucursalId: filters.sucursalId }),
     },
     include: {
       cliente: { select: { id: true, nombre: true, telefono: true } },
       vendedor: { select: { id: true, nombre: true } },
+      sucursal: { select: { id: true, nombre: true } },
       items: {
         include: {
           producto: { select: { nombre: true, sku: true, categoria: true } },
@@ -32,6 +35,7 @@ export async function findById(id: string) {
     include: {
       cliente: true,
       vendedor: { select: { id: true, nombre: true } },
+      sucursal: { select: { id: true, nombre: true } },
       items: { include: { producto: true } },
       pagos: { include: { moneda: true } },
     },
@@ -46,12 +50,12 @@ export async function findById(id: string) {
 interface CreateVentaDTO {
   clienteId?: string;
   vendedorId?: string;
+  sucursalId?: string; // Feature 3
   descuento_usd?: number;
   items: Array<{
     productoId: string;
     cantidad: number;
   }>;
-  // Opcional: registrar el pago de una vez
   pago?: {
     monedaId: string;
     monto_moneda_local: number;
@@ -84,7 +88,16 @@ export async function create(data: CreateVentaDTO) {
     }),
   );
 
-  // 2. Calculate totals
+  // 2. Feature 1: Snapshot de tasas de cambio actuales
+  const monedas = await prisma.moneda.findMany({
+    where: { codigo: { not: "USD" } },
+  });
+  const tasas_cambio_snapshot: Record<string, number> = {};
+  for (const m of monedas) {
+    tasas_cambio_snapshot[m.codigo] = m.tasa_cambio;
+  }
+
+  // 3. Calculate totals
   const subtotal = productos.reduce(
     (sum, i) => sum + i.producto.precio_usd * i.cantidad,
     0,
@@ -92,21 +105,30 @@ export async function create(data: CreateVentaDTO) {
   const descuento = data.descuento_usd ?? 0;
   const total = Math.max(0, subtotal - descuento);
 
-  // 3. Transaction: create venta + items + stock movements + update stock
+  // 4. Transaction
   const venta = await prisma.$transaction(async (tx) => {
-    // Create the sale
+    // Determine exchange rate for the payment currency (Feature 1)
+    let tasaCambio: number | undefined;
+    if (data.pago) {
+      const moneda = await tx.moneda.findUnique({
+        where: { id: data.pago.monedaId },
+      });
+      tasaCambio = moneda?.tasa_cambio;
+    }
+
     const newVenta = await tx.venta.create({
       data: {
         clienteId: data.clienteId,
         vendedorId: data.vendedorId,
+        sucursalId: data.sucursalId, // Feature 3
         subtotal_usd: parseFloat(subtotal.toFixed(2)),
         descuento_usd: parseFloat(descuento.toFixed(2)),
         total_usd: parseFloat(total.toFixed(2)),
         estado: "PAGADA",
+        tasas_cambio_snapshot, // Feature 1
       },
     });
 
-    // Create sale items + stock movements + update stock
     for (const item of productos) {
       await tx.venta_Producto.create({
         data: {
@@ -124,6 +146,7 @@ export async function create(data: CreateVentaDTO) {
           tipo: "SALIDA_VENTA",
           cantidad: -item.cantidad,
           referencia: `Venta ${newVenta.id}`,
+          sucursalId: data.sucursalId, // Feature 3
         },
       });
 
@@ -131,9 +154,26 @@ export async function create(data: CreateVentaDTO) {
         where: { id: item.productoId },
         data: { stock_actual: { decrement: item.cantidad } },
       });
+
+      // Feature 3: descontar stock de la sucursal
+      if (data.sucursalId) {
+        await tx.sucursalProducto.upsert({
+          where: {
+            sucursalId_productoId: {
+              sucursalId: data.sucursalId,
+              productoId: item.productoId,
+            },
+          },
+          update: { stock: { decrement: item.cantidad } },
+          create: {
+            sucursalId: data.sucursalId,
+            productoId: item.productoId,
+            stock: 0,
+          },
+        });
+      }
     }
 
-    // Register payment if provided
     if (data.pago) {
       await tx.pago.create({
         data: {
@@ -143,10 +183,10 @@ export async function create(data: CreateVentaDTO) {
           equivalente_usd: data.pago.equivalente_usd,
           metodo: data.pago.metodo,
           referencia: data.pago.referencia,
+          tasa_cambio_usada: tasaCambio, // Feature 1
         },
       });
 
-      // Register matching INGRESO transaction
       await tx.transaccionFinanciera.create({
         data: {
           tipo: "INGRESO",
@@ -161,7 +201,6 @@ export async function create(data: CreateVentaDTO) {
     return newVenta;
   });
 
-  // Return with full relations
   return findById(venta.id);
 }
 
@@ -188,7 +227,6 @@ export async function anular(id: string) {
       statusCode: 400,
     });
 
-  // Transaction: return stock + create movements + update status
   await prisma.$transaction(async (tx) => {
     for (const item of venta.items) {
       await tx.movimientoStock.create({
@@ -197,6 +235,7 @@ export async function anular(id: string) {
           tipo: "DEVOLUCION",
           cantidad: item.cantidad,
           referencia: `Anulación Venta ${venta.id}`,
+          sucursalId: venta.sucursalId,
         },
       });
 
@@ -204,6 +243,24 @@ export async function anular(id: string) {
         where: { id: item.productoId },
         data: { stock_actual: { increment: item.cantidad } },
       });
+
+      // Feature 3: devolver stock a la sucursal
+      if (venta.sucursalId) {
+        await tx.sucursalProducto.upsert({
+          where: {
+            sucursalId_productoId: {
+              sucursalId: venta.sucursalId,
+              productoId: item.productoId,
+            },
+          },
+          update: { stock: { increment: item.cantidad } },
+          create: {
+            sucursalId: venta.sucursalId,
+            productoId: item.productoId,
+            stock: item.cantidad,
+          },
+        });
+      }
     }
 
     await tx.venta.update({
@@ -217,25 +274,31 @@ export async function anular(id: string) {
 
 // ── Stats ──
 
-export async function getStats() {
+export async function getStats(sucursalId?: string) {
   const today = new Date();
   const startOfDay = new Date(today);
   startOfDay.setHours(0, 0, 0, 0);
   const endOfDay = new Date(today);
   endOfDay.setHours(23, 59, 59, 999);
 
+  const sucursalFilter = sucursalId ? { sucursalId } : {};
+
   const [ventasHoy, totalVentas, ingresosHoy] = await Promise.all([
     prisma.venta.count({
       where: {
         createdAt: { gte: startOfDay, lte: endOfDay },
         estado: { not: "ANULADA" },
+        ...sucursalFilter,
       },
     }),
-    prisma.venta.count({ where: { estado: { not: "ANULADA" } } }),
+    prisma.venta.count({
+      where: { estado: { not: "ANULADA" }, ...sucursalFilter },
+    }),
     prisma.venta.aggregate({
       where: {
         createdAt: { gte: startOfDay, lte: endOfDay },
         estado: { not: "ANULADA" },
+        ...sucursalFilter,
       },
       _sum: { total_usd: true },
     }),

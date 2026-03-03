@@ -31,14 +31,18 @@ export function TicketCard({ ticket, onClick }: TicketCardProps) {
 
   return (
     <Card
-      padding="sm"
+      padding="md"
       radius="md"
-      withBorder
+      className="ticket-card-hover"
       onClick={() => onClick?.(ticket)}
       style={{
         cursor: "pointer",
-        borderLeft: `4px solid var(--mantine-color-${colorEstado}-filled)`,
+        background: "var(--bg-card)",
+        border: "1px solid var(--border-subtle)",
+        borderLeft: `3px solid var(--mantine-color-${colorEstado}-filled)`,
         backgroundColor: esCritico ? "var(--mantine-color-red-0)" : undefined,
+        boxShadow: "0 2px 8px rgba(15, 23, 42, 0.04)",
+        transition: "all 0.2s ease",
       }}
     >
       {/* Header: ID y Alerta de Tiempo */}
@@ -75,21 +79,23 @@ export function TicketCard({ ticket, onClick }: TicketCardProps) {
       {/* Seguridad: Clave y Patrón */}
       <Group gap="xs" mb="xs" grow>
         <Paper
-          withBorder
+          withBorder={false}
           p="4px 8px"
           radius="sm"
-          bg="gray.0"
-          style={{ borderStyle: "dashed" }}
+          style={{
+            background: "var(--bg-elevated)",
+            border: "1px dashed var(--border-strong)",
+          }}
         >
           <Group gap={6} wrap="nowrap">
-            <IconLock size={14} color="var(--mantine-color-gray-6)" />
+            <IconLock size={14} style={{ color: "var(--text-muted)" }} />
             <Text
               size="sm"
               fw={900}
               style={{
                 fontFamily: "monospace",
                 letterSpacing: "1px",
-                color: "var(--mantine-color-dark-7)",
+                color: "var(--text-primary)",
               }}
             >
               {ticket.clave || "SIN PIN"}
@@ -98,21 +104,23 @@ export function TicketCard({ ticket, onClick }: TicketCardProps) {
         </Paper>
 
         <Paper
-          withBorder
+          withBorder={false}
           p="4px 8px"
           radius="sm"
-          bg="gray.0"
-          style={{ borderStyle: "dashed" }}
+          style={{
+            background: "var(--bg-elevated)",
+            border: "1px dashed var(--border-strong)",
+          }}
         >
           <Group gap={6} wrap="nowrap">
-            <IconFingerprint size={14} color="var(--mantine-color-gray-6)" />
+            <IconFingerprint size={14} style={{ color: "var(--text-muted)" }} />
             <Text
               size="sm"
               fw={900}
               style={{
                 fontFamily: "monospace",
                 letterSpacing: "1px",
-                color: "var(--mantine-color-dark-7)",
+                color: "var(--text-primary)",
               }}
             >
               {ticket.patron_visual || "SIN PATRÓN"}

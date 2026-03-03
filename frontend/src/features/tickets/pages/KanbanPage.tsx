@@ -97,9 +97,7 @@ export function KanbanPage() {
 
       <Group justify="space-between" align="center" wrap="wrap" gap="sm">
         <Group gap="md">
-          <Title order={3} c="gray.1">
-            Reparaciones
-          </Title>
+          <Title order={3}>Reparaciones</Title>
           <Badge variant="light" color="brand" size="lg">
             {tickets.length} orden
           </Badge>
@@ -153,7 +151,11 @@ export function KanbanPage() {
           onMoveTicket={handleMoveTicket}
         />
       ) : (
-        <TicketListView tickets={tickets} onTicketClick={handleEditTicket} />
+        <TicketListView
+          tickets={tickets}
+          onTicketClick={handleEditTicket}
+          onMoveTicket={handleMoveTicket}
+        />
       )}
 
       <TicketForm

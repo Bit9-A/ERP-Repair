@@ -14,13 +14,8 @@ const defaultCounts: Record<string, number> = {
   ENTREGADO: 2,
 };
 
-const COLUMN_COLORS: Record<string, string> = {
-  RECIBIDO: "#64748B",
-  EN_REVISION: "#3B82F6",
-  ESPERANDO_REPUESTO: "#F59E0B",
-  REPARADO: "#22C55E",
-  ENTREGADO: "#8B5CF6",
-};
+// Utilizaremos directamente TICKET_STATUS[col].color en lugar de código hexadecimales
+// para que Mantine aplique correctamente las clases de light/dark modes.
 
 export function KanbanPreview({ counts = defaultCounts }: KanbanPreviewProps) {
   const total = Object.values(counts).reduce((a, b) => a + b, 0) || 1;
@@ -32,11 +27,12 @@ export function KanbanPreview({ counts = defaultCounts }: KanbanPreviewProps) {
       style={{
         background: "var(--bg-card)",
         border: "1px solid var(--border-subtle)",
+        boxShadow: "0 4px 20px rgba(15, 23, 42, 0.03)",
       }}
     >
       <Group gap="xs" mb="md">
         <IconBinaryTree size={18} color="#22C55E" />
-        <Text size="sm" fw={600} c="gray.1">
+        <Text size="sm" fw={600}>
           Workflow Status
         </Text>
       </Group>
@@ -55,10 +51,10 @@ export function KanbanPreview({ counts = defaultCounts }: KanbanPreviewProps) {
                 </Text>
                 <Badge
                   variant="filled"
+                  color={status.color}
                   size="sm"
                   radius="xl"
                   style={{
-                    backgroundColor: COLUMN_COLORS[col],
                     minWidth: 28,
                     textAlign: "center",
                   }}
@@ -70,9 +66,9 @@ export function KanbanPreview({ counts = defaultCounts }: KanbanPreviewProps) {
                 value={pct}
                 size="sm"
                 radius="xl"
-                color={COLUMN_COLORS[col]}
+                color={status.color}
                 styles={{
-                  root: { backgroundColor: "rgba(255,255,255,0.04)" },
+                  root: { backgroundColor: "var(--border-subtle)" },
                 }}
               />
             </div>

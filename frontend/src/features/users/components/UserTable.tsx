@@ -28,7 +28,11 @@ export function UserTable({ users, onEdit, onDelete }: UserTableProps) {
           textTransform: "uppercase" as const,
           letterSpacing: "0.05em",
         },
-        td: { borderColor: "var(--border-subtle)" },
+        td: {
+          borderColor: "var(--border-subtle)",
+          paddingTop: "14px",
+          paddingBottom: "14px",
+        },
       }}
     >
       <Table.Thead>
@@ -49,22 +53,20 @@ export function UserTable({ users, onEdit, onDelete }: UserTableProps) {
           return (
             <Table.Tr key={user.id}>
               <Table.Td>
-                <Text size="sm" fw={600} c="gray.1">
+                <Text size="sm" fw={600}>
                   {user.nombre}
                 </Text>
               </Table.Td>
               <Table.Td>
-                <Text size="sm" c="gray.2">
-                  {user.email}
-                </Text>
+                <Text size="sm">{user.email}</Text>
               </Table.Td>
               <Table.Td>
-                <Badge variant="light" color={rol.color} size="sm">
+                <Badge variant="filled" color={rol.color} size="sm">
                   {rol.label}
                 </Badge>
               </Table.Td>
               <Table.Td style={{ textAlign: "right" }}>
-                <Text ff="monospace" size="sm" fw={600} c="gray.1">
+                <Text ff="monospace" size="sm" fw={600}>
                   {(user.porcentaje_comision_base * 100).toFixed(0)}%
                 </Text>
               </Table.Td>

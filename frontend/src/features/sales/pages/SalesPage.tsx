@@ -148,9 +148,7 @@ export function SalesPage() {
       <Group justify="space-between" align="center" wrap="wrap" gap="sm">
         <Group gap="xs">
           <IconShoppingCart size={24} color="var(--primary)" />
-          <Title order={2} c="gray.1">
-            Ventas
-          </Title>
+          <Title order={2}>Ventas</Title>
         </Group>
         <Button
           leftSection={<IconPlus size={16} />}
@@ -189,6 +187,7 @@ export function SalesPage() {
         style={{
           background: "var(--bg-card)",
           border: "1px solid var(--border-subtle)",
+          boxShadow: "0 4px 20px rgba(15, 23, 42, 0.03)",
           overflow: "hidden",
         }}
       >
@@ -196,7 +195,7 @@ export function SalesPage() {
           <Group justify="space-between" mb="md">
             <Group gap="xs">
               <IconShoppingCart size={18} color="var(--primary)" />
-              <Text size="sm" fw={600} c="gray.1">
+              <Text size="sm" fw={600}>
                 Historial de Ventas
               </Text>
             </Group>
@@ -215,7 +214,7 @@ export function SalesPage() {
               size="sm"
               styles={{
                 input: {
-                  background: "rgba(255,255,255,0.04)",
+                  background: "var(--bg-elevated)",
                   borderColor: "var(--border-subtle)",
                 },
               }}
@@ -259,7 +258,11 @@ export function SalesPage() {
                 textTransform: "uppercase",
                 letterSpacing: "0.05em",
               },
-              td: { borderColor: "rgba(255,255,255,0.04)" },
+              td: {
+                borderColor: "var(--border-subtle)",
+                paddingTop: "14px",
+                paddingBottom: "14px",
+              },
             }}
           >
             <Table.Thead>
@@ -282,27 +285,25 @@ export function SalesPage() {
                     onClick={() => handleViewDetail(sale)}
                   >
                     <Table.Td>
-                      <Text ff="monospace" size="sm" fw={600} c="gray.1">
+                      <Text ff="monospace" size="sm" fw={600}>
                         V-{sale.numero}
                       </Text>
                     </Table.Td>
                     <Table.Td>
-                      <Text size="sm" c="gray.2">
+                      <Text size="sm">
                         {sale.cliente?.nombre || "Sin cliente"}
                       </Text>
                     </Table.Td>
                     <Table.Td>
-                      <Text size="sm" c="gray.2">
-                        {sale.vendedor?.nombre || "N/A"}
-                      </Text>
+                      <Text size="sm">{sale.vendedor?.nombre || "N/A"}</Text>
                     </Table.Td>
                     <Table.Td style={{ textAlign: "right" }}>
-                      <Text ff="monospace" size="sm" fw={700} c="gray.1">
+                      <Text ff="monospace" size="sm" fw={700}>
                         ${sale.total_usd.toFixed(2)}
                       </Text>
                     </Table.Td>
                     <Table.Td>
-                      <Badge variant="light" color={status.color} size="sm">
+                      <Badge variant="filled" color={status.color} size="sm">
                         {status.label}
                       </Badge>
                     </Table.Td>
@@ -376,7 +377,7 @@ export function SalesPage() {
           <Text size="xs" c="dimmed">
             TecnoPro Cell ERP
           </Text>
-          <Badge variant="dot" color="brand" size="xs">
+          <Badge variant="filled" color="brand" size="xs">
             {isLoading ? "Cargando..." : "Sincronizado"}
           </Badge>
         </Group>
@@ -415,7 +416,7 @@ export function SalesPage() {
                   Estado
                 </Text>
                 <Badge
-                  variant="light"
+                  variant="filled"
                   color={SALE_STATUS[detailSale.estado].color}
                 >
                   {SALE_STATUS[detailSale.estado].label}
@@ -499,61 +500,111 @@ export function SalesPage() {
               </div>
             </Group>
 
-            {/* Frozen exchange rates */}
-            {detailSale.tasas_snapshot && (
+            {/* Pagos registrados */}
+            {detailSale.pagos && detailSale.pagos.length > 0 && (
               <>
                 <Divider />
                 <Text size="sm" fw={600}>
-                  Tasas al Momento de la Venta
+                  Pagos Registrados
                 </Text>
-                <Group gap="xl">
-                  <div>
-                    <Text size="xs" c="dimmed">
-                      Tasa VES
-                    </Text>
-                    <Text ff="monospace" fw={600} c="blue">
-                      Bs. {detailSale.tasas_snapshot.VES.toFixed(2)}
-                    </Text>
-                  </div>
-                  <div>
-                    <Text size="xs" c="dimmed">
-                      Tasa COP
-                    </Text>
-                    <Text ff="monospace" fw={600} c="yellow">
-                      ${detailSale.tasas_snapshot.COP.toFixed(2)}
-                    </Text>
-                  </div>
-                  <div>
-                    <Text size="xs" c="dimmed">
-                      Total VES
-                    </Text>
-                    <Text ff="monospace" fw={600} c="blue">
-                      Bs.{" "}
-                      {(
-                        detailSale.total_usd * detailSale.tasas_snapshot.VES
-                      ).toLocaleString("es-VE", { minimumFractionDigits: 2 })}
-                    </Text>
-                  </div>
-                  <div>
-                    <Text size="xs" c="dimmed">
-                      Total COP
-                    </Text>
-                    <Text ff="monospace" fw={600} c="yellow">
-                      $
-                      {(
-                        detailSale.total_usd * detailSale.tasas_snapshot.COP
-                      ).toLocaleString("es-VE", { minimumFractionDigits: 2 })}
-                    </Text>
-                  </div>
-                </Group>
-                <Text size="xs" c="dimmed">
-                  Capturado:{" "}
-                  {new Date(detailSale.tasas_snapshot.timestamp).toLocaleString(
-                    "es-VE",
-                  )}
-                </Text>
+                <Table withColumnBorders withRowBorders={false} fz="sm">
+                  <Table.Thead>
+                    <Table.Tr>
+                      <Table.Th>Moneda</Table.Th>
+                      <Table.Th>Método</Table.Th>
+                      <Table.Th style={{ textAlign: "right" }}>
+                        Monto local
+                      </Table.Th>
+                      <Table.Th style={{ textAlign: "right" }}>
+                        Equivalente USD
+                      </Table.Th>
+                      <Table.Th>Referencia</Table.Th>
+                    </Table.Tr>
+                  </Table.Thead>
+                  <Table.Tbody>
+                    {detailSale.pagos.map((pago) => (
+                      <Table.Tr key={pago.id}>
+                        <Table.Td>
+                          <Badge
+                            variant="filled"
+                            color={
+                              pago.moneda?.codigo === "USD"
+                                ? "brand"
+                                : pago.moneda?.codigo === "VES"
+                                  ? "blue"
+                                  : "yellow"
+                            }
+                            size="sm"
+                          >
+                            {pago.moneda?.codigo ?? "—"}
+                          </Badge>
+                        </Table.Td>
+                        <Table.Td>
+                          <Badge variant="filled" color="gray" size="sm">
+                            {pago.metodo}
+                          </Badge>
+                        </Table.Td>
+                        <Table.Td style={{ textAlign: "right" }}>
+                          <Text ff="monospace" size="sm" fw={600}>
+                            {pago.monto_moneda_local.toLocaleString("es-VE", {
+                              minimumFractionDigits: 2,
+                            })}{" "}
+                            {pago.moneda?.codigo}
+                          </Text>
+                        </Table.Td>
+                        <Table.Td style={{ textAlign: "right" }}>
+                          <Text ff="monospace" size="sm" fw={700} c="brand">
+                            ${pago.equivalente_usd.toFixed(2)}
+                          </Text>
+                        </Table.Td>
+                        <Table.Td>
+                          <Text size="xs" c="dimmed">
+                            {pago.referencia ?? "—"}
+                          </Text>
+                        </Table.Td>
+                      </Table.Tr>
+                    ))}
+                  </Table.Tbody>
+                </Table>
               </>
             )}
+
+            {/* Frozen exchange rates — Feature 1 */}
+            {detailSale.tasas_cambio_snapshot &&
+              Object.keys(detailSale.tasas_cambio_snapshot).length > 0 && (
+                <>
+                  <Divider />
+                  <Text size="sm" fw={600}>
+                    Tasas al Momento de la Venta
+                  </Text>
+                  <Group gap="xl">
+                    {Object.entries(detailSale.tasas_cambio_snapshot).map(
+                      ([codigo, tasa]) => (
+                        <div key={codigo}>
+                          <Text size="xs" c="dimmed">
+                            Tasa {codigo}
+                          </Text>
+                          <Text ff="monospace" fw={600} c="blue">
+                            {tasa.toFixed(2)} {codigo}/USD
+                          </Text>
+                          <Text size="xs" c="dimmed">
+                            Total ≈{" "}
+                            {(detailSale.total_usd * tasa).toLocaleString(
+                              "es-VE",
+                              { minimumFractionDigits: 2 },
+                            )}{" "}
+                            {codigo}
+                          </Text>
+                        </div>
+                      ),
+                    )}
+                  </Group>
+                  <Text size="xs" c="dimmed">
+                    Capturado:{" "}
+                    {new Date(detailSale.createdAt).toLocaleString("es-VE")}
+                  </Text>
+                </>
+              )}
           </Stack>
         )}
       </Modal>

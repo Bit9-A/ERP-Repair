@@ -40,6 +40,11 @@ const UsersPage = lazy(() =>
     default: m.UsersPage,
   })),
 );
+const SucursalesPage = lazy(() =>
+  import("../features/sucursales/pages/SucursalesPage").then((m) => ({
+    default: m.SucursalesPage,
+  })),
+);
 
 export const router = createBrowserRouter([
   // -- Public routes --
@@ -107,6 +112,16 @@ export const router = createBrowserRouter([
             element: (
               <RoleGuard roles={["ADMIN"]}>
                 <UsersPage />
+              </RoleGuard>
+            ),
+          },
+
+          // Solo ADMIN puede ver Sucursales
+          {
+            path: "sucursales",
+            element: (
+              <RoleGuard roles={["ADMIN"]}>
+                <SucursalesPage />
               </RoleGuard>
             ),
           },

@@ -17,6 +17,7 @@ import {
   IconReportMoney,
   IconUsers,
   IconLogout,
+  IconBuildingStore,
 } from "@tabler/icons-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../../features/auth/store/auth.store";
@@ -27,7 +28,13 @@ const NAV_ITEMS = [
   { label: "Inventario", icon: IconPackage, path: "/inventario" },
   { label: "Ventas", icon: IconShoppingCart, path: "/ventas" },
   { label: "Finanzas", icon: IconReportMoney, path: "/finanzas" },
-  { label: "Usuarios", icon: IconUsers, path: "/usuarios" },
+  { label: "Usuarios", icon: IconUsers, path: "/usuarios", adminOnly: true },
+  {
+    label: "Sucursales",
+    icon: IconBuildingStore,
+    path: "/sucursales",
+    adminOnly: true,
+  },
 ];
 
 interface SidebarProps {
@@ -58,6 +65,10 @@ export function Sidebar({
 
   // On mobile, always show expanded (never collapsed icons-only mode)
   const isCollapsed = isMobile ? false : collapsed;
+  const isAdmin = user?.rol === "ADMIN";
+  const visibleNavItems = NAV_ITEMS.filter(
+    (item) => !(item as { adminOnly?: boolean }).adminOnly || isAdmin,
+  );
 
   return (
     <Box
@@ -132,7 +143,7 @@ export function Sidebar({
 
         {/* Navigation */}
         <Stack gap={4} px="sm" mt="md">
-          {NAV_ITEMS.map((item) => {
+          {visibleNavItems.map((item) => {
             const isActive = location.pathname === item.path;
 
             if (isCollapsed) {
@@ -221,7 +232,7 @@ export function Sidebar({
                 {(user?.nombre || "A").charAt(0).toUpperCase()}
               </Avatar>
               <div>
-                <Text size="sm" c="gray.1" fw={500}>
+                <Text size="sm" c="white" fw={500}>
                   {user?.nombre || "Admin Principal"}
                 </Text>
                 <Text size="xs" c="brand.3" tt="capitalize">

@@ -1,12 +1,12 @@
 import { useState, useCallback } from "react";
 import {
   Box,
-  SimpleGrid,
   Stack,
   Text,
   Group,
   Badge,
   Paper,
+  ScrollArea,
 } from "@mantine/core";
 import { TicketCard } from "./TicketCard";
 import { KANBAN_COLUMNS, TICKET_STATUS } from "../../../lib/constants";
@@ -28,13 +28,8 @@ const COLUMN_COLORS: Record<EstadoTicket, string> = {
   ABANDONO: "#EF4444",
 };
 
-// 2-row layout: top 3 + bottom 3
-const TOP_ROW: EstadoTicket[] = [
-  "RECIBIDO",
-  "EN_REVISION",
-  "ESPERANDO_REPUESTO",
-];
-const BOTTOM_ROW: EstadoTicket[] = ["REPARADO", "ENTREGADO", "ABANDONO"];
+// Single row for Kanban-style horizontal scrolling
+const ALL_COLUMNS = KANBAN_COLUMNS;
 
 export function KanbanBoard({
   tickets,
@@ -125,20 +120,24 @@ export function KanbanBoard({
         onDragLeave={handleDragLeave}
         onDrop={(e) => handleDrop(e, estado)}
         style={{
-          flex: 1,
-          minHeight: 200,
-          background: isOver ? `${accentColor}15` : "var(--bg-card)",
+          minWidth: 320,
+          maxWidth: 320,
+          height: "calc(100vh - 250px)",
+          display: "flex",
+          flexDirection: "column",
+          background: isOver ? `${accentColor}15` : "var(--bg-elevated)",
           border: isOver
             ? `2px dashed ${accentColor}`
             : "1px solid var(--border-subtle)",
-          transition: "all 200ms ease",
-          transform: isOver ? "scale(1.01)" : "scale(1)",
+          transition: "all 0.2s ease",
+          transform: isOver ? "none" : "none",
+          boxShadow: isOver ? "0 4px 20px rgba(15, 23, 42, 0.05)" : "none",
         }}
       >
         {/* Column header */}
         <Group
-          gap="sm"
-          mb="md"
+          justify="space-between"
+          mb="xs"
           pb="sm"
           style={{ borderBottom: `2px solid ${accentColor}` }}
         >
@@ -160,45 +159,45 @@ export function KanbanBoard({
           </Badge>
         </Group>
 
-        {/* Draggable Cards */}
-        <Stack gap="sm" style={{ minHeight: 120 }}>
-          {columnTickets.map((ticket) => (
-            <Box
-              key={ticket.id}
-              draggable
-              onDragStart={(e) => handleDragStart(e, ticket.id)}
-              onDragEnd={handleDragEnd}
-              style={{
-                cursor: "grab",
-                opacity: draggingId === ticket.id ? 0.4 : 1,
-                transition: "opacity 150ms ease",
-              }}
-            >
-              <TicketCard ticket={ticket} onClick={onTicketClick} />
-            </Box>
-          ))}
+        {/* Draggable Cards - scrollable area */}
+        <ScrollArea
+          style={{ flex: 1, marginRight: -10, paddingRight: 10 }}
+          type="hover"
+          offsetScrollbars
+        >
+          <Stack gap="sm" style={{ minHeight: "100%", paddingBottom: 20 }}>
+            {columnTickets.map((ticket) => (
+              <Box
+                key={ticket.id}
+                draggable
+                onDragStart={(e) => handleDragStart(e, ticket.id)}
+                onDragEnd={handleDragEnd}
+                style={{
+                  cursor: "grab",
+                  opacity: draggingId === ticket.id ? 0.4 : 1,
+                  transition: "opacity 150ms ease",
+                }}
+              >
+                <TicketCard ticket={ticket} onClick={onTicketClick} />
+              </Box>
+            ))}
 
-          {columnTickets.length === 0 && (
-            <Text size="xs" c="dimmed" ta="center" py="xl">
-              {isOver ? "Soltar aquí" : "Sin tickets"}
-            </Text>
-          )}
-        </Stack>
+            {columnTickets.length === 0 && (
+              <Text size="xs" c="dimmed" ta="center" py="xl">
+                {isOver ? "Soltar aquí" : "Sin tickets"}
+              </Text>
+            )}
+          </Stack>
+        </ScrollArea>
       </Paper>
     );
   };
 
   return (
-    <Stack gap="md">
-      {/* Top row: RECIBIDO | EN_REVISION | ESPERANDO_REPUESTO */}
-      <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md">
-        {TOP_ROW.map(renderColumn)}
-      </SimpleGrid>
-
-      {/* Bottom row: REPARADO | ENTREGADO | ABANDONO */}
-      <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md">
-        {BOTTOM_ROW.map(renderColumn)}
-      </SimpleGrid>
-    </Stack>
+    <ScrollArea type="auto" offsetScrollbars pb="md">
+      <Group align="flex-start" wrap="nowrap" gap="md" pb="sm">
+        {ALL_COLUMNS.map(renderColumn)}
+      </Group>
+    </ScrollArea>
   );
 }

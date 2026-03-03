@@ -136,9 +136,7 @@ export function UsersPage() {
       <Group justify="space-between" align="center">
         <Group gap="xs">
           <IconUsers size={24} color="var(--primary)" />
-          <Title order={2} c="gray.1">
-            Gestión de Usuarios
-          </Title>
+          <Title order={2}>Gestión de Usuarios</Title>
         </Group>
         <Group gap="sm">
           <Button
@@ -187,6 +185,7 @@ export function UsersPage() {
         style={{
           background: "var(--bg-card)",
           border: "1px solid var(--border-subtle)",
+          boxShadow: "0 4px 20px rgba(15, 23, 42, 0.03)",
           overflow: "hidden",
         }}
       >
@@ -195,7 +194,7 @@ export function UsersPage() {
           <Group justify="space-between" mb="md">
             <Group gap="xs">
               <IconUsers size={18} color="var(--primary)" />
-              <Text size="sm" fw={600} c="gray.1">
+              <Text size="sm" fw={600}>
                 Listado de Usuarios
               </Text>
             </Group>
@@ -214,7 +213,7 @@ export function UsersPage() {
               size="sm"
               styles={{
                 input: {
-                  background: "rgba(255, 255, 255, 0.04)",
+                  background: "var(--bg-elevated)",
                   borderColor: "var(--border-subtle)",
                 },
               }}
@@ -261,7 +260,7 @@ export function UsersPage() {
         <Divider color="dark.6" />
         <Group justify="space-between" p="md">
           <Group gap="xs">
-            <Badge variant="dot" color="brand" size="xs">
+            <Badge variant="filled" color="brand" size="xs">
               {isLoading ? "Cargando..." : "Sincronizado"}
             </Badge>
           </Group>

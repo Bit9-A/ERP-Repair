@@ -35,7 +35,7 @@ export function PaymentsTable() {
       <Group justify="space-between" p="md" pb="sm">
         <Group gap="xs">
           <IconReportMoney size={18} color="#3B82F6" />
-          <Text size="sm" fw={600} c="gray.1">
+          <Text size="sm" fw={600}>
             Pagos Recientes
           </Text>
         </Group>
@@ -58,7 +58,11 @@ export function PaymentsTable() {
               textTransform: "uppercase",
               letterSpacing: "0.05em",
             },
-            td: { borderColor: "rgba(255, 255, 255, 0.04)" },
+            td: {
+              borderColor: "var(--border-subtle)",
+              paddingTop: "14px",
+              paddingBottom: "14px",
+            },
           }}
         >
           <Table.Thead>
@@ -76,14 +80,14 @@ export function PaymentsTable() {
             {pagos.map((pay) => (
               <Table.Tr key={pay.id}>
                 <Table.Td>
-                  <Text ff="monospace" size="sm" fw={600} c="gray.1">
+                  <Text ff="monospace" size="sm" fw={600}>
                     {pay.venta?.numero
                       ? `V-${pay.venta.numero}`
                       : (pay.ticket?.equipo ?? "—")}
                   </Text>
                 </Table.Td>
                 <Table.Td>
-                  <Text size="sm" c="gray.2">
+                  <Text size="sm">
                     {pay.venta?.cliente?.nombre ??
                       pay.ticket?.cliente?.nombre ??
                       "Sin Cliente"}
@@ -100,7 +104,7 @@ export function PaymentsTable() {
                   </Badge>
                 </Table.Td>
                 <Table.Td style={{ textAlign: "right" }}>
-                  <Text ff="monospace" size="sm" c="gray.3">
+                  <Text ff="monospace" size="sm" c="dimmed">
                     {pay.monto_moneda_local.toLocaleString("es-VE", {
                       minimumFractionDigits: 2,
                       maximumFractionDigits: 2,

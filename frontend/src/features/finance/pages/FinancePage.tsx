@@ -138,9 +138,7 @@ export function FinancePage() {
       {/* Header */}
       <Group gap="xs">
         <IconWallet size={24} color="#22C55E" />
-        <Title order={2} c="gray.1">
-          Gestión Financiera
-        </Title>
+        <Title order={2}>Gestión Financiera</Title>
       </Group>
 
       {/* Two-column: Currency rates + KPIs */}
@@ -153,13 +151,14 @@ export function FinancePage() {
             style={{
               background: "var(--bg-card)",
               border: "1px solid var(--border-subtle)",
+              boxShadow: "0 4px 20px rgba(15, 23, 42, 0.03)",
               height: "100%",
             }}
           >
             <Group justify="space-between" mb="lg">
               <Group gap="xs">
                 <IconArrowsExchange size={18} color="#3B82F6" />
-                <Text size="sm" fw={600} c="gray.1">
+                <Text size="sm" fw={600}>
                   Multimoneda & Tasas
                 </Text>
               </Group>
@@ -251,11 +250,7 @@ export function FinancePage() {
                           fontFamily: '"Fira Code", monospace',
                           fontWeight: 700,
                           fontSize: "18px",
-                          color: "#F8FAFC",
                           textAlign: "right",
-                          background: "rgba(255,255,255,0.05)",
-                          border: "1px solid rgba(255,255,255,0.1)",
-                          borderRadius: "var(--mantine-radius-sm)",
                         },
                       }}
                     />
@@ -354,12 +349,13 @@ export function FinancePage() {
         style={{
           background: "var(--bg-card)",
           border: "1px solid var(--border-subtle)",
+          boxShadow: "0 4px 20px rgba(15, 23, 42, 0.03)",
         }}
       >
         <Group justify="space-between" mb="md">
           <Group gap="xs">
             <IconCash size={20} color="#8B5CF6" />
-            <Text size="sm" fw={600} c="gray.1">
+            <Text size="sm" fw={600}>
               Arqueo de Caja & Conciliación
             </Text>
           </Group>
@@ -379,7 +375,7 @@ export function FinancePage() {
           turno actual.
         </Text>
 
-        <Divider color="dark.6" mb="md" />
+        <Divider color="var(--border-subtle)" mb="md" />
 
         <SimpleGrid cols={{ base: 1, sm: 3 }} spacing="md">
           <Box>

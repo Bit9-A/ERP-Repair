@@ -161,20 +161,22 @@ export function TicketForm({
   const modeloOptions = selectedMarcaId
     ? modelos.map((m) => ({ value: m.nombre, label: m.nombre }))
     : marcas
-      .find((m) => m.nombre === form.values.marca)
-      ?.modelos?.map((m) => ({ value: m.nombre, label: m.nombre })) || [];
+        .find((m) => m.nombre === form.values.marca)
+        ?.modelos?.map((m) => ({ value: m.nombre, label: m.nombre })) || [];
 
   const handleMarcaChange = (value: string | null) => {
-    form.setFieldValue("marca", value || "");
+    form.setFieldValue("marca", (value || "").toUpperCase());
     form.setFieldValue("modelo", ""); // reset modelo when marca changes
-    const marca = marcas.find((m) => m.nombre === value);
+    const marca = marcas.find((m) => m.nombre === (value || "").toUpperCase());
     setSelectedMarcaId(marca?.id ?? null);
   };
 
   const handleCreateMarcaInline = async () => {
     if (!marcaSearch.trim()) return;
     try {
-      const newMarca = await createMarca.mutateAsync(marcaSearch.trim());
+      const newMarca = await createMarca.mutateAsync(
+        marcaSearch.trim().toUpperCase(),
+      );
       form.setFieldValue("marca", newMarca.nombre);
       setSelectedMarcaId(newMarca.id);
       setMarcaSearch("");
@@ -197,7 +199,7 @@ export function TicketForm({
     try {
       const newModelo = await createModelo.mutateAsync({
         marcaId: selectedMarcaId,
-        nombre: modeloSearch.trim(),
+        nombre: modeloSearch.trim().toUpperCase(),
       });
       form.setFieldValue("modelo", newModelo.nombre);
       setModeloSearch("");
@@ -234,7 +236,14 @@ export function TicketForm({
   };
 
   return (
-    <Modal opened={opened} onClose={onClose} title={modalTitle} size="xl" closeOnClickOutside={false} closeOnEscape={false}>
+    <Modal
+      opened={opened}
+      onClose={onClose}
+      title={modalTitle}
+      size="xl"
+      closeOnClickOutside={false}
+      closeOnEscape={false}
+    >
       <form onSubmit={form.onSubmit(handleSubmit)}>
         <Stack gap="md">
           <Divider label="1. Datos del Cliente" labelPosition="center" />
@@ -288,7 +297,7 @@ export function TicketForm({
                     color="var(--mantine-color-green-6)"
                   />
                   <div>
-                    <Text size="sm" fw={600} c="gray.1">
+                    <Text size="sm" fw={600}>
                       {foundClient.nombre}
                     </Text>
                     <Text size="xs" c="dimmed">
@@ -316,7 +325,7 @@ export function TicketForm({
             >
               <Group gap="xs" mb="sm">
                 <IconUserPlus size={16} color="var(--mantine-color-blue-6)" />
-                <Text size="sm" fw={600} c="gray.1">
+                <Text size="sm" fw={600}>
                   Nuevo Cliente
                 </Text>
               </Group>
@@ -431,7 +440,9 @@ export function TicketForm({
               }
               data={modeloOptions}
               value={form.values.modelo || null}
-              onChange={(v) => form.setFieldValue("modelo", v || "")}
+              onChange={(v) =>
+                form.setFieldValue("modelo", (v || "").toUpperCase())
+              }
               searchable
               onSearchChange={setModeloSearch}
               searchValue={modeloSearch}
@@ -543,7 +554,7 @@ export function TicketForm({
               {...form.getInputProps("precio_total_usd")}
             />
             <NumberInput
-              label="Costo Repuestos ($)"
+              label="Precio Proveedor Repuestos ($)"
               prefix="$"
               min={0}
               {...form.getInputProps("costo_repuestos_usd")}

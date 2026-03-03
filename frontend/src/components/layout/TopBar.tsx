@@ -51,8 +51,20 @@ export function TopBar({ opened, toggle, onNewTicket, isMobile }: TopBarProps) {
             size="sm"
             styles={{
               input: {
-                background: "rgba(255, 255, 255, 0.04)",
-                borderColor: "var(--border-subtle)",
+                background:
+                  colorScheme === "dark"
+                    ? "rgba(255, 255, 255, 0.04)"
+                    : "#ffffff",
+                borderColor:
+                  colorScheme === "dark"
+                    ? "var(--border-subtle)"
+                    : "var(--border-default)",
+                color: "var(--text-primary)",
+                boxShadow:
+                  colorScheme === "dark"
+                    ? "none"
+                    : "0 1px 2px rgba(15, 23, 42, 0.05)",
+                transition: "all 0.2s ease",
               },
             }}
           />

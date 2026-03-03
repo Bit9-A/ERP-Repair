@@ -66,7 +66,7 @@ export function QuickActions() {
               <action.icon size={22} stroke={1.5} />
             </ThemeIcon>
             <div>
-              <Text size="sm" fw={600} c="gray.1">
+              <Text size="sm" fw={600}>
                 {action.label}
               </Text>
               <Text size="xs" c="dimmed">

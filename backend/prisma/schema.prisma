@@ -56,6 +56,49 @@ enum TipoTransaccion {
   EGRESO   // Compra de inventario, pago a técnico, gastos
 }
 
+enum MetodoPago {
+  EFECTIVO
+  PAGO_MOVIL
+  ZELLE
+  TRANSFERENCIA
+  BINANCE
+}
+
+// ==========================================
+// SUCURSALES  (Feature 3)
+// ==========================================
+
+model Sucursal {
+  id        String   @id @default(uuid())
+  nombre    String   @unique
+  direccion String?
+  activa    Boolean  @default(true)
+
+  // Relaciones
+  usuarios         Usuario[]
+  inventario       SucursalProducto[]
+  ventas           Venta[]
+  tickets          TicketReparacion[]
+  movimientosStock MovimientoStock[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Stock por sucursal (pivot)
+model SucursalProducto {
+  sucursalId String
+  productoId String
+  stock      Int      @default(0)
+
+  sucursal   Sucursal @relation(fields: [sucursalId], references: [id], onDelete: Cascade)
+  producto   Producto @relation(fields: [productoId], references: [id], onDelete: Cascade)
+
+  @@id([sucursalId, productoId])
+  @@index([sucursalId])
+  @@index([productoId])
+}
+
 // ==========================================
 // USUARIOS
 // ==========================================
@@ -67,14 +110,19 @@ model Usuario {
   email                    String              @unique
   password_hash            String
 
-  // Configuración de comisión por defecto
   porcentaje_comision_base Float               @default(0.40)
+
+  // Feature 4: Sucursal asignada (null = sin restricción / ADMIN)
+  sucursalId               String?
+  sucursal                 Sucursal?           @relation(fields: [sucursalId], references: [id])
 
   tickets_asignados        TicketReparacion[]
   ventas_realizadas        Venta[]
 
   createdAt                DateTime            @default(now())
   updatedAt                DateTime            @updatedAt
+
+  @@index([sucursalId])
 }
 
 // ==========================================
@@ -96,29 +144,30 @@ model Cliente {
 }
 
 // ==========================================
-// INVENTARIO (Productos + Movimientos)
+// INVENTARIO
 // ==========================================
 
 model Producto {
   id           String             @id @default(uuid())
   sku          String             @unique
   nombre       String
-  marca_comp   String?            // Marca compatible (ej: Samsung)
-  modelo_comp  String?            // Modelo compatible (ej: A54)
+  marca_comp   String?
+  modelo_comp  String?
 
   categoria    CategoriaProducto  @default(REPUESTO)
   propiedad    TipoPropiedad      @default(PROPIA)
-  propietario  String?            // Nombre del dueño si propiedad = PRESTADA
+  propietario  String?
+  activo       Boolean            @default(true)
 
-  stock_actual Int                @default(0)
+  stock_actual Int                @default(0)  // Stock global (suma de sucursales)
   stock_minimo Int                @default(2)
-  costo_usd    Float              // Lo que pagamos / costo de adquisición
-  precio_usd   Float              // Lo que cobramos al cliente
+  costo_usd    Float
+  precio_usd   Float
 
-  // Relaciones
-  tickets      Ticket_Producto[]
-  ventas       Venta_Producto[]
-  movimientos  MovimientoStock[]
+  tickets                  Ticket_Producto[]
+  ventas                   Venta_Producto[]
+  movimientos              MovimientoStock[]
+  inventario_sucursales    SucursalProducto[]   // Feature 3
 
   createdAt    DateTime           @default(now())
   updatedAt    DateTime           @updatedAt
@@ -131,9 +180,17 @@ model MovimientoStock {
   id         String         @id @default(uuid())
   productoId String
   tipo       TipoMovimiento
-  cantidad   Int            // Positivo = entrada, negativo = salida
-  referencia String?        // "Ticket #T-xxx", "Venta #V-xxx"
+  cantidad   Int
+  referencia String?
   nota       String?
+
+  // Feature 2: Precio de proveedor en esta entrada
+  costo_unitario_usd Float?
+  actualizar_costo   Boolean  @default(false)
+
+  // Feature 3: Sucursal donde ocurrió el movimiento
+  sucursalId String?
+  sucursal   Sucursal?      @relation(fields: [sucursalId], references: [id])
 
   producto   Producto       @relation(fields: [productoId], references: [id])
   createdAt  DateTime       @default(now())
@@ -141,48 +198,49 @@ model MovimientoStock {
   @@index([productoId])
   @@index([tipo])
   @@index([createdAt])
+  @@index([sucursalId])
 }
 
 // ==========================================
-// CATÁLOGO DE SERVICIOS
+// SERVICIOS
 // ==========================================
 
 model Servicio {
   id         String            @id @default(uuid())
-  nombre     String            // "Cambio de pantalla", "Limpieza interna"
+  nombre     String
   precio_usd Float
   tickets    Ticket_Servicio[]
-
   createdAt  DateTime          @default(now())
 }
 
 // ==========================================
-// CORE: REPARACIONES (TICKETS)
+// REPARACIONES (TICKETS)
 // ==========================================
 
 model TicketReparacion {
   id              String       @id @default(uuid())
   clienteId       String
-  tecnicoId       String?      // Opcional al inicio (RECIBIDO)
+  tecnicoId       String?
 
-  // Información del Equipo
-  equipo          String?      // Descripción resumida "iPhone 13 Pro"
+  // Feature 3: Sucursal donde se recibió
+  sucursalId      String?
+  sucursal        Sucursal?    @relation(fields: [sucursalId], references: [id])
+
+  equipo          String?
   tipo_equipo     String       @default("Smartphone")
   marca           String
   modelo          String
   imei            String?
   clave           String?
-  patron_visual   String?      // String del patrón (ej: "0,1,2")
+  patron_visual   String?
 
-  // Checklist (JSON flexible)
   checklist       Json?
 
-  falla           String       // Falla principal
-  falla_reportada String?      // Alias para compatibilidad backend
+  falla           String
+  falla_reportada String?
   observaciones   String?
   estado          EstadoTicket @default(RECIBIDO)
 
-  // Finanzas del Ticket
   costo_repuestos_usd Float    @default(0)
   precio_total_usd    Float    @default(0)
   porcentaje_tecnico  Float    @default(0.40)
@@ -190,7 +248,6 @@ model TicketReparacion {
   fecha_ingreso   DateTime     @default(now())
   fecha_entrega   DateTime?
 
-  // Relaciones
   cliente         Cliente      @relation(fields: [clienteId], references: [id])
   tecnico         Usuario?     @relation(fields: [tecnicoId], references: [id])
 
@@ -201,19 +258,16 @@ model TicketReparacion {
 
   @@index([estado])
   @@index([fecha_ingreso])
+  @@index([sucursalId])
 }
-
-// ==========================================
-// TABLAS PIVOTE: Ticket ↔ Producto, Ticket ↔ Servicio
-// ==========================================
 
 model Ticket_Producto {
   id                   String           @id @default(uuid())
   ticketId             String
   productoId           String
   cantidad             Int              @default(1)
-  precio_congelado_usd Float            // Precio de venta al momento del ticket
-  costo_congelado_usd  Float            // Costo al momento (para ganancia real)
+  precio_congelado_usd Float
+  costo_congelado_usd  Float
 
   ticket               TicketReparacion @relation(fields: [ticketId], references: [id], onDelete: Cascade)
   producto             Producto         @relation(fields: [productoId], references: [id])
@@ -223,30 +277,36 @@ model Ticket_Servicio {
   id                   String           @id @default(uuid())
   ticketId             String
   servicioId           String
-  precio_cobrado_usd   Float            // Lo que se le cobró al cliente
-  comision_tecnico_usd Float            // La parte del técnico
+  precio_cobrado_usd   Float
+  comision_tecnico_usd Float
 
   ticket               TicketReparacion @relation(fields: [ticketId], references: [id], onDelete: Cascade)
   servicio             Servicio         @relation(fields: [servicioId], references: [id])
 }
 
 // ==========================================
-// VENTAS DIRECTAS (sin ticket de reparación)
+// VENTAS DIRECTAS
 // ==========================================
 
 model Venta {
   id            String        @id @default(uuid())
   numero        Int           @unique @default(autoincrement())
-  clienteId     String?       // Opcional (venta al mostrador sin registrar cliente)
+  clienteId     String?
   vendedorId    String?
+
+  // Feature 3: Sucursal donde se realizó la venta
+  sucursalId    String?
+  sucursal      Sucursal?     @relation(fields: [sucursalId], references: [id])
 
   subtotal_usd  Float
   descuento_usd Float         @default(0)
   total_usd     Float
 
+  // Feature 1: Snapshot de tasas al momento de la venta { "VES": 36.5, "COP": 4100 }
+  tasas_cambio_snapshot Json?
+
   estado        EstadoVenta   @default(PENDIENTE)
 
-  // Relaciones
   cliente       Cliente?      @relation(fields: [clienteId], references: [id])
   vendedor      Usuario?      @relation(fields: [vendedorId], references: [id])
   items         Venta_Producto[]
@@ -257,6 +317,7 @@ model Venta {
 
   @@index([estado])
   @@index([createdAt])
+  @@index([sucursalId])
 }
 
 model Venta_Producto {
@@ -264,29 +325,21 @@ model Venta_Producto {
   ventaId              String
   productoId           String
   cantidad             Int      @default(1)
-  precio_congelado_usd Float    // Precio al momento de la venta
-  costo_congelado_usd  Float    // Costo al momento (para rentabilidad)
+  precio_congelado_usd Float
+  costo_congelado_usd  Float
 
   venta                Venta    @relation(fields: [ventaId], references: [id], onDelete: Cascade)
   producto             Producto @relation(fields: [productoId], references: [id])
 }
 
 // ==========================================
-// FINANZAS: Pagos + Transacciones + Monedas
+// FINANZAS
 // ==========================================
-
-enum MetodoPago {
-  EFECTIVO
-  PAGO_MOVIL
-  ZELLE
-  TRANSFERENCIA
-  BINANCE
-}
 
 model Moneda {
   id          String   @id @default(uuid())
-  codigo      String   @unique  // "USD", "VES", "COP"
-  nombre      String?           // "Dólar Americano", "Bolívar Digital"
+  codigo      String   @unique
+  nombre      String?
   tasa_cambio Float    @default(1)
 
   pagos       Pago[]
@@ -295,14 +348,17 @@ model Moneda {
 
 model Pago {
   id                 String            @id @default(uuid())
-  ticketId           String?           // Pago asociado a reparación
-  ventaId            String?           // Pago asociado a venta
+  ticketId           String?
+  ventaId            String?
   monedaId           String
 
-  monto_moneda_local Float             // Monto en la moneda del pago
-  equivalente_usd    Float             // Monto convertido a USD
-  metodo             MetodoPago        // EFECTIVO, PAGO_MOVIL, ZELLE, TRANSFERENCIA, BINANCE
-  referencia         String?           // Número de referencia bancaria
+  monto_moneda_local Float
+  equivalente_usd    Float
+  metodo             MetodoPago
+  referencia         String?
+
+  // Feature 1: Tasa usada para convertir (snapshot inmutable)
+  tasa_cambio_usada  Float?
 
   fecha_pago         DateTime          @default(now())
 
@@ -315,12 +371,11 @@ model Pago {
 
 model TransaccionFinanciera {
   id        String          @id @default(uuid())
-  tipo      TipoTransaccion // INGRESO o EGRESO
+  tipo      TipoTransaccion
   monto_usd Float
-  concepto  String          // "Cobro Ticket #T-42", "Compra de pantallas"
-  categoria String?         // "REPARACION", "VENTA", "INVENTARIO", "OPERATIVO", "NOMINA"
+  concepto  String
+  categoria String?
 
-  // Referencias opcionales
   ticketId  String?
   ventaId   String?
 

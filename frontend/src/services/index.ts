@@ -15,6 +15,7 @@ export * as salesService from "./sales.service";
 export * as financeService from "./finance.service";
 export * as transactionsService from "./transactions.service";
 export * as dashboardService from "./dashboard.service";
+export * as sucursalesService from "./sucursales.service";
 
 // -- React Query hooks --
 export {
@@ -35,6 +36,8 @@ export {
   useCreateProduct,
   useUpdateProduct,
   useAdjustStock,
+  useAddStock,
+  useHistorialPrecios,
   useDeleteProduct,
 } from "./hooks/useInventory";
 
@@ -106,6 +109,16 @@ export {
 
 export { useDashboardData } from "./hooks/useDashboard";
 
+export {
+  useSucursales,
+  useSucursal,
+  useSucursalInventario,
+  useInventarioTotal,
+  useCreateSucursal,
+  useUpdateSucursal,
+  useDeleteSucursal,
+} from "./hooks/useSucursales";
+
 // -- Service types re-exports --
 export type { LoginPayload, LoginResponse } from "./auth.service";
 export type { CreateUserPayload, UpdateUserPayload } from "./users.service";
@@ -114,6 +127,7 @@ export type {
   CreateProductPayload,
   UpdateProductPayload,
   AdjustStockPayload,
+  AddStockPayload,
   InventoryStats,
 } from "./inventory.service";
 export type {

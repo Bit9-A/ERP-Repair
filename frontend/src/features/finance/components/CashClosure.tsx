@@ -22,7 +22,7 @@ export function CashClosure() {
       <Group justify="space-between" mb="md">
         <Group gap="xs">
           <IconCash size={20} color="#8B5CF6" />
-          <Text size="sm" fw={600} c="gray.1">
+          <Text size="sm" fw={600}>
             Cierre de Caja — Hoy
           </Text>
         </Group>
@@ -43,7 +43,7 @@ export function CashClosure() {
           <Text size="xs" c="dimmed" tt="uppercase">
             Efectivo
           </Text>
-          <Text ff="monospace" fw={700} size="lg" c="gray.1">
+          <Text ff="monospace" fw={700} size="lg">
             $95.00
           </Text>
         </Stack>
@@ -51,7 +51,7 @@ export function CashClosure() {
           <Text size="xs" c="dimmed" tt="uppercase">
             Transferencias
           </Text>
-          <Text ff="monospace" fw={700} size="lg" c="gray.1">
+          <Text ff="monospace" fw={700} size="lg">
             $63.00
           </Text>
         </Stack>
@@ -59,7 +59,7 @@ export function CashClosure() {
           <Text size="xs" c="dimmed" tt="uppercase">
             Punto de Venta
           </Text>
-          <Text ff="monospace" fw={700} size="lg" c="gray.1">
+          <Text ff="monospace" fw={700} size="lg">
             $16.00
           </Text>
         </Stack>
@@ -67,7 +67,7 @@ export function CashClosure() {
           <Text size="xs" c="dimmed" tt="uppercase">
             Pago Móvil
           </Text>
-          <Text ff="monospace" fw={700} size="lg" c="gray.1">
+          <Text ff="monospace" fw={700} size="lg">
             $32.50
           </Text>
         </Stack>

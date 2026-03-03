@@ -29,6 +29,7 @@ import {
 import { StatCard } from "../../../components/ui/StatCard";
 import { ProductTable } from "../components/ProductTable";
 import { ProductForm } from "../components/ProductForm";
+import { AddStockModal } from "../components/AddStockModal";
 import type { Producto } from "../../../types";
 import type { ProductFormValues } from "../types/inventory.types";
 import {
@@ -44,7 +45,10 @@ export function InventoryPage() {
   const [stockFilter, setStockFilter] = useState<string | null>(null);
   const [categoryTab, setCategoryTab] = useState("all");
   const [editProduct, setEditProduct] = useState<Producto | null>(null);
+  const [stockProduct, setStockProduct] = useState<Producto | null>(null);
   const [formOpened, { open: openForm, close: closeForm }] =
+    useDisclosure(false);
+  const [stockOpened, { open: openStock, close: closeStock }] =
     useDisclosure(false);
 
   // -- API hooks --
@@ -162,9 +166,7 @@ export function InventoryPage() {
 
       {/* Header */}
       <Group justify="space-between" align="center" wrap="wrap" gap="sm">
-        <Title order={2} c="gray.1">
-          Inventario
-        </Title>
+        <Title order={2}>Inventario</Title>
         <Group gap="sm">
           <Button
             variant="subtle"
@@ -212,6 +214,7 @@ export function InventoryPage() {
         style={{
           background: "var(--bg-card)",
           border: "1px solid var(--border-subtle)",
+          boxShadow: "0 4px 20px rgba(15, 23, 42, 0.03)",
           overflow: "hidden",
         }}
       >
@@ -219,7 +222,7 @@ export function InventoryPage() {
           <Group justify="space-between" mb="md">
             <Group gap="xs">
               <IconPackage size={18} color="#3B82F6" />
-              <Text size="sm" fw={600} c="gray.1">
+              <Text size="sm" fw={600}>
                 Listado de Stock
               </Text>
             </Group>
@@ -241,7 +244,7 @@ export function InventoryPage() {
             size="sm"
             mb="md"
             styles={{
-              root: { background: "rgba(255,255,255,0.04)" },
+              root: { background: "var(--bg-elevated)" },
             }}
           />
 
@@ -255,7 +258,7 @@ export function InventoryPage() {
               size="sm"
               styles={{
                 input: {
-                  background: "rgba(255, 255, 255, 0.04)",
+                  background: "var(--bg-elevated)",
                   borderColor: "var(--border-subtle)",
                 },
               }}
@@ -276,7 +279,7 @@ export function InventoryPage() {
               size="sm"
               styles={{
                 input: {
-                  background: "rgba(255, 255, 255, 0.04)",
+                  background: "var(--bg-elevated)",
                   borderColor: "var(--border-subtle)",
                 },
               }}
@@ -291,6 +294,10 @@ export function InventoryPage() {
             products={filtered}
             onEdit={handleEdit}
             onDelete={handleDelete}
+            onAddStock={(p) => {
+              setStockProduct(p);
+              openStock();
+            }}
           />
         </div>
 
@@ -317,6 +324,13 @@ export function InventoryPage() {
         onSubmit={handleSubmit}
         initialData={editProduct}
         allProducts={products}
+      />
+
+      {/* Feature 2 & 3: Add stock with supplier price + branch */}
+      <AddStockModal
+        opened={stockOpened}
+        onClose={closeStock}
+        producto={stockProduct}
       />
     </Stack>
   );

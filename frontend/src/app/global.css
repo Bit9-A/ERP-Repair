@@ -51,26 +51,27 @@
   --border-strong: rgba(255, 255, 255, 0.2);
 }
 
-/* ── Light Mode ── */
+/* ── Light Mode (Premium Tech / Refined Utilitarian) ── */
 [data-mantine-color-scheme="light"] {
   /* -- App custom vars -- */
-  --bg-main: #f1f5f9;
+  --bg-main: #f8fafc; /* Ligeramente más cálido/cremoso que el gris frío anterior */
   --bg-card: #ffffff;
-  --bg-elevated: #e8edf3;
-  --text-primary: #1e293b;
-  --text-secondary: #475569;
-  --text-muted: #94a3b8;
-  --border-subtle: rgba(0, 0, 0, 0.06);
-  --border-default: rgba(0, 0, 0, 0.12);
-  --border-strong: rgba(0, 0, 0, 0.2);
+  --bg-elevated: #f1f5f9;
+  --text-primary: #0f172a; /* Slate 900 - contraste profundo */
+  --text-secondary: #334155; /* Slate 700 */
+  --text-muted: #64748b; /* Slate 500 */
 
-  /* -- Mantine global tokens (body bg, default text) -- */
-  --mantine-color-body: #f1f5f9 !important;
-  --mantine-color-text: #1e293b !important;
+  --border-subtle: rgba(15, 23, 42, 0.06);
+  --border-default: rgba(15, 23, 42, 0.12);
+  --border-strong: rgba(15, 23, 42, 0.2);
+
+  /* -- Mantine global tokens -- */
+  --mantine-color-body: #f8fafc !important;
+  --mantine-color-text: #0f172a !important;
   --mantine-color-dimmed: #475569 !important;
   --mantine-color-default: #ffffff !important;
-  --mantine-color-default-hover: #e8edf3 !important;
-  --mantine-color-default-color: #1e293b !important;
+  --mantine-color-default-hover: #f1f5f9 !important;
+  --mantine-color-default-color: #0f172a !important;
   --mantine-color-placeholder: #94a3b8 !important;
 
   /* NOTE: We do NOT remap --mantine-color-gray-* or --mantine-color-dark-*
@@ -87,7 +88,7 @@
 [data-mantine-color-scheme="light"]
   .mantine-AppShell-header
   *:not(svg):not(path):not(button) {
-  color: #1e293b !important;
+  color: #0f172a !important;
 }
 
 /* ── White text on filled/colored elements ──
@@ -132,7 +133,7 @@
 [data-mantine-color-scheme="light"]
   .mantine-Tooltip-tooltip
   *:not(svg):not(path) {
-  color: #1e293b !important;
+  color: #0f172a !important;
 }
 
 /* Keep sidebar text always white (sidebar bg is always dark).
@@ -160,6 +161,13 @@
 .quick-action-card:hover {
   box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
   transform: translateY(-2px);
+  border-color: var(--border-default) !important;
+}
+
+/* Kanban / Ticket Card hover */
+.ticket-card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(15, 23, 42, 0.08) !important;
   border-color: var(--border-default) !important;
 }
 

@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { MantineProvider, type CSSVariablesResolver } from "@mantine/core";
 import { Notifications } from "@mantine/notifications";
+import { ModalsProvider } from "@mantine/modals";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { RouterProvider } from "react-router-dom";
 import { LoadingOverlay } from "@mantine/core";
@@ -45,9 +46,11 @@ export function App() {
     >
       <Notifications position="top-right" zIndex={2077} />
       <QueryClientProvider client={queryClient}>
-        <Suspense fallback={<LoadingOverlay visible />}>
-          <RouterProvider router={router} />
-        </Suspense>
+        <ModalsProvider>
+          <Suspense fallback={<LoadingOverlay visible />}>
+            <RouterProvider router={router} />
+          </Suspense>
+        </ModalsProvider>
       </QueryClientProvider>
     </MantineProvider>
   );

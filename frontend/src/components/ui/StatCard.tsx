@@ -23,9 +23,12 @@ export function StatCard({
       style={{
         background: "var(--bg-card)",
         border: "1px solid var(--border-subtle)",
-        borderLeft: `3px solid ${accentColor}`,
-        transition: "all 200ms ease",
+        boxShadow: "0 4px 20px rgba(15, 23, 42, 0.03)",
+        borderTop: `3px solid ${accentColor}`,
+        transition: "transform 0.2s ease, box-shadow 0.2s ease",
         cursor: "pointer",
+        position: "relative",
+        overflow: "hidden",
       }}
       className="stat-card"
     >
@@ -34,7 +37,7 @@ export function StatCard({
           <Text size="sm" c="dimmed" mb={4}>
             {title}
           </Text>
-          <Text size="xl" fw={700} ff="monospace" c="gray.1">
+          <Text size="xl" fw={700} ff="monospace">
             {value}
           </Text>
           {subtitle && (
@@ -43,7 +46,15 @@ export function StatCard({
             </Text>
           )}
         </div>
-        <ThemeIcon size="lg" radius="md" variant="light" color={accentColor}>
+        <ThemeIcon
+          size="xl"
+          radius="md"
+          variant="light"
+          color={accentColor}
+          style={{
+            background: `color-mix(in srgb, ${accentColor} 12%, transparent)`,
+          }}
+        >
           {icon}
         </ThemeIcon>
       </Group>

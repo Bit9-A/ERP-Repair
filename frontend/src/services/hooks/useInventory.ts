@@ -6,6 +6,7 @@ import type {
   CreateProductPayload,
   UpdateProductPayload,
   AdjustStockPayload,
+  AddStockPayload,
 } from "../inventory.service";
 
 // ============================================
@@ -100,5 +101,29 @@ export function useDeleteProduct() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["inventory"] });
     },
+  });
+}
+
+// Feature 2 & 3: Add stock with supplier price and branch
+export function useAddStock() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, ...payload }: AddStockPayload & { id: string }) =>
+      inventoryService.addStock(id, payload),
+    onSuccess: (_data, variables) => {
+      qc.invalidateQueries({ queryKey: ["inventory"] });
+      qc.invalidateQueries({
+        queryKey: queryKeys.inventory.movimientos(variables.id),
+      });
+    },
+  });
+}
+
+// Feature 2: supplier price history
+export function useHistorialPrecios(id: string) {
+  return useQuery({
+    queryKey: ["inventory", id, "historial-precios"],
+    queryFn: () => inventoryService.getHistorialPrecios(id),
+    enabled: !!id,
   });
 }

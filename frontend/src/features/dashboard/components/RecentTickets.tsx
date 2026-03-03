@@ -30,11 +30,12 @@ export function RecentTickets() {
       style={{
         background: "var(--bg-card)",
         border: "1px solid var(--border-subtle)",
+        boxShadow: "0 4px 20px rgba(15, 23, 42, 0.03)",
       }}
     >
       <LoadingOverlay visible={isLoading} />
 
-      <Text size="sm" fw={600} c="gray.1" mb="md">
+      <Text size="sm" fw={600} mb="md">
         Ordenes Recientes
       </Text>
 
@@ -60,7 +61,9 @@ export function RecentTickets() {
               fontFamily: '"Fira Sans", sans-serif',
             },
             td: {
-              borderColor: "rgba(255, 255, 255, 0.04)",
+              borderColor: "var(--border-subtle)",
+              paddingTop: "16px",
+              paddingBottom: "16px",
             },
           }}
         >
@@ -80,13 +83,13 @@ export function RecentTickets() {
                     <Avatar size="sm" radius="xl" color="dark.5">
                       <IconUser size={14} />
                     </Avatar>
-                    <Text size="sm" c="gray.2">
+                    <Text size="sm">
                       {ticket.cliente?.nombre || "Sin cliente"}
                     </Text>
                   </Group>
                 </Table.Td>
                 <Table.Td>
-                  <Text size="sm" c="gray.3">
+                  <Text size="sm" c="dimmed">
                     {ticket.marca} {ticket.modelo}
                   </Text>
                 </Table.Td>

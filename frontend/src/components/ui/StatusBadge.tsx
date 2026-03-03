@@ -10,7 +10,7 @@ interface StatusBadgeProps {
 export function TicketStatusBadge({ status }: StatusBadgeProps) {
   const config = TICKET_STATUS[status];
   return (
-    <Badge variant="light" color={config.color} size="sm" radius="sm">
+    <Badge variant="filled" color={config.color} size="sm" radius="sm">
       {config.label}
     </Badge>
   );
@@ -24,7 +24,7 @@ interface StockBadgeProps {
 export function StockStatusBadge({ actual, minimo }: StockBadgeProps) {
   const config = getStockStatus(actual, minimo);
   return (
-    <Badge variant="light" color={config.color} size="sm" radius="sm">
+    <Badge variant="filled" color={config.color} size="sm" radius="sm">
       {config.label}
     </Badge>
   );

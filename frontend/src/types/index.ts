@@ -3,6 +3,25 @@
 // Maps to Prisma DB schema
 // ============================================
 
+// -- Sucursales --
+export interface Sucursal {
+  id: string;
+  nombre: string;
+  direccion?: string;
+  activa: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+  _count?: { usuarios: number; ventas: number; tickets: number };
+}
+
+export interface SucursalProducto {
+  sucursalId: string;
+  productoId: string;
+  stock: number;
+  sucursal?: { id: string; nombre: string };
+  producto?: Producto;
+}
+
 // -- Users --
 export type Rol = "ADMIN" | "TECNICO" | "VENDEDOR";
 
@@ -12,6 +31,9 @@ export interface Usuario {
   rol: Rol;
   email: string;
   porcentaje_comision_base: number;
+  // Feature 4: assigned branch
+  sucursalId?: string;
+  sucursal?: { id: string; nombre: string };
   createdAt: string;
 }
 
@@ -67,6 +89,12 @@ export interface MovimientoStock {
   cantidad: number;
   referencia?: string;
   nota?: string;
+  // Feature 2: supplier price per entry
+  costo_unitario_usd?: number;
+  actualizar_costo?: boolean;
+  // Feature 3: branch
+  sucursalId?: string;
+  sucursal?: { id: string; nombre: string };
   createdAt: string;
 }
 
@@ -145,17 +173,17 @@ export interface Venta {
   cliente?: Cliente;
   vendedorId?: string;
   vendedor?: Usuario;
+  // Feature 3: branch
+  sucursalId?: string;
+  sucursal?: { id: string; nombre: string };
   subtotal_usd: number;
   descuento_usd: number;
   total_usd: number;
   estado: EstadoVenta;
   items?: VentaProducto[];
   pagos?: Pago[];
-  tasas_snapshot?: {
-    VES: number;
-    COP: number;
-    timestamp: string;
-  };
+  // Feature 1: exchange rate snapshot at time of sale
+  tasas_cambio_snapshot?: Record<string, number>;
   createdAt: string;
 }
 
