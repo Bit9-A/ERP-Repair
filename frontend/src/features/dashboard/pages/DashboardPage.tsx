@@ -72,7 +72,7 @@ export function DashboardPage() {
       {/* KPI Row */}
       <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }} spacing="md">
         <StatCard
-          title="Tickets Activos"
+          title="Ordenes Activas"
           value={activeTickets}
           icon={<IconTicket size={20} />}
           accentColor="#22C55E"

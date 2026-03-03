@@ -82,7 +82,7 @@ export function TopBar({ opened, toggle, onNewTicket, isMobile }: TopBarProps) {
                 }
               }}
             >
-              Nuevo Ticket
+              Nueva Orden
             </Menu.Item>
             <Menu.Item
               leftSection={

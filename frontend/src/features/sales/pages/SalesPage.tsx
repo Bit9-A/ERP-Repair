@@ -388,6 +388,8 @@ export function SalesPage() {
         onClose={closeDetail}
         title={`Detalle Venta V-${detailSale?.numero || ""}`}
         size="lg"
+        closeOnClickOutside={false}
+        closeOnEscape={false}
       >
         {detailSale && (
           <Stack gap="md">

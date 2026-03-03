@@ -78,7 +78,7 @@ export function KanbanPage() {
       await updateRepair.mutateAsync({ id: ticketId, estado: newEstado });
       notifications.show({
         title: "Estado actualizado",
-        message: `Ticket movido a ${newEstado.replace(/_/g, " ")}`,
+        message: `Orden de reparación movida a ${newEstado.replace(/_/g, " ")}`,
         color: "green",
         autoClose: 2000,
       });
@@ -115,16 +115,16 @@ export function KanbanPage() {
               {
                 value: "kanban",
                 label: (
-                  <Group gap={6}>
+                  <Group gap={6} wrap="nowrap">
                     <IconLayoutKanban size={14} />
-                    Kanban
+                    Tarjetas
                   </Group>
                 ),
               },
               {
                 value: "list",
                 label: (
-                  <Group gap={6}>
+                  <Group gap={6} wrap="nowrap">
                     <IconList size={14} />
                     Lista
                   </Group>

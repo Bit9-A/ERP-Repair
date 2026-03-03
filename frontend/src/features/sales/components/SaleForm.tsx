@@ -293,12 +293,12 @@ export function SaleForm({ opened, onClose, onSubmit }: SaleFormProps) {
       },
       pago: selectedMonedaId
         ? {
-            monedaId: selectedMonedaId,
-            equivalente_usd: parseFloat(total.toFixed(2)),
-            monto_moneda_local: parseFloat(totalInSelectedCurrency.toFixed(2)),
-            metodo: selectedMetodo,
-            referencia: referencia.trim() || undefined,
-          }
+          monedaId: selectedMonedaId,
+          equivalente_usd: parseFloat(total.toFixed(2)),
+          monto_moneda_local: parseFloat(totalInSelectedCurrency.toFixed(2)),
+          metodo: selectedMetodo,
+          referencia: referencia.trim() || undefined,
+        }
         : undefined,
     });
     resetForm();
@@ -321,8 +321,10 @@ export function SaleForm({ opened, onClose, onSubmit }: SaleFormProps) {
 
   return (
     <>
+      {/* Modal para crear una nueva venta que no se cierre al presionar enter */}
       <Modal
         opened={opened}
+
         onClose={() => {
           resetForm();
           onClose();
@@ -335,6 +337,7 @@ export function SaleForm({ opened, onClose, onSubmit }: SaleFormProps) {
         }
         size="xl"
         closeOnClickOutside={false}
+        closeOnEscape={false}
       >
         <Stack gap="md" pos="relative">
           <LoadingOverlay visible={loadingProducts} />
@@ -1017,6 +1020,8 @@ export function SaleForm({ opened, onClose, onSubmit }: SaleFormProps) {
         title="Escaneo Detectado"
         size="sm"
         centered
+        closeOnClickOutside={false}
+        closeOnEscape={false}
       >
         {pendingScanProduct && (
           <Stack gap="md">

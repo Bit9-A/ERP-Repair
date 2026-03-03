@@ -73,6 +73,8 @@ export function UserForm({
       onClose={onClose}
       title={isEditing ? "Editar Usuario" : "Nuevo Usuario"}
       size="md"
+      closeOnClickOutside={false}
+      closeOnEscape={false}
     >
       <form onSubmit={form.onSubmit(handleSubmit)}>
         <Stack gap="md">

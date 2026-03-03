@@ -161,8 +161,8 @@ export function TicketForm({
   const modeloOptions = selectedMarcaId
     ? modelos.map((m) => ({ value: m.nombre, label: m.nombre }))
     : marcas
-        .find((m) => m.nombre === form.values.marca)
-        ?.modelos?.map((m) => ({ value: m.nombre, label: m.nombre })) || [];
+      .find((m) => m.nombre === form.values.marca)
+      ?.modelos?.map((m) => ({ value: m.nombre, label: m.nombre })) || [];
 
   const handleMarcaChange = (value: string | null) => {
     form.setFieldValue("marca", value || "");
@@ -234,7 +234,7 @@ export function TicketForm({
   };
 
   return (
-    <Modal opened={opened} onClose={onClose} title={modalTitle} size="xl">
+    <Modal opened={opened} onClose={onClose} title={modalTitle} size="xl" closeOnClickOutside={false} closeOnEscape={false}>
       <form onSubmit={form.onSubmit(handleSubmit)}>
         <Stack gap="md">
           <Divider label="1. Datos del Cliente" labelPosition="center" />

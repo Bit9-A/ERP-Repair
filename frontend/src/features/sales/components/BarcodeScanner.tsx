@@ -125,6 +125,8 @@ export function BarcodeScanner({
       }
       size="md"
       centered
+      closeOnClickOutside={false}
+      closeOnEscape={false}
       styles={{
         body: { padding: "12px" },
       }}

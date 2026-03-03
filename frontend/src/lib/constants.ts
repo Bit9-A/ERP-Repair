@@ -8,7 +8,7 @@ export const APP_SUBTITLE = "Sistema de Gestión";
 // -- Ticket status labels & colors --
 export const TICKET_STATUS = {
   RECIBIDO: { label: "Recibido", color: "gray" },
-  EN_REVISION: { label: "En Revisión", color: "blue" },
+  EN_REVISION: { label: "Revisión", color: "blue" },
   ESPERANDO_REPUESTO: { label: "Esperando Repuesto", color: "yellow" },
   REPARADO: { label: "Reparado", color: "brand" },
   ENTREGADO: { label: "Entregado", color: "violet" },

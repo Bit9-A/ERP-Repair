@@ -35,7 +35,7 @@ export function RecentTickets() {
       <LoadingOverlay visible={isLoading} />
 
       <Text size="sm" fw={600} c="gray.1" mb="md">
-        Tickets Recientes
+        Ordenes Recientes
       </Text>
 
       {recentTickets.length === 0 && !isLoading ? (

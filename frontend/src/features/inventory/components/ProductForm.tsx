@@ -124,9 +124,9 @@ export function ProductForm({
   const existingProductMatch =
     !initialData && form.values.sku.trim().length > 1
       ? allProducts.find(
-          (p) =>
-            stripLeadingZeros(p.sku) === stripLeadingZeros(form.values.sku),
-        )
+        (p) =>
+          stripLeadingZeros(p.sku) === stripLeadingZeros(form.values.sku),
+      )
       : null;
 
   const handleSubmit = (values: ProductFormValues) => {
@@ -229,16 +229,16 @@ export function ProductForm({
   const modeloOptions = selectedMarcaId
     ? modelos.map((m) => ({ value: m.nombre, label: m.nombre }))
     : marcas
-        .find((m) => m.nombre === form.values.marca_comp)
-        ?.modelos?.map((m) => ({ value: m.nombre, label: m.nombre })) || [];
+      .find((m) => m.nombre === form.values.marca_comp)
+      ?.modelos?.map((m) => ({ value: m.nombre, label: m.nombre })) || [];
 
   const margen =
     form.values.precio_usd > 0 && form.values.costo_usd > 0
       ? (
-          ((form.values.precio_usd - form.values.costo_usd) /
-            form.values.costo_usd) *
-          100
-        ).toFixed(1)
+        ((form.values.precio_usd - form.values.costo_usd) /
+          form.values.costo_usd) *
+        100
+      ).toFixed(1)
       : "0.0";
 
   return (
@@ -248,14 +248,16 @@ export function ProductForm({
         onClose={onClose}
         title={initialData ? "Editar Producto" : "Nuevo Producto"}
         size="lg"
+        closeOnClickOutside={false}
+        closeOnEscape={false}
       >
         <form
           onSubmit={
             existingProductMatch
               ? (e) => {
-                  e.preventDefault();
-                  handleSubmit(form.values);
-                }
+                e.preventDefault();
+                handleSubmit(form.values);
+              }
               : form.onSubmit(handleSubmit)
           }
         >
