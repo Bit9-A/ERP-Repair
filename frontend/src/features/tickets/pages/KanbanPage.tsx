@@ -7,10 +7,17 @@ import {
   LoadingOverlay,
   SegmentedControl,
   Badge,
+  TextInput,
 } from "@mantine/core";
+import { useSearchParams } from "react-router-dom";
 import { useDisclosure } from "@mantine/hooks";
 import { notifications } from "@mantine/notifications";
-import { IconPlus, IconLayoutKanban, IconList } from "@tabler/icons-react";
+import {
+  IconPlus,
+  IconLayoutKanban,
+  IconList,
+  IconSearch,
+} from "@tabler/icons-react";
 import { KanbanBoard } from "../components/KanbanBoard";
 import { TicketListView } from "../components/TicketListView";
 import { TicketForm } from "../components/TicketForm";
@@ -23,6 +30,9 @@ import {
 } from "../../../services";
 
 export function KanbanPage() {
+  const [searchParams] = useSearchParams();
+  const [search, setSearch] = useState(searchParams.get("search") || "");
+
   const [formOpened, { open: openForm, close: closeForm }] =
     useDisclosure(false);
 
@@ -35,6 +45,13 @@ export function KanbanPage() {
   const { data: tickets = [], isLoading } = useRepairs();
   const createRepair = useCreateRepair();
   const updateRepair = useUpdateRepair();
+
+  const filteredTickets = tickets.filter(
+    (t) =>
+      t.equipo?.toLowerCase().includes(search.toLowerCase()) ||
+      t.falla_reportada?.toLowerCase().includes(search.toLowerCase()) ||
+      t.id?.toLowerCase().includes(search.toLowerCase()),
+  );
 
   const handleNewTicket = async (values: TicketFormValues) => {
     try {
@@ -104,6 +121,14 @@ export function KanbanPage() {
         </Group>
 
         <Group gap="sm">
+          <TextInput
+            placeholder="Buscar orden, equipo..."
+            value={search}
+            onChange={(e) => setSearch(e.currentTarget.value)}
+            leftSection={<IconSearch size={16} />}
+            w={{ base: "100%", md: 250 }}
+          />
+
           {/* View toggle */}
           <SegmentedControl
             value={viewMode}
@@ -146,13 +171,13 @@ export function KanbanPage() {
       {/* View content */}
       {viewMode === "kanban" ? (
         <KanbanBoard
-          tickets={tickets}
+          tickets={filteredTickets}
           onTicketClick={handleEditTicket}
           onMoveTicket={handleMoveTicket}
         />
       ) : (
         <TicketListView
-          tickets={tickets}
+          tickets={filteredTickets}
           onTicketClick={handleEditTicket}
           onMoveTicket={handleMoveTicket}
         />

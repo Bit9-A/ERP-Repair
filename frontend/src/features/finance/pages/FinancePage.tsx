@@ -49,16 +49,16 @@ const RATE_CONFIGS: RateConfig[] = [
     name: "Bolívar Digital",
     symbol: "Bs.",
     color: "blue",
-    bgFrom: "rgba(59, 130, 246, 0.08)",
-    bgBorder: "rgba(59, 130, 246, 0.15)",
+    bgFrom: "rgba(59, 130, 246, 0.15)",
+    bgBorder: "rgba(59, 130, 246, 0.3)",
   },
   {
     code: "COP",
     name: "Peso Colombiano",
     symbol: "$",
     color: "yellow",
-    bgFrom: "rgba(245, 158, 11, 0.08)",
-    bgBorder: "rgba(245, 158, 11, 0.15)",
+    bgFrom: "rgba(245, 158, 11, 0.15)",
+    bgBorder: "rgba(245, 158, 11, 0.3)",
   },
 ];
 
@@ -158,7 +158,7 @@ export function FinancePage() {
             <Group justify="space-between" mb="lg">
               <Group gap="xs">
                 <IconArrowsExchange size={18} color="#3B82F6" />
-                <Text size="sm" fw={600}>
+                <Text size="sm" fw={700}>
                   Multimoneda & Tasas
                 </Text>
               </Group>
@@ -173,16 +173,16 @@ export function FinancePage() {
                 p="sm"
                 radius="md"
                 style={{
-                  background: "rgba(34, 197, 94, 0.08)",
-                  border: "1px solid rgba(34, 197, 94, 0.15)",
+                  background: "rgba(34, 197, 94, 0.15)",
+                  border: "1px solid rgba(34, 197, 94, 0.3)",
                 }}
               >
                 <Group justify="space-between">
                   <div>
-                    <Badge variant="light" color="brand" size="sm" mb={4}>
+                    <Badge variant="filled" color="brand" size="sm" mb={4}>
                       USD
                     </Badge>
-                    <Text size="xs" c="dimmed">
+                    <Text size="sm" fw={500}>
                       Dólar Americano
                     </Text>
                   </div>
@@ -211,19 +211,19 @@ export function FinancePage() {
                   <Group justify="space-between">
                     <div>
                       <Group gap={6} mb={4}>
-                        <Badge variant="light" color={r.color} size="sm">
+                        <Badge variant="filled" color={r.color} size="sm">
                           {r.code}
                         </Badge>
                         {editRates[r.code] !== monedaMap[r.code]?.tasa && (
-                          <Badge variant="outline" color="blue" size="xs">
+                          <Badge variant="filled" color="blue" size="xs">
                             Modificado
                           </Badge>
                         )}
                       </Group>
-                      <Text size="xs" c="dimmed">
+                      <Text size="sm" fw={600}>
                         {r.name}
                       </Text>
-                      <Text size="xs" c="dimmed" mt={2}>
+                      <Text size="sm" fw={500} c="dimmed" mt={2}>
                         1 USD = {r.symbol}{" "}
                         {editRates[r.code]?.toLocaleString("es-VE", {
                           minimumFractionDigits: 2,
@@ -355,7 +355,7 @@ export function FinancePage() {
         <Group justify="space-between" mb="md">
           <Group gap="xs">
             <IconCash size={20} color="#8B5CF6" />
-            <Text size="sm" fw={600}>
+            <Text size="sm" fw={700}>
               Arqueo de Caja & Conciliación
             </Text>
           </Group>

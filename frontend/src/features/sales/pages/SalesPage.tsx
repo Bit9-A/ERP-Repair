@@ -18,6 +18,7 @@ import {
   Modal,
   LoadingOverlay,
 } from "@mantine/core";
+import { useSearchParams } from "react-router-dom";
 import { useDisclosure } from "@mantine/hooks";
 import { notifications } from "@mantine/notifications";
 import {
@@ -44,7 +45,8 @@ import {
 } from "../../../services";
 
 export function SalesPage() {
-  const [search, setSearch] = useState("");
+  const [searchParams] = useSearchParams();
+  const [search, setSearch] = useState(searchParams.get("search") || "");
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
   const [detailSale, setDetailSale] = useState<Venta | null>(null);
   const [detailOpened, { open: openDetail, close: closeDetail }] =

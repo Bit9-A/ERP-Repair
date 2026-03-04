@@ -14,6 +14,7 @@ import transactionsRoutes from "./modules/transactions/transactions.routes";
 import brandsRoutes from "./modules/brands/brands.routes";
 import clientsRoutes from "./modules/clients/clients.routes";
 import dashboardRoutes from "./modules/dashboard/dashboard.routes";
+import searchRoutes from "./modules/search/search.routes";
 import { sucursalesRouter } from "./modules/sucursales/sucursales.routes";
 
 const app = express();
@@ -51,6 +52,7 @@ app.use("/api/brands", brandsRoutes);
 app.use("/api/clients", clientsRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/sucursales", sucursalesRouter);
+app.use("/api/search", searchRoutes);
 
 // ── Error Handling ──
 app.use(notFoundHandler);

@@ -15,6 +15,8 @@ import { useThemeStore } from "../stores/theme.store";
 import "@mantine/core/styles.css";
 import "@mantine/notifications/styles.css";
 import "@mantine/dates/styles.css";
+import "@mantine/spotlight/styles.css";
+
 import "./global.css";
 
 // Overrides Mantine's internal CSS tokens for light mode.

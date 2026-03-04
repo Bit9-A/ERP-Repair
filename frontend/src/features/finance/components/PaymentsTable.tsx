@@ -35,7 +35,7 @@ export function PaymentsTable() {
       <Group justify="space-between" p="md" pb="sm">
         <Group gap="xs">
           <IconReportMoney size={18} color="#3B82F6" />
-          <Text size="sm" fw={600}>
+          <Text size="sm" fw={700}>
             Pagos Recientes
           </Text>
         </Group>
@@ -49,12 +49,14 @@ export function PaymentsTable() {
       ) : (
         <Table
           highlightOnHover
+          striped
           horizontalSpacing="md"
           verticalSpacing="sm"
           styles={{
             th: {
-              color: "#94A3B8",
+              color: "var(--text-primary)",
               fontSize: "12px",
+              fontWeight: 700,
               textTransform: "uppercase",
               letterSpacing: "0.05em",
             },
@@ -87,24 +89,24 @@ export function PaymentsTable() {
                   </Text>
                 </Table.Td>
                 <Table.Td>
-                  <Text size="sm">
+                  <Text size="sm" fw={500}>
                     {pay.venta?.cliente?.nombre ??
                       pay.ticket?.cliente?.nombre ??
                       "Sin Cliente"}
                   </Text>
                 </Table.Td>
                 <Table.Td style={{ textAlign: "right" }}>
-                  <Text ff="monospace" size="sm" fw={700} c="brand.6">
+                  <Text ff="monospace" size="sm" fw={800} c="brand.6">
                     ${pay.equivalente_usd.toFixed(2)}
                   </Text>
                 </Table.Td>
                 <Table.Td>
-                  <Badge variant="outline" size="xs" color="gray">
+                  <Badge variant="filled" size="xs" color="gray">
                     {pay.moneda?.codigo || "—"}
                   </Badge>
                 </Table.Td>
                 <Table.Td style={{ textAlign: "right" }}>
-                  <Text ff="monospace" size="sm" c="dimmed">
+                  <Text ff="monospace" size="sm" fw={600}>
                     {pay.monto_moneda_local.toLocaleString("es-VE", {
                       minimumFractionDigits: 2,
                       maximumFractionDigits: 2,
@@ -115,13 +117,13 @@ export function PaymentsTable() {
                   <Badge
                     color={PAYMENT_COLORS[pay.metodo] || "gray"}
                     size="xs"
-                    variant="light"
+                    variant="filled"
                   >
                     {pay.metodo.replace("_", " ")}
                   </Badge>
                 </Table.Td>
                 <Table.Td>
-                  <Text size="xs" c="dimmed">
+                  <Text size="xs" fw={500}>
                     {new Date(pay.fecha_pago).toLocaleString("es-VE", {
                       day: "2-digit",
                       month: "2-digit",

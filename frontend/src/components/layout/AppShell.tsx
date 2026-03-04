@@ -3,6 +3,7 @@ import { useDisclosure, useMediaQuery } from "@mantine/hooks";
 import { Outlet } from "react-router-dom";
 import { Sidebar } from "./Sidebar";
 import { TopBar } from "./TopBar";
+import { GlobalSpotlight } from "./GlobalSpotlight";
 
 const SIDEBAR_WIDTH_EXPANDED = 250;
 const SIDEBAR_WIDTH_COLLAPSED = 72;
@@ -81,6 +82,8 @@ export function AppShell() {
             isMobile={isMobile ?? false}
           />
         </MantineAppShell.Header>
+
+        <GlobalSpotlight />
 
         <MantineAppShell.Main>
           <Outlet />

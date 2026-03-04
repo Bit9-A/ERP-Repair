@@ -15,6 +15,7 @@ import {
   SegmentedControl,
   LoadingOverlay,
 } from "@mantine/core";
+import { useSearchParams } from "react-router-dom";
 import { useDisclosure } from "@mantine/hooks";
 import { notifications } from "@mantine/notifications";
 import {
@@ -41,7 +42,8 @@ import {
 } from "../../../services";
 
 export function InventoryPage() {
-  const [search, setSearch] = useState("");
+  const [searchParams] = useSearchParams();
+  const [search, setSearch] = useState(searchParams.get("search") || "");
   const [stockFilter, setStockFilter] = useState<string | null>(null);
   const [categoryTab, setCategoryTab] = useState("all");
   const [editProduct, setEditProduct] = useState<Producto | null>(null);

@@ -7,7 +7,9 @@ import {
   Menu,
   rem,
   Tooltip,
+  Kbd,
 } from "@mantine/core";
+import { spotlight } from "@mantine/spotlight";
 import {
   IconBell,
   IconPlus,
@@ -47,10 +49,20 @@ export function TopBar({ opened, toggle, onNewTicket, isMobile }: TopBarProps) {
           <TextInput
             placeholder="Buscar tickets, clientes, productos..."
             leftSection={<IconSearch size={16} />}
+            rightSection={
+              <Group gap={4} mr={4}>
+                <Kbd size="xs">Ctrl</Kbd>
+                <Kbd size="xs">K</Kbd>
+              </Group>
+            }
+            rightSectionWidth={65}
             w={{ base: 200, md: 350 }}
             size="sm"
+            onClick={() => spotlight.open()}
+            readOnly
             styles={{
               input: {
+                cursor: "pointer",
                 background:
                   colorScheme === "dark"
                     ? "rgba(255, 255, 255, 0.04)"
