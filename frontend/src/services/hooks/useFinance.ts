@@ -43,10 +43,10 @@ export function useUpdateTasa() {
 
 // -- Pagos --
 
-export function usePagos(fecha?: string) {
+export function usePagos(periodo?: "dia" | "semana" | "mes") {
   return useQuery({
-    queryKey: queryKeys.finance.pagos(fecha),
-    queryFn: () => financeService.getPagos(fecha),
+    queryKey: queryKeys.finance.pagos(periodo),
+    queryFn: () => financeService.getPagos(periodo),
   });
 }
 
@@ -74,10 +74,10 @@ export function useCierre(fecha?: string) {
 
 // -- Stats --
 
-export function useFinanceStats() {
+export function useFinanceStats(periodo?: "dia" | "semana" | "mes") {
   return useQuery({
-    queryKey: queryKeys.finance.stats,
-    queryFn: financeService.getStats,
+    queryKey: [...queryKeys.finance.stats, periodo ?? "dia"],
+    queryFn: () => financeService.getStats(periodo),
     staleTime: 0,
     refetchOnMount: true,
     refetchOnWindowFocus: true,

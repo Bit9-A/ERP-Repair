@@ -17,8 +17,12 @@ const PAYMENT_COLORS: Record<string, string> = {
   ZELLE: "violet",
 };
 
-export function PaymentsTable() {
-  const { data: pagos = [], isLoading } = usePagos();
+interface PaymentsTableProps {
+  periodo?: "dia" | "semana" | "mes";
+}
+
+export function PaymentsTable({ periodo }: PaymentsTableProps) {
+  const { data: pagos = [], isLoading } = usePagos(periodo);
 
   return (
     <Paper

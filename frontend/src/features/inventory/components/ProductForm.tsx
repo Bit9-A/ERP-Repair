@@ -26,6 +26,7 @@ import {
   useCreateMarca,
   useModelosByMarca,
   useCreateModelo,
+  useSucursales,
 } from "../../../services";
 import type { Producto } from "../../../types";
 import type { ProductFormValues } from "../types/inventory.types";
@@ -65,6 +66,7 @@ export function ProductForm({
     selectedMarcaId ?? undefined,
   );
   const createModelo = useCreateModelo();
+  const { data: sucursales = [] } = useSucursales();
 
   const form = useForm<ProductFormValues>({
     initialValues: {
@@ -79,6 +81,7 @@ export function ProductForm({
       stock_minimo: 2,
       costo_usd: 0,
       precio_usd: 0,
+      sucursalId: "",
     },
     validate: {
       sku: (v) => (v.trim().length < 2 ? "SKU requerido" : null),
@@ -457,6 +460,21 @@ export function ProductForm({
                     {...form.getInputProps("stock_minimo")}
                   />
                 </SimpleGrid>
+
+                {/* Branch selector — only for new products with initial stock */}
+                {!initialData && form.values.stock_actual > 0 && (
+                  <Select
+                    label="Sucursal de destino del stock inicial"
+                    placeholder="Selecciona sucursal"
+                    description="¿En qué local físico entrará este stock?"
+                    data={sucursales.map((s) => ({
+                      value: s.id,
+                      label: s.nombre,
+                    }))}
+                    clearable
+                    {...form.getInputProps("sucursalId")}
+                  />
+                )}
 
                 <SimpleGrid cols={3}>
                   <NumberInput

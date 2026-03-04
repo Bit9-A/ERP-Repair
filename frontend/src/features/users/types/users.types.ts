@@ -1,4 +1,4 @@
-import type { Rol } from "../../../types";
+import type { Rol, UserPermisos } from "../../../types";
 
 export interface UserFormValues {
   nombre: string;
@@ -7,4 +7,5 @@ export interface UserFormValues {
   rol: Rol;
   porcentaje_comision_base: number;
   sucursalId?: string; // Feature 4: branch assignment
+  permisos?: UserPermisos; // Feature 5: permissions
 }

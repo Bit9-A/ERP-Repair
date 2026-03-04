@@ -45,6 +45,11 @@ const SucursalesPage = lazy(() =>
     default: m.SucursalesPage,
   })),
 );
+const ClientsPage = lazy(() =>
+  import("../features/clients/pages/ClientsPage").then((m) => ({
+    default: m.ClientsPage,
+  })),
+);
 
 export const router = createBrowserRouter([
   // -- Public routes --
@@ -122,6 +127,16 @@ export const router = createBrowserRouter([
             element: (
               <RoleGuard roles={["ADMIN"]}>
                 <SucursalesPage />
+              </RoleGuard>
+            ),
+          },
+
+          // ADMIN + TECNICO + VENDEDOR pueden ver Clientes
+          {
+            path: "clients",
+            element: (
+              <RoleGuard roles={["ADMIN", "TECNICO", "VENDEDOR"]}>
+                <ClientsPage />
               </RoleGuard>
             ),
           },

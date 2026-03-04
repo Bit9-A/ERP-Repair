@@ -1,5 +1,5 @@
 import { Table, Text, Group, ActionIcon, Tooltip, Badge } from "@mantine/core";
-import { IconPencil, IconTrash } from "@tabler/icons-react";
+import { IconPencil, IconTrash, IconBuilding } from "@tabler/icons-react";
 import type { Usuario } from "../../../types";
 
 interface UserTableProps {
@@ -40,6 +40,7 @@ export function UserTable({ users, onEdit, onDelete }: UserTableProps) {
           <Table.Th>Nombre</Table.Th>
           <Table.Th>Email</Table.Th>
           <Table.Th>Rol</Table.Th>
+          <Table.Th>Sucursal</Table.Th>
           <Table.Th style={{ textAlign: "right" }}>Comisión</Table.Th>
           <Table.Th style={{ textAlign: "center" }}>Acciones</Table.Th>
         </Table.Tr>
@@ -64,6 +65,20 @@ export function UserTable({ users, onEdit, onDelete }: UserTableProps) {
                 <Badge variant="filled" color={rol.color} size="sm">
                   {rol.label}
                 </Badge>
+              </Table.Td>
+              <Table.Td>
+                {user.sucursal ? (
+                  <Group gap={4}>
+                    <IconBuilding size={13} color="var(--text-secondary)" />
+                    <Text size="xs" c="dimmed">
+                      {user.sucursal.nombre}
+                    </Text>
+                  </Group>
+                ) : (
+                  <Text size="xs" c="dimmed" fs="italic">
+                    Sin asignar
+                  </Text>
+                )}
               </Table.Td>
               <Table.Td style={{ textAlign: "right" }}>
                 <Text ff="monospace" size="sm" fw={600}>

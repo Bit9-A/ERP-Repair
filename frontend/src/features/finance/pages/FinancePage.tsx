@@ -15,6 +15,7 @@ import {
   Tooltip,
   Notification,
   LoadingOverlay,
+  SegmentedControl,
 } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import {
@@ -29,10 +30,15 @@ import {
   IconCheck,
   IconDeviceFloppy,
   IconRefresh,
+  IconSun,
+  IconCalendarStats,
+  IconCalendar,
 } from "@tabler/icons-react";
 import { StatCard } from "../../../components/ui/StatCard";
 import { PaymentsTable } from "../components/PaymentsTable";
 import { useMonedas, useUpdateTasa, useFinanceStats } from "../../../services";
+
+type Periodo = "dia" | "semana" | "mes";
 
 interface RateConfig {
   code: string;
@@ -62,11 +68,20 @@ const RATE_CONFIGS: RateConfig[] = [
   },
 ];
 
+const PERIODO_LABELS: Record<Periodo, string> = {
+  dia: "del Día",
+  semana: "de la Semana",
+  mes: "del Mes",
+};
+
 export function FinancePage() {
+  // -- Period state --
+  const [periodo, setPeriodo] = useState<Periodo>("dia");
+
   // -- API hooks --
   const { data: monedas = [], isLoading } = useMonedas();
   const updateTasa = useUpdateTasa();
-  const { data: stats } = useFinanceStats();
+  const { data: stats } = useFinanceStats(periodo);
 
   // Build a map: code -> { id, tasa_cambio }
   const monedaMap = Object.fromEntries(
@@ -131,14 +146,55 @@ export function FinancePage() {
     setEditRates(rates);
   };
 
+  const periodoLabel = PERIODO_LABELS[periodo];
+
   return (
     <Stack gap="xl" pos="relative">
       <LoadingOverlay visible={isLoading} />
 
       {/* Header */}
-      <Group gap="xs">
-        <IconWallet size={24} color="#22C55E" />
-        <Title order={2}>Gestión Financiera</Title>
+      <Group justify="space-between" wrap="wrap" gap="sm">
+        <Group gap="xs">
+          <IconWallet size={24} color="#22C55E" />
+          <Title order={2}>Gestión Financiera</Title>
+        </Group>
+
+        {/* Period selector */}
+        <SegmentedControl
+          value={periodo}
+          onChange={(v) => setPeriodo(v as Periodo)}
+          size="xs"
+          radius="md"
+          data={[
+            {
+              value: "dia",
+              label: (
+                <Group gap={4} wrap="nowrap">
+                  <IconSun size={13} />
+                  <span>Día</span>
+                </Group>
+              ),
+            },
+            {
+              value: "semana",
+              label: (
+                <Group gap={4} wrap="nowrap">
+                  <IconCalendarStats size={13} />
+                  <span>Semana</span>
+                </Group>
+              ),
+            },
+            {
+              value: "mes",
+              label: (
+                <Group gap={4} wrap="nowrap">
+                  <IconCalendar size={13} />
+                  <span>Mes</span>
+                </Group>
+              ),
+            },
+          ]}
+        />
       </Group>
 
       {/* Two-column: Currency rates + KPIs */}
@@ -159,7 +215,7 @@ export function FinancePage() {
               <Group gap="xs">
                 <IconArrowsExchange size={18} color="#3B82F6" />
                 <Text size="sm" fw={700}>
-                  Multimoneda & Tasas
+                  Multimoneda &amp; Tasas
                 </Text>
               </Group>
               <Badge variant="dot" color="brand" size="xs">
@@ -292,26 +348,26 @@ export function FinancePage() {
         <Grid.Col span={{ base: 12, md: 7 }}>
           <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
             <StatCard
-              title="Ingresos del Día"
+              title={`Ingresos ${periodoLabel}`}
               value={`$${(stats?.ingresosHoy ?? 0).toFixed(2)}`}
               icon={<IconCurrencyDollar size={20} />}
               accentColor="#22C55E"
             />
             <StatCard
-              title="Egresos del Día"
+              title={`Egresos ${periodoLabel}`}
               value={`-$${(stats?.egresosHoy ?? 0).toFixed(2)}`}
               icon={<IconTrendingDown size={20} />}
               accentColor="#EF4444"
               subtitle="Compras de inventario y gastos"
             />
             <StatCard
-              title="Balance Neto"
+              title={`Balance ${periodoLabel}`}
               value={`$${(stats?.balanceHoy ?? 0).toFixed(2)}`}
               icon={<IconTrendingUp size={20} />}
               accentColor="#3B82F6"
             />
             <StatCard
-              title="Tickets Cobrados"
+              title={`Tickets Cobrados ${periodoLabel}`}
               value={String(stats?.ticketsCobradosHoy ?? 0)}
               icon={<IconReceipt size={20} />}
               accentColor="#8B5CF6"
@@ -339,8 +395,8 @@ export function FinancePage() {
         </Notification>
       )}
 
-      {/* Payments Table */}
-      <PaymentsTable />
+      {/* Payments Table — filtered by selected period */}
+      <PaymentsTable periodo={periodo} />
 
       {/* Arqueo de Caja */}
       <Paper
@@ -356,7 +412,7 @@ export function FinancePage() {
           <Group gap="xs">
             <IconCash size={20} color="#8B5CF6" />
             <Text size="sm" fw={700}>
-              Arqueo de Caja & Conciliación
+              Arqueo de Caja &amp; Conciliación
             </Text>
           </Group>
           <Button

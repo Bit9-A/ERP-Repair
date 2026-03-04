@@ -62,3 +62,14 @@ export function useDeleteSucursal() {
     onSuccess: () => qc.invalidateQueries({ queryKey: QUERY_KEY }),
   });
 }
+
+export function useTransferirStock() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: sucursalesService.transferirStock,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: QUERY_KEY });
+      qc.invalidateQueries({ queryKey: ["inventory"] });
+    },
+  });
+}

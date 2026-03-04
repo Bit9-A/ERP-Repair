@@ -34,6 +34,7 @@ import {
   IconCheck,
   IconX,
   IconBuildingStore,
+  IconArrowsExchange,
 } from "@tabler/icons-react";
 import {
   useSucursales,
@@ -43,6 +44,7 @@ import {
   useSucursalInventario,
 } from "../../../services";
 import type { Sucursal } from "../../../types";
+import { TransferModal } from "../components/TransferModal";
 
 // ── Sub-component: Sucursal Inventory Modal ──────────────────────────────────
 function InventarioModal({
@@ -251,6 +253,8 @@ export function SucursalesPage() {
     null,
   );
   const [invOpened, { open: openInv, close: closeInv }] = useDisclosure(false);
+  const [transferOpened, { open: openTransfer, close: closeTransfer }] =
+    useDisclosure(false);
 
   const handleEdit = (s: Sucursal) => {
     setEditData(s);
@@ -289,9 +293,19 @@ export function SucursalesPage() {
           <IconBuilding size={24} color="var(--primary)" />
           <Title order={2}>Sucursales</Title>
         </Group>
-        <Button leftSection={<IconPlus size={16} />} onClick={handleNew}>
-          Nueva Sucursal
-        </Button>
+        <Group gap="sm">
+          <Button
+            variant="light"
+            color="blue"
+            leftSection={<IconArrowsExchange size={16} />}
+            onClick={openTransfer}
+          >
+            Trasladar Mercancia
+          </Button>
+          <Button leftSection={<IconPlus size={16} />} onClick={handleNew}>
+            Nueva Sucursal
+          </Button>
+        </Group>
       </Group>
 
       {/* Loading */}
@@ -498,6 +512,8 @@ export function SucursalesPage() {
           onClose={closeInv}
         />
       )}
+
+      <TransferModal opened={transferOpened} onClose={closeTransfer} />
     </Stack>
   );
 }

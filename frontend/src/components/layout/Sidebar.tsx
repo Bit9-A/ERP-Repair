@@ -16,6 +16,7 @@ import {
   IconShoppingCart,
   IconReportMoney,
   IconUsers,
+  IconUsersGroup,
   IconLogout,
   IconBuildingStore,
 } from "@tabler/icons-react";
@@ -27,6 +28,7 @@ const NAV_ITEMS = [
   { label: "Reparaciones", icon: IconTool, path: "/reparaciones" },
   { label: "Inventario", icon: IconPackage, path: "/inventario" },
   { label: "Ventas", icon: IconShoppingCart, path: "/ventas" },
+  { label: "Clientes", icon: IconUsersGroup, path: "/clients" },
   { label: "Finanzas", icon: IconReportMoney, path: "/finanzas" },
   { label: "Usuarios", icon: IconUsers, path: "/usuarios", adminOnly: true },
   {

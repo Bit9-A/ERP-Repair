@@ -83,12 +83,32 @@ export async function registrarPago(data: {
   });
 }
 
-export async function findPagosByDate(fecha?: string) {
-  const today = fecha ? new Date(fecha) : new Date();
-  const startOfDay = new Date(today);
-  startOfDay.setHours(0, 0, 0, 0);
-  const endOfDay = new Date(today);
-  endOfDay.setHours(23, 59, 59, 999);
+type Periodo = "dia" | "semana" | "mes";
+
+function getDateRange(periodo: Periodo = "dia"): { start: Date; end: Date } {
+  const now = new Date();
+  const start = new Date(now);
+  const end = new Date(now);
+  end.setHours(23, 59, 59, 999);
+
+  if (periodo === "dia") {
+    start.setHours(0, 0, 0, 0);
+  } else if (periodo === "semana") {
+    // Monday of current week
+    const day = start.getDay(); // 0=Sun, 1=Mon ...
+    const diff = day === 0 ? -6 : 1 - day;
+    start.setDate(start.getDate() + diff);
+    start.setHours(0, 0, 0, 0);
+  } else if (periodo === "mes") {
+    start.setDate(1);
+    start.setHours(0, 0, 0, 0);
+  }
+
+  return { start, end };
+}
+
+export async function findPagosByDate(periodo?: Periodo) {
+  const { start: startOfDay, end: endOfDay } = getDateRange(periodo);
 
   return prisma.pago.findMany({
     where: {
@@ -159,12 +179,8 @@ export async function cierreDeCaja(fecha?: string) {
 
 // ── Stats ──
 
-export async function getStats() {
-  const today = new Date();
-  const startOfDay = new Date(today);
-  startOfDay.setHours(0, 0, 0, 0);
-  const endOfDay = new Date(today);
-  endOfDay.setHours(23, 59, 59, 999);
+export async function getStats(periodo?: Periodo) {
+  const { start: startOfDay, end: endOfDay } = getDateRange(periodo);
 
   const [ingresosHoy, egresosHoy, totalPagos] = await Promise.all([
     prisma.transaccionFinanciera.aggregate({

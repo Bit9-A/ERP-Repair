@@ -116,6 +116,9 @@ model Usuario {
   sucursalId               String?
   sucursal                 Sucursal?           @relation(fields: [sucursalId], references: [id])
 
+  // Feature 5: Permisos granulares por usuario (JSON, nullable = usa defaults por rol)
+  permisos                 Json?
+
   tickets_asignados        TicketReparacion[]
   ventas_realizadas        Venta[]
 

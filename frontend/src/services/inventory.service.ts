@@ -15,6 +15,7 @@ export interface InventoryFilters {
   search?: string;
   categoria?: CategoriaProducto;
   propiedad?: TipoPropiedad;
+  sucursalId?: string;
 }
 
 export interface CreateProductPayload {
@@ -29,6 +30,7 @@ export interface CreateProductPayload {
   stock_minimo?: number;
   costo_usd: number;
   precio_usd: number;
+  sucursalId?: string; // branch where initial stock is assigned
 }
 
 export interface UpdateProductPayload extends Partial<CreateProductPayload> {}

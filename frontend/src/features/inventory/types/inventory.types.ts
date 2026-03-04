@@ -12,4 +12,5 @@ export interface ProductFormValues {
   stock_minimo: number;
   costo_usd: number;
   precio_usd: number;
+  sucursalId?: string;
 }

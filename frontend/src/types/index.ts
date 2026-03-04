@@ -25,6 +25,19 @@ export interface SucursalProducto {
 // -- Users --
 export type Rol = "ADMIN" | "TECNICO" | "VENDEDOR";
 
+export interface UserPermisos {
+  inventario?: {
+    ver?: boolean;
+    editar?: boolean;
+    crearProducto?: boolean;
+    ajustarStock?: boolean;
+  };
+  ventas?: { ver?: boolean; crear?: boolean; anular?: boolean };
+  finanzas?: { ver?: boolean };
+  tickets?: { ver?: boolean; asignar?: boolean; cambiarEstado?: boolean };
+  usuarios?: { ver?: boolean; gestionar?: boolean };
+}
+
 export interface Usuario {
   id: string;
   nombre: string;
@@ -34,6 +47,8 @@ export interface Usuario {
   // Feature 4: assigned branch
   sucursalId?: string;
   sucursal?: { id: string; nombre: string };
+  // Feature 5: permissions overrides
+  permisos?: UserPermisos;
   createdAt: string;
 }
 
@@ -72,6 +87,14 @@ export interface Producto {
   costo_usd: number;
   precio_usd: number;
   createdAt?: string;
+  // Per-branch: populated when filtering by sucursalId
+  stock_sucursal?: number;
+  // Global view: per-branch breakdown
+  inventario_sucursales?: Array<{
+    sucursalId: string;
+    stock: number;
+    sucursal: { id: string; nombre: string };
+  }>;
 }
 
 // -- Stock Movements --

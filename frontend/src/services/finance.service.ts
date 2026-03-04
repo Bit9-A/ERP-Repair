@@ -72,9 +72,11 @@ export async function updateTasa(
 // -- Pagos --
 
 /** GET /finance/pagos */
-export async function getPagos(fecha?: string): Promise<Pago[]> {
+export async function getPagos(
+  periodo?: "dia" | "semana" | "mes",
+): Promise<Pago[]> {
   const { data } = await api.get<ApiResponse<Pago[]>>("/finance/pagos", {
-    params: fecha ? { fecha } : undefined,
+    params: periodo ? { periodo } : undefined,
   });
   return data.data;
 }
@@ -100,7 +102,11 @@ export async function getCierre(fecha?: string): Promise<CierreDeCaja> {
 // -- Stats --
 
 /** GET /finance/stats */
-export async function getStats(): Promise<FinanceStats> {
-  const { data } = await api.get<ApiResponse<FinanceStats>>("/finance/stats");
+export async function getStats(
+  periodo?: "dia" | "semana" | "mes",
+): Promise<FinanceStats> {
+  const { data } = await api.get<ApiResponse<FinanceStats>>("/finance/stats", {
+    params: periodo ? { periodo } : undefined,
+  });
   return data.data;
 }

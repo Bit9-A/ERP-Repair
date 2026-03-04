@@ -64,8 +64,12 @@ export async function findPagos(
   next: NextFunction,
 ) {
   try {
-    const fecha = req.query["fecha"] as string | undefined;
-    const data = await service.findPagosByDate(fecha);
+    const periodo = req.query["periodo"] as
+      | "dia"
+      | "semana"
+      | "mes"
+      | undefined;
+    const data = await service.findPagosByDate(periodo);
     res.json({ success: true, data });
   } catch (err) {
     next(err);
@@ -89,14 +93,17 @@ export async function cierreDeCaja(
 
 // Stats
 export async function getStats(
-  _req: Request,
+  req: Request,
   res: Response,
   next: NextFunction,
 ) {
   try {
-    console.log("getStats");
-    const data = await service.getStats();
-    console.log("data", data);
+    const periodo = req.query["periodo"] as
+      | "dia"
+      | "semana"
+      | "mes"
+      | undefined;
+    const data = await service.getStats(periodo);
     res.json({ success: true, data });
   } catch (err) {
     next(err);

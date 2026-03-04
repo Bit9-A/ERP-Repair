@@ -80,6 +80,8 @@ export function UsersPage() {
           email: values.email,
           rol: values.rol,
           porcentaje_comision_base: values.porcentaje_comision_base,
+          sucursalId: values.sucursalId ?? null,
+          permisos: values.permisos,
         });
         notifications.show({
           title: "Usuario actualizado",
@@ -93,6 +95,8 @@ export function UsersPage() {
           password: values.password,
           rol: values.rol,
           porcentaje_comision_base: values.porcentaje_comision_base,
+          sucursalId: values.sucursalId ?? null,
+          permisos: values.permisos,
         });
         notifications.show({
           title: "Usuario creado",

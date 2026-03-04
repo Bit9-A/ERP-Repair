@@ -1,5 +1,6 @@
 import { env } from "./config/env";
 import app from "./app";
+import { startSyncWorker } from "./workers/sync";
 
 const PORT = env.PORT;
 
@@ -11,4 +12,7 @@ app.listen(PORT, () => {
   ║  Entorno: ${env.NODE_ENV.padEnd(24)}║
   ╚══════════════════════════════════════╝
   `);
+
+  // Iniciar la sincronización secundaria a la Nube (Neon DB)
+  startSyncWorker();
 });

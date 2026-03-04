@@ -64,3 +64,15 @@ export async function remove(id: string): Promise<{ message: string }> {
   );
   return data.data;
 }
+
+export async function transferirStock(payload: {
+  origenId: string;
+  destinoId: string;
+  productoId: string;
+  cantidad: number;
+}): Promise<{ success: boolean; cantidad: number }> {
+  const { data } = await api.post<
+    ApiResponse<{ success: boolean; cantidad: number }>
+  >("/sucursales/transferir", payload);
+  return data.data;
+}

@@ -23,12 +23,20 @@ export async function login(email: string, password: string) {
     expiresIn: "8h",
   });
 
-  const { password_hash: _, ...userSafe } = user;
+  // Fetch with sucursal relation for the frontend
+  const userWithRelations = await prisma.usuario.findUnique({
+    where: { id: user.id },
+    include: { sucursal: { select: { id: true, nombre: true } } },
+  });
+  const { password_hash: _, ...userSafe } = userWithRelations!;
   return { token, user: userSafe };
 }
 
 export async function me(userId: string) {
-  const user = await prisma.usuario.findUnique({ where: { id: userId } });
+  const user = await prisma.usuario.findUnique({
+    where: { id: userId },
+    include: { sucursal: { select: { id: true, nombre: true } } },
+  });
   if (!user)
     throw Object.assign(new Error("Usuario no encontrado"), {
       statusCode: 404,
@@ -48,6 +56,9 @@ export async function findAll() {
       rol: true,
       email: true,
       porcentaje_comision_base: true,
+      sucursalId: true,
+      sucursal: { select: { id: true, nombre: true } },
+      permisos: true,
       createdAt: true,
     },
     orderBy: { createdAt: "desc" },
@@ -76,6 +87,8 @@ interface CreateUserDTO {
   password: string;
   rol: RolUsuario;
   porcentaje_comision_base?: number;
+  sucursalId?: string | null;
+  permisos?: any; // Prisma Json Input
 }
 
 export async function create(data: CreateUserDTO) {
@@ -87,7 +100,10 @@ export async function create(data: CreateUserDTO) {
       password_hash: hash,
       rol: data.rol,
       porcentaje_comision_base: data.porcentaje_comision_base,
+      sucursalId: data.sucursalId ?? null,
+      permisos: data.permisos ?? null,
     },
+    include: { sucursal: { select: { id: true, nombre: true } } },
   });
 
   const { password_hash: _, ...userSafe } = user;
@@ -102,6 +118,11 @@ export async function update(
   if (data.password) {
     updateData["password_hash"] = await bcrypt.hash(data.password, 10);
     delete updateData["password"];
+  }
+
+  // Handle explicitly clearing branch or permissions if undefined isn't passed
+  if (data.permisos !== undefined) {
+    updateData["permisos"] = data.permisos;
   }
 
   const user = await prisma.usuario.update({ where: { id }, data: updateData });

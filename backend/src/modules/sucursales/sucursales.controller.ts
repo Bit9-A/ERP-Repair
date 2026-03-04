@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import { Request, Response, NextFunction } from "express";
 import * as service from "./sucursales.service";
 
 export async function getAll(_req: Request, res: Response) {
@@ -38,4 +38,17 @@ export async function deleteOne(req: Request, res: Response) {
   const id = req.params["id"] as string;
   const data = await service.remove(id);
   res.json({ success: true, data });
+}
+
+export async function transferirStock(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const data = await service.transferirStock(req.body);
+    res.json({ success: true, data });
+  } catch (err) {
+    next(err);
+  }
 }

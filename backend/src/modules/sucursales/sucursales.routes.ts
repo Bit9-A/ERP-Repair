@@ -24,3 +24,10 @@ sucursalesRouter.get("/:id/inventario", ctrl.getInventarioBySucursal);
 sucursalesRouter.get("/:id", ctrl.getOne);
 sucursalesRouter.patch("/:id", requireRole("ADMIN"), ctrl.updateOne);
 sucursalesRouter.delete("/:id", requireRole("ADMIN"), ctrl.deleteOne);
+
+// Transfer stock between branches (ADMIN)
+sucursalesRouter.post(
+  "/transferir",
+  requireRole("ADMIN"),
+  ctrl.transferirStock,
+);

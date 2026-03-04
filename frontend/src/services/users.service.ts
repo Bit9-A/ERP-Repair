@@ -1,5 +1,5 @@
 import { api } from "../lib/api";
-import type { ApiResponse, Usuario } from "../types";
+import type { ApiResponse, Usuario, UserPermisos } from "../types";
 
 // ============================================
 // Users service — /api/users
@@ -11,6 +11,8 @@ export interface CreateUserPayload {
   password: string;
   rol: Usuario["rol"];
   porcentaje_comision_base?: number;
+  sucursalId?: string | null;
+  permisos?: UserPermisos;
 }
 
 export interface UpdateUserPayload {
@@ -18,6 +20,8 @@ export interface UpdateUserPayload {
   email?: string;
   rol?: Usuario["rol"];
   porcentaje_comision_base?: number;
+  sucursalId?: string | null;
+  permisos?: UserPermisos;
 }
 
 /** GET /users/me */

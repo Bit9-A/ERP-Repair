@@ -39,7 +39,10 @@ import {
   useUpdateProduct,
   useDeleteProduct,
   useAdjustStock,
+  useSucursales,
 } from "../../../services";
+import { useAuthStore } from "../../auth/store/auth.store";
+import { usePermissions } from "../../../hooks/usePermissions";
 
 export function InventoryPage() {
   const [searchParams] = useSearchParams();
@@ -53,8 +56,20 @@ export function InventoryPage() {
   const [stockOpened, { open: openStock, close: closeStock }] =
     useDisclosure(false);
 
-  // -- API hooks --
-  const { data: products = [], isLoading } = useProducts();
+  // -- Auth: derive branch filter from logged-in user --
+  const currentUser = useAuthStore((s) => s.user);
+  const isAdmin = currentUser?.rol === "ADMIN";
+  // Non-ADMIN users are always locked to their own branch
+  const lockedSucursalId = !isAdmin ? (currentUser?.sucursalId ?? null) : null;
+  const [adminSucursalId, setAdminSucursalId] = useState<string | null>(null);
+  const activeSucursalId = isAdmin ? adminSucursalId : lockedSucursalId;
+
+  const permisos = usePermissions();
+
+  const { data: sucursales = [] } = useSucursales();
+  const { data: products = [], isLoading } = useProducts(
+    activeSucursalId ? { sucursalId: activeSucursalId } : undefined,
+  );
   const createProduct = useCreateProduct();
   const updateProduct = useUpdateProduct();
   const adjustStock = useAdjustStock();
@@ -178,13 +193,15 @@ export function InventoryPage() {
           >
             Exportar
           </Button>
-          <Button
-            leftSection={<IconPlus size={16} />}
-            onClick={handleNew}
-            size="sm"
-          >
-            Nuevo Producto
-          </Button>
+          {permisos.inventario.crearProducto && (
+            <Button
+              leftSection={<IconPlus size={16} />}
+              onClick={handleNew}
+              size="sm"
+            >
+              Nuevo Producto
+            </Button>
+          )}
         </Group>
       </Group>
 
@@ -225,11 +242,13 @@ export function InventoryPage() {
             <Group gap="xs">
               <IconPackage size={18} color="#3B82F6" />
               <Text size="sm" fw={600}>
-                Listado de Stock
+                {isAdmin
+                  ? "Listado de Stock"
+                  : `Stock en ${currentUser?.sucursal?.nombre ?? "tu sucursal"}`}
               </Text>
             </Group>
             <Text size="xs" c="dimmed">
-              Mostrando {filtered.length} de {totalProducts} productos
+              Mostrando {filtered.length} de {products.length} productos
             </Text>
           </Group>
 
@@ -251,6 +270,29 @@ export function InventoryPage() {
           />
 
           <Group gap="md">
+            {/* Branch filter: ADMIN can pick, non-ADMIN sees locked badge */}
+            {isAdmin ? (
+              <Select
+                placeholder="Filtrar por sucursal..."
+                leftSection={<IconFilter size={16} />}
+                data={sucursales.map((s) => ({ value: s.id, label: s.nombre }))}
+                value={adminSucursalId}
+                onChange={setAdminSucursalId}
+                clearable
+                w={200}
+                size="sm"
+                styles={{
+                  input: {
+                    background: "var(--bg-elevated)",
+                    borderColor: "var(--border-subtle)",
+                  },
+                }}
+              />
+            ) : lockedSucursalId ? (
+              <Badge variant="filled" color="brand" size="lg">
+                {currentUser?.sucursal?.nombre ?? "Mi Sucursal"}
+              </Badge>
+            ) : null}
             <TextInput
               placeholder="Buscar por nombre o SKU..."
               leftSection={<IconSearch size={16} />}
@@ -266,8 +308,7 @@ export function InventoryPage() {
               }}
             />
             <Select
-              placeholder="Filtrar por estado"
-              leftSection={<IconFilter size={16} />}
+              placeholder="Estado de stock"
               data={[
                 { value: "all", label: "Todos" },
                 { value: "ok", label: "Stock OK" },
@@ -277,7 +318,7 @@ export function InventoryPage() {
               value={stockFilter}
               onChange={setStockFilter}
               clearable
-              w={180}
+              w={160}
               size="sm"
               styles={{
                 input: {
@@ -294,6 +335,7 @@ export function InventoryPage() {
         <div style={{ overflowX: "auto" }}>
           <ProductTable
             products={filtered}
+            sucursalId={activeSucursalId}
             onEdit={handleEdit}
             onDelete={handleDelete}
             onAddStock={(p) => {

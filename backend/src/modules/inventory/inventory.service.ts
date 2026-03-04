@@ -50,6 +50,11 @@ export async function findAll(filters?: {
       ...(filters?.categoria && { categoria: filters.categoria }),
       ...(filters?.propiedad && { propiedad: filters.propiedad }),
     },
+    include: {
+      inventario_sucursales: {
+        include: { sucursal: { select: { id: true, nombre: true } } },
+      },
+    },
     orderBy: { nombre: "asc" },
   });
 }
