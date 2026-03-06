@@ -50,6 +50,9 @@ export {
   useUpdateEstado,
   useAddRepuesto,
   useAddServicio,
+  useRemoveRepuesto,
+  useRemoveServicio,
+  useEntregarTicket,
   useDeleteRepair,
 } from "./hooks/useRepairs";
 

@@ -34,7 +34,12 @@ export interface UserPermisos {
   };
   ventas?: { ver?: boolean; crear?: boolean; anular?: boolean };
   finanzas?: { ver?: boolean };
-  tickets?: { ver?: boolean; asignar?: boolean; cambiarEstado?: boolean };
+  tickets?: {
+    ver?: boolean;
+    asignar?: boolean;
+    cambiarEstado?: boolean;
+    editarComision?: boolean;
+  };
   usuarios?: { ver?: boolean; gestionar?: boolean };
 }
 

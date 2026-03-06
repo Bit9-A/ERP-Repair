@@ -13,7 +13,10 @@ router.post("/", ctrl.create);
 router.put("/:id", ctrl.update);
 router.patch("/:id/estado", ctrl.updateEstado);
 router.post("/:id/repuestos", ctrl.addRepuesto);
+router.delete("/:id/repuestos/:repuestoId", ctrl.removeRepuesto);
 router.post("/:id/servicios", ctrl.addServicio);
+router.delete("/:id/servicios/:servicioId", ctrl.removeServicio);
+router.post("/:id/entregar", ctrl.entregar);
 router.delete("/:id", ctrl.remove);
 
 export default router;

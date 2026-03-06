@@ -21,6 +21,7 @@ import {
 import { KanbanBoard } from "../components/KanbanBoard";
 import { TicketListView } from "../components/TicketListView";
 import { TicketForm } from "../components/TicketForm";
+import { DeliveryModal } from "../components/DeliveryModal";
 import type { TicketFormValues } from "../types/tickets.types";
 import type { TicketReparacion, EstadoTicket } from "../../../types";
 import {
@@ -40,6 +41,12 @@ export function KanbanPage() {
     null,
   );
   const [viewMode, setViewMode] = useState<string>("kanban");
+
+  const [deliveryTicket, setDeliveryTicket] = useState<TicketReparacion | null>(
+    null,
+  );
+  const [deliveryOpened, { open: openDelivery, close: closeDelivery }] =
+    useDisclosure(false);
 
   // -- API hooks --
   const { data: tickets = [], isLoading } = useRepairs();
@@ -91,6 +98,16 @@ export function KanbanPage() {
     ticketId: string,
     newEstado: EstadoTicket,
   ) => {
+    // If moving to ENTREGADO, intercept and open payment modal
+    if (newEstado === "ENTREGADO") {
+      const ticket = tickets.find((t) => t.id === ticketId);
+      if (ticket) {
+        setDeliveryTicket(ticket);
+        openDelivery();
+      }
+      return;
+    }
+
     try {
       await updateRepair.mutateAsync({ id: ticketId, estado: newEstado });
       notifications.show({
@@ -191,6 +208,19 @@ export function KanbanPage() {
         }}
         initialData={selectedTicket}
         onSubmit={handleNewTicket}
+      />
+
+      <DeliveryModal
+        opened={deliveryOpened}
+        onClose={() => {
+          closeDelivery();
+          setDeliveryTicket(null);
+        }}
+        ticket={deliveryTicket}
+        onSuccess={() => {
+          // Modal handles its own mutation and invalidation.
+          // Success means the board will auto-refresh via React Query.
+        }}
       />
     </Stack>
   );

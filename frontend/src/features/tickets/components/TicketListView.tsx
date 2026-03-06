@@ -1,6 +1,5 @@
 import {
   Table,
-  Badge,
   Group,
   Text,
   ActionIcon,
@@ -49,7 +48,6 @@ export function TicketListView({
     const diasTranscurridos = dayjs().diff(dayjs(ticket.fecha_ingreso), "day");
     const esAlerta = diasTranscurridos >= 60;
     const esCritico = diasTranscurridos >= 90;
-    const status = TICKET_STATUS[ticket.estado as EstadoTicket];
     const color = STATUS_COLORS[ticket.estado] || "gray";
 
     return (

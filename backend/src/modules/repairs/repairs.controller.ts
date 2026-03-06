@@ -104,6 +104,52 @@ export async function addServicio(
   }
 }
 
+export async function removeRepuesto(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const result = await service.removeRepuesto(
+      req.params["id"] as string,
+      req.params["repuestoId"] as string,
+    );
+    res.json({ success: true, data: result });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function removeServicio(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const result = await service.removeServicio(
+      req.params["id"] as string,
+      req.params["servicioId"] as string,
+    );
+    res.json({ success: true, data: result });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function entregar(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const { pagos } = req.body;
+    const result = await service.entregar(req.params["id"] as string, pagos);
+    res.json({ success: true, data: result });
+  } catch (err) {
+    next(err);
+  }
+}
+
 export async function update(req: Request, res: Response, next: NextFunction) {
   try {
     const ticket = await service.update(req.params["id"] as string, req.body);

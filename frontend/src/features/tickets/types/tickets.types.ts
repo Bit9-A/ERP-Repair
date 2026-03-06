@@ -21,6 +21,7 @@ export interface TicketFormValues {
   falla: string;
   falla_reportada?: string;
   observaciones?: string;
+  mano_de_obra_usd: number;
   costo_repuestos_usd: number;
   precio_total_usd: number;
   porcentaje_tecnico: number;

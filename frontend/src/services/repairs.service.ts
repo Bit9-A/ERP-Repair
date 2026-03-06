@@ -135,3 +135,42 @@ export async function addServicio(
   );
   return data.data;
 }
+
+/** DELETE /repairs/:id/repuestos/:repuestoId */
+export async function removeRepuesto(
+  id: string,
+  repuestoId: string,
+): Promise<TicketReparacion> {
+  const { data } = await api.delete<ApiResponse<TicketReparacion>>(
+    `/repairs/${id}/repuestos/${repuestoId}`,
+  );
+  return data.data;
+}
+
+/** DELETE /repairs/:id/servicios/:servicioId */
+export async function removeServicio(
+  id: string,
+  servicioId: string,
+): Promise<TicketReparacion> {
+  const { data } = await api.delete<ApiResponse<TicketReparacion>>(
+    `/repairs/${id}/servicios/${servicioId}`,
+  );
+  return data.data;
+}
+
+/** POST /repairs/:id/entregar */
+export async function entregarTicket(
+  id: string,
+  pagos: Array<{
+    monedaId: string;
+    monto_moneda_local: number;
+    metodo: string;
+    referencia?: string;
+  }>,
+): Promise<TicketReparacion> {
+  const { data } = await api.post<ApiResponse<TicketReparacion>>(
+    `/repairs/${id}/entregar`,
+    { pagos },
+  );
+  return data.data;
+}
