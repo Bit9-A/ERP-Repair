@@ -61,7 +61,9 @@ export function InventoryPage() {
   const isAdmin = currentUser?.rol === "ADMIN";
   // Non-ADMIN users are always locked to their own branch
   const lockedSucursalId = !isAdmin ? (currentUser?.sucursalId ?? null) : null;
-  const [adminSucursalId, setAdminSucursalId] = useState<string | null>(null);
+  const [adminSucursalId, setAdminSucursalId] = useState<string | null>(
+    searchParams.get("sucursalId") || null,
+  );
   const activeSucursalId = isAdmin ? adminSucursalId : lockedSucursalId;
 
   const permisos = usePermissions();

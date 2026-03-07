@@ -9,6 +9,7 @@ export interface Sucursal {
   nombre: string;
   direccion?: string;
   activa: boolean;
+  principal: boolean;
   createdAt?: string;
   updatedAt?: string;
   _count?: { usuarios: number; ventas: number; tickets: number };
