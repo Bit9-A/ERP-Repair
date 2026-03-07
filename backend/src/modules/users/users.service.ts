@@ -56,6 +56,9 @@ export async function findAll() {
       rol: true,
       email: true,
       porcentaje_comision_base: true,
+      gana_comision: true,
+      gana_salario: true,
+      salario_base_usd: true,
       sucursalId: true,
       sucursal: { select: { id: true, nombre: true } },
       permisos: true,
@@ -87,6 +90,9 @@ interface CreateUserDTO {
   password: string;
   rol: RolUsuario;
   porcentaje_comision_base?: number;
+  gana_comision?: boolean;
+  gana_salario?: boolean;
+  salario_base_usd?: number;
   sucursalId?: string | null;
   permisos?: any; // Prisma Json Input
 }
@@ -100,6 +106,9 @@ export async function create(data: CreateUserDTO) {
       password_hash: hash,
       rol: data.rol,
       porcentaje_comision_base: data.porcentaje_comision_base,
+      gana_comision: data.gana_comision ?? true,
+      gana_salario: data.gana_salario ?? false,
+      salario_base_usd: data.salario_base_usd ?? 0,
       sucursalId: data.sucursalId ?? null,
       permisos: data.permisos ?? null,
     },

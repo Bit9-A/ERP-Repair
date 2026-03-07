@@ -85,6 +85,22 @@ export function useTicketForm({
       precio_total_usd: 0,
       porcentaje_tecnico: 0.4,
     },
+    validate: {
+      marca: (v) =>
+        !v || v.trim().length === 0 ? "La marca es requerida" : null,
+      modelo: (v) =>
+        !v || v.trim().length === 0 ? "El modelo es requerido" : null,
+      falla_reportada: (v) =>
+        !v || v.trim().length < 5
+          ? "Especifique el problema (mín. 5 caracteres)"
+          : null,
+      mano_de_obra_usd: (v) =>
+        v < 0 ? "No puede ser un valor negativo" : null,
+      precio_total_usd: (v) =>
+        v < 0 ? "El precio final no puede ser negativo" : null,
+      porcentaje_tecnico: (v) =>
+        v < 0 || v > 1 ? "Debe ser un valor entre 0 y 1" : null,
+    },
   });
 
   // Client sync

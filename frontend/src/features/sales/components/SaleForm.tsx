@@ -296,6 +296,34 @@ export function SaleForm({ opened, onClose, onSubmit }: SaleFormProps) {
   };
 
   const handleSubmit = () => {
+    // Validations
+    if (cart.length === 0) {
+      notifications.show({
+        title: "Carrito vacío",
+        message: "No puede procesar una venta sin productos.",
+        color: "red",
+      });
+      return;
+    }
+
+    if (descuento > subtotal) {
+      notifications.show({
+        title: "Descuento inválido",
+        message: "El descuento no puede superar el comprobante de subtotal.",
+        color: "red",
+      });
+      return;
+    }
+
+    if (selectedMetodo !== "EFECTIVO" && !referencia.trim()) {
+      notifications.show({
+        title: "Falta referencia bancaria",
+        message: `Por favor introduzca el número de comprobante para el pago con ${selectedMetodo}.`,
+        color: "red",
+      });
+      return;
+    }
+
     onSubmit({
       clienteId,
       items: cart,

@@ -77,7 +77,15 @@ export function TicketForm({
           <Button variant="subtle" onClick={onClose}>
             Cancelar
           </Button>
-          <Button type="submit">
+          <Button
+            type="submit"
+            disabled={initialData?.estado === "ENTREGADO"}
+            title={
+              initialData?.estado === "ENTREGADO"
+                ? "Ticket cerrado. No puede ser modificado."
+                : undefined
+            }
+          >
             {isEdit ? "Actualizar Ticket" : "Crear Ticket"}
           </Button>
         </Group>

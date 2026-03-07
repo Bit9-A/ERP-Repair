@@ -74,6 +74,7 @@ export function PaymentsTable({ periodo }: PaymentsTableProps) {
           <Table.Thead>
             <Table.Tr>
               <Table.Th>Ref.</Table.Th>
+              <Table.Th>Origen</Table.Th>
               <Table.Th>Cliente</Table.Th>
               <Table.Th style={{ textAlign: "right" }}>Equiv. USD</Table.Th>
               <Table.Th>Moneda</Table.Th>
@@ -89,8 +90,25 @@ export function PaymentsTable({ periodo }: PaymentsTableProps) {
                   <Text ff="monospace" size="sm" fw={600}>
                     {pay.venta?.numero
                       ? `V-${pay.venta.numero}`
-                      : (pay.ticket?.equipo ?? "—")}
+                      : pay.ticket?.id
+                        ? `T-${pay.ticket.id.substring(0, 6)}`
+                        : "—"}
                   </Text>
+                </Table.Td>
+                <Table.Td>
+                  {pay.venta ? (
+                    <Badge color="green" size="xs" variant="light">
+                      Venta
+                    </Badge>
+                  ) : pay.ticket ? (
+                    <Badge color="blue" size="xs" variant="light">
+                      Reparación
+                    </Badge>
+                  ) : (
+                    <Badge color="gray" size="xs" variant="light">
+                      Otro
+                    </Badge>
+                  )}
                 </Table.Td>
                 <Table.Td>
                   <Text size="sm" fw={500}>

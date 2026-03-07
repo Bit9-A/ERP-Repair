@@ -90,6 +90,7 @@ export function TicketListView({
             variant="filled"
             data={statusOptions}
             value={ticket.estado}
+            disabled={ticket.estado === "ENTREGADO"} // Lock delivered tickets
             onChange={(v) => {
               if (v && onMoveTicket) {
                 onMoveTicket(ticket.id, v as EstadoTicket);

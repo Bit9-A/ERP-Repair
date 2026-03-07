@@ -89,7 +89,12 @@ export function ProductForm({
       stock_actual: (v) => (v < 0 ? "Stock no puede ser negativo" : null),
       stock_minimo: (v) => (v < 0 ? "Mínimo no puede ser negativo" : null),
       costo_usd: (v) => (v < 0 ? "Costo debe ser mayor o igual a 0" : null),
-      precio_usd: (v) => (v <= 0 ? "Precio debe ser mayor a 0" : null),
+      precio_usd: (v, values) =>
+        v <= 0
+          ? "Precio debe ser mayor a 0"
+          : v < values.costo_usd
+            ? "El precio de venta no puede ser menor al costo"
+            : null,
     },
   });
 

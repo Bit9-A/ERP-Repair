@@ -8,6 +8,8 @@ import {
   SegmentedControl,
   Badge,
   TextInput,
+  Modal,
+  Text,
 } from "@mantine/core";
 import { useSearchParams } from "react-router-dom";
 import { useDisclosure } from "@mantine/hooks";
@@ -17,6 +19,7 @@ import {
   IconLayoutKanban,
   IconList,
   IconSearch,
+  IconBrandWhatsapp,
 } from "@tabler/icons-react";
 import { KanbanBoard } from "../components/KanbanBoard";
 import { TicketListView } from "../components/TicketListView";
@@ -47,6 +50,10 @@ export function KanbanPage() {
   );
   const [deliveryOpened, { open: openDelivery, close: closeDelivery }] =
     useDisclosure(false);
+
+  // -- WhatsApp Modal state --
+  const [waTicket, setWaTicket] = useState<TicketReparacion | null>(null);
+  const [waOpened, { open: openWa, close: closeWa }] = useDisclosure(false);
 
   // -- API hooks --
   const { data: tickets = [], isLoading } = useRepairs();
@@ -116,6 +123,15 @@ export function KanbanPage() {
         color: "green",
         autoClose: 2000,
       });
+
+      // If moving to REPARADO, intercept and prompt to notify client via WhatsApp
+      if (newEstado === "REPARADO") {
+        const ticket = tickets.find((t) => t.id === ticketId);
+        if (ticket && ticket.cliente?.telefono) {
+          setWaTicket(ticket);
+          openWa();
+        }
+      }
     } catch {
       notifications.show({
         title: "Error",
@@ -222,6 +238,48 @@ export function KanbanPage() {
           // Success means the board will auto-refresh via React Query.
         }}
       />
+
+      <Modal
+        opened={waOpened}
+        onClose={closeWa}
+        title="Equipo Reparado"
+        centered
+      >
+        <Stack>
+          <Text size="sm">
+            El ticket de reparación para el equipo <b>{waTicket?.equipo}</b> del
+            cliente <b>{waTicket?.cliente?.nombre}</b> ha sido marcado como
+            Completado exitosamente en el sistema.
+          </Text>
+          <Text size="sm">
+            ¿Deseas enviar un mensaje automático por WhatsApp al{" "}
+            <b>{waTicket?.cliente?.telefono}</b> para notificarle que puede
+            pasar a retirar su equipo solucionado?
+          </Text>
+
+          <Group justify="flex-end" mt="md">
+            <Button variant="default" onClick={closeWa}>
+              Cerrar
+            </Button>
+            <Button
+              color="green"
+              leftSection={<IconBrandWhatsapp size={18} />}
+              onClick={() => {
+                if (!waTicket?.cliente?.telefono) return;
+                const phone = waTicket.cliente.telefono.replace(/\D/g, ""); // Remove non-numeric chars
+                const message = `¡Hola ${waTicket.cliente.nombre}! Le contactamos de nuestro servicio técnico para informarle que su equipo *${waTicket.equipo}* ya se encuentra revisado y *REPARADO*. Ya puede pasar a retirar su equipo en nuestro local, ¡Le esperamos!`;
+                window.open(
+                  `https://wa.me/${phone}?text=${encodeURIComponent(message)}`,
+                  "_blank",
+                );
+                closeWa();
+              }}
+            >
+              Avisar por WhatsApp
+            </Button>
+          </Group>
+        </Stack>
+      </Modal>
     </Stack>
   );
 }

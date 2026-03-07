@@ -49,6 +49,9 @@ export interface Usuario {
   rol: Rol;
   email: string;
   porcentaje_comision_base: number;
+  gana_comision: boolean;
+  gana_salario: boolean;
+  salario_base_usd: number;
   // Feature 4: assigned branch
   sucursalId?: string;
   sucursal?: { id: string; nombre: string };
@@ -244,8 +247,8 @@ export interface Pago {
   metodo: string;
   referencia?: string;
   fecha_pago: string;
-  venta?: { numero: number; cliente?: { nombre: string } };
-  ticket?: { equipo: string; cliente?: { nombre: string } };
+  venta?: { id: string; numero: number; cliente?: { nombre: string } };
+  ticket?: { id: string; equipo: string; cliente?: { nombre: string } };
 }
 
 // -- Financial transactions (ingreso / egreso) --

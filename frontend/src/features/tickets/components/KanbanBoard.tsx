@@ -69,10 +69,15 @@ export function KanbanBoard({
 
   // --- Native HTML5 DnD handlers ---
   const handleDragStart = useCallback(
-    (e: React.DragEvent, ticketId: string) => {
-      e.dataTransfer.setData("text/plain", ticketId);
+    (e: React.DragEvent, ticket: TicketReparacion) => {
+      // Prevent dragging if ticket is already delivered
+      if (ticket.estado === "ENTREGADO") {
+        e.preventDefault();
+        return;
+      }
+      e.dataTransfer.setData("text/plain", ticket.id);
       e.dataTransfer.effectAllowed = "move";
-      setDraggingId(ticketId);
+      setDraggingId(ticket.id);
     },
     [],
   );
@@ -169,11 +174,11 @@ export function KanbanBoard({
             {columnTickets.map((ticket) => (
               <Box
                 key={ticket.id}
-                draggable
-                onDragStart={(e) => handleDragStart(e, ticket.id)}
+                draggable={ticket.estado !== "ENTREGADO"} // Disable dragging visually if delivered
+                onDragStart={(e) => handleDragStart(e, ticket)}
                 onDragEnd={handleDragEnd}
                 style={{
-                  cursor: "grab",
+                  cursor: ticket.estado === "ENTREGADO" ? "default" : "grab",
                   opacity: draggingId === ticket.id ? 0.4 : 1,
                   transition: "opacity 150ms ease",
                 }}

@@ -101,34 +101,36 @@ export function RepuestosTab({ ticketId }: RepuestosTabProps) {
 
   return (
     <Stack gap="md" mt="md">
-      <Paper withBorder p="md" bg="gray.0">
-        <Group align="flex-end">
-          <Select
-            label="Buscar Repuesto"
-            placeholder="Seleccione..."
-            data={productOptions}
-            value={selectedProductId}
-            onChange={setSelectedProductId}
-            searchable
-            style={{ flex: 1 }}
-          />
-          <NumberInput
-            label="Cantidad"
-            min={1}
-            value={cantidad}
-            onChange={(v) => setCantidad(Number(v))}
-            w={100}
-          />
-          <Button
-            leftSection={<IconPlus size={16} />}
-            onClick={handleAdd}
-            loading={addRepuestoMutation.isPending}
-            disabled={!selectedProductId}
-          >
-            Agregar
-          </Button>
-        </Group>
-      </Paper>
+      {ticket.estado !== "ENTREGADO" && (
+        <Paper withBorder p="md" bg="gray.0">
+          <Group align="flex-end">
+            <Select
+              label="Buscar Repuesto"
+              placeholder="Seleccione..."
+              data={productOptions}
+              value={selectedProductId}
+              onChange={setSelectedProductId}
+              searchable
+              style={{ flex: 1 }}
+            />
+            <NumberInput
+              label="Cantidad"
+              min={1}
+              value={cantidad}
+              onChange={(v) => setCantidad(Number(v))}
+              w={100}
+            />
+            <Button
+              leftSection={<IconPlus size={16} />}
+              onClick={handleAdd}
+              loading={addRepuestoMutation.isPending}
+              disabled={!selectedProductId}
+            >
+              Agregar
+            </Button>
+          </Group>
+        </Paper>
+      )}
 
       {ticket.repuestos && ticket.repuestos.length > 0 ? (
         <Table striped highlightOnHover withTableBorder>
@@ -153,16 +155,21 @@ export function RepuestosTab({ ticketId }: RepuestosTabProps) {
                 <Table.Td>{r.cantidad}</Table.Td>
                 <Table.Td>${r.precio_congelado_usd.toFixed(2)}</Table.Td>
                 <Table.Td>
-                  ${(r.cantidad * r.precio_congelado_usd).toFixed(2)}
+                  <Text size="sm">
+                    ${(r.cantidad * r.precio_congelado_usd).toFixed(2)}
+                  </Text>
                 </Table.Td>
                 <Table.Td>
-                  <ActionIcon
-                    color="red"
-                    variant="subtle"
-                    onClick={() => handleRemove(r.id)}
-                  >
-                    <IconTrash size={16} />
-                  </ActionIcon>
+                  {ticket.estado !== "ENTREGADO" && (
+                    <ActionIcon
+                      color="red"
+                      variant="subtle"
+                      onClick={() => handleRemove(r.id)}
+                      loading={removeRepuestoMutation.isPending}
+                    >
+                      <IconTrash size={16} />
+                    </ActionIcon>
+                  )}
                 </Table.Td>
               </Table.Tr>
             ))}
