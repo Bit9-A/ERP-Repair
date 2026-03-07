@@ -43,6 +43,7 @@ import {
   useMarcarPagada,
   useAnularVenta,
 } from "../../../services";
+import { useAuthStore } from "../../../features/auth/store/auth.store";
 
 export function SalesPage() {
   const [searchParams] = useSearchParams();
@@ -53,6 +54,9 @@ export function SalesPage() {
     useDisclosure(false);
   const [saleFormOpened, { open: openSaleForm, close: closeSaleForm }] =
     useDisclosure(false);
+
+  // -- Context hooks --
+  const { user } = useAuthStore();
 
   // -- API hooks --
   const { data: sales = [], isLoading } = useSales();
@@ -84,6 +88,7 @@ export function SalesPage() {
     try {
       await createSale.mutateAsync({
         clienteId: values.clienteId,
+        sucursalId: user?.sucursalId,
         items: values.items.map((i) => ({
           productoId: i.productoId,
           cantidad: i.cantidad,

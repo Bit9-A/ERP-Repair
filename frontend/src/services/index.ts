@@ -122,6 +122,7 @@ export {
   useUpdateSucursal,
   useDeleteSucursal,
   useTransferirStock,
+  useSetSucursalPrincipal,
 } from "./hooks/useSucursales";
 
 // -- Service types re-exports --

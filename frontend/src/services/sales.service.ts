@@ -12,6 +12,7 @@ export interface SalesFilters {
 
 export interface CreateSalePayload {
   clienteId?: string;
+  sucursalId?: string;
   vendedorId?: string;
   descuento_usd?: number;
   items: {

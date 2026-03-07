@@ -73,6 +73,7 @@ model Sucursal {
   nombre    String   @unique
   direccion String?
   activa    Boolean  @default(true)
+  principal Boolean  @default(false)
 
   // Relaciones
   usuarios         Usuario[]

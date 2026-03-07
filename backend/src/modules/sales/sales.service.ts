@@ -71,16 +71,26 @@ export async function create(data: CreateVentaDTO) {
     data.items.map(async (item) => {
       const producto = await prisma.producto.findUnique({
         where: { id: item.productoId },
+        include: { inventario_sucursales: true },
       });
       if (!producto)
         throw Object.assign(
           new Error(`Producto ${item.productoId} no encontrado`),
           { statusCode: 404 },
         );
-      if (producto.stock_actual < item.cantidad)
+
+      let localStock = producto.stock_actual;
+      if (data.sucursalId) {
+        const branchStock = producto.inventario_sucursales.find(
+          (inv) => inv.sucursalId === data.sucursalId,
+        );
+        localStock = branchStock?.stock || 0;
+      }
+
+      if (localStock < item.cantidad)
         throw Object.assign(
           new Error(
-            `Stock insuficiente para ${producto.nombre}: ${producto.stock_actual} disponibles`,
+            `Stock insuficiente para ${producto.nombre}: ${localStock} disponibles en esta sucursal`,
           ),
           { statusCode: 400 },
         );

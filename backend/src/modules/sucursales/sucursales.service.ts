@@ -59,9 +59,31 @@ export async function create(data: { nombre: string; direccion?: string }) {
 
 export async function update(
   id: string,
-  data: Partial<{ nombre: string; direccion: string; activa: boolean }>,
+  data: Partial<{
+    nombre: string;
+    direccion: string;
+    activa: boolean;
+    principal: boolean;
+  }>,
 ) {
   return prisma.sucursal.update({ where: { id }, data });
+}
+
+// ── Set Principal ──
+
+export async function setPrincipal(id: string) {
+  return prisma.$transaction(async (tx) => {
+    // 1. Reset all to false
+    await tx.sucursal.updateMany({
+      data: { principal: false },
+    });
+
+    // 2. Set the requested one to true
+    return tx.sucursal.update({
+      where: { id },
+      data: { principal: true },
+    });
+  });
 }
 
 // ── Delete ──

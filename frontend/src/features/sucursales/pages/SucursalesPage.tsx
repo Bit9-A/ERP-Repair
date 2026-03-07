@@ -42,9 +42,11 @@ import {
   useUpdateSucursal,
   useDeleteSucursal,
   useSucursalInventario,
+  useSetSucursalPrincipal,
 } from "../../../services";
 import type { Sucursal } from "../../../types";
 import { TransferModal } from "../components/TransferModal";
+import { IconStar, IconStarFilled } from "@tabler/icons-react";
 
 // ── Sub-component: Sucursal Inventory Modal ──────────────────────────────────
 function InventarioModal({
@@ -245,6 +247,7 @@ function SucursalFormModal({
 export function SucursalesPage() {
   const { data: sucursales = [], isLoading } = useSucursales();
   const deleteSucursal = useDeleteSucursal();
+  const setPrincipal = useSetSucursalPrincipal();
 
   const [formOpened, { open: openForm, close: closeForm }] =
     useDisclosure(false);
@@ -280,6 +283,21 @@ export function SucursalesPage() {
     } catch {
       notifications.show({
         message: "No se pudo eliminar la sucursal",
+        color: "red",
+      });
+    }
+  };
+
+  const handleSetPrincipal = async (id: string, nombre: string) => {
+    try {
+      await setPrincipal.mutateAsync(id);
+      notifications.show({
+        message: `${nombre} ahora es la sucursal principal`,
+        color: "yellow",
+      });
+    } catch {
+      notifications.show({
+        message: "Error al cambiar sucursal principal",
         color: "red",
       });
     }
@@ -388,6 +406,16 @@ export function SucursalesPage() {
                   <Text fw={700} size="md">
                     {s.nombre}
                   </Text>
+                  {s.principal && (
+                    <Badge
+                      size="xs"
+                      color="yellow"
+                      variant="light"
+                      leftSection={<IconStarFilled size={10} />}
+                    >
+                      Principal
+                    </Badge>
+                  )}
                 </Group>
                 {s.direccion && (
                   <Text size="xs" c="dimmed" ml={32}>
@@ -484,6 +512,17 @@ export function SucursalesPage() {
                   <IconEdit size={16} />
                 </ActionIcon>
               </Tooltip>
+              {!s.principal && (
+                <Tooltip label="Hacer principal">
+                  <ActionIcon
+                    variant="subtle"
+                    color="yellow"
+                    onClick={() => handleSetPrincipal(s.id, s.nombre)}
+                  >
+                    <IconStar size={16} />
+                  </ActionIcon>
+                </Tooltip>
+              )}
               <Tooltip label="Eliminar">
                 <ActionIcon
                   variant="subtle"

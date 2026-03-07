@@ -58,6 +58,13 @@ export async function update(
   return data.data;
 }
 
+export async function setPrincipal(id: string): Promise<Sucursal> {
+  const { data } = await api.patch<ApiResponse<Sucursal>>(
+    `/sucursales/${id}/principal`,
+  );
+  return data.data;
+}
+
 export async function remove(id: string): Promise<{ message: string }> {
   const { data } = await api.delete<ApiResponse<{ message: string }>>(
     `/sucursales/${id}`,
