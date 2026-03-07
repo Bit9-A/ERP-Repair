@@ -7,10 +7,12 @@ import {
   Text,
   Accordion,
 } from "@mantine/core";
+import { useMediaQuery } from "@mantine/hooks";
 import { IconListDetails, IconTool } from "@tabler/icons-react";
 import type { TicketReparacion } from "../../../types";
 import type { TicketFormValues } from "../types/tickets.types";
 import { useTicketForm } from "../hooks/useTicketForm";
+import { useAuthStore } from "../../auth/store/auth.store";
 
 import { ClientDataPanel } from "./TicketFormGeneral/ClientDataPanel";
 import { EquipmentDataPanel } from "./TicketFormGeneral/EquipmentDataPanel";
@@ -42,6 +44,10 @@ export function TicketForm({
   const modalTitle = initialData
     ? `Editar Ticket #T-${initialData.id.substring(0, 6)}`
     : "Nueva Orden de Reparación";
+
+  const isMobile = useMediaQuery("(max-width: 768px)");
+  const user = useAuthStore((state) => state.user);
+  const isLocked = initialData?.estado === "ENTREGADO" && user?.rol !== "ADMIN";
 
   const renderGeneralForm = (isEdit: boolean) => (
     <form onSubmit={form.onSubmit(handleSubmit)}>
@@ -79,10 +85,10 @@ export function TicketForm({
           </Button>
           <Button
             type="submit"
-            disabled={initialData?.estado === "ENTREGADO"}
+            disabled={isLocked}
             title={
-              initialData?.estado === "ENTREGADO"
-                ? "Ticket cerrado. No puede ser modificado."
+              isLocked
+                ? "Ticket cerrado. Solo un Administrador puede modificarlo."
                 : undefined
             }
           >
@@ -99,6 +105,8 @@ export function TicketForm({
       onClose={onClose}
       title={modalTitle}
       size="xl"
+      fullScreen={isMobile}
+      radius={isMobile ? 0 : "md"}
       closeOnClickOutside={false}
       closeOnEscape={false}
     >

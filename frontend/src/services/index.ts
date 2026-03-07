@@ -43,6 +43,7 @@ export {
 
 export {
   useRepairs,
+  useRepairsHistory,
   useRepair,
   useKanbanCounts,
   useCreateRepair,

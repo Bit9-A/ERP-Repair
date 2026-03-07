@@ -21,6 +21,13 @@ export function useRepairs(filters?: RepairsFilters) {
   });
 }
 
+export function useRepairsHistory(page: number, limit: number, search: string) {
+  return useQuery({
+    queryKey: ["repairs", "history", { page, limit, search }] as const,
+    queryFn: () => repairsService.getHistory(page, limit, search),
+  });
+}
+
 export function useRepair(id: string) {
   return useQuery({
     queryKey: queryKeys.repairs.detail(id),

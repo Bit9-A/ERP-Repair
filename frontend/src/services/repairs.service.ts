@@ -41,6 +41,16 @@ export interface KanbanCounts {
   ABANDONO: number;
 }
 
+export interface PaginatedResponse<T> {
+  data: T;
+  meta: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
+}
+
 /** GET /repairs */
 export async function getAll(
   filters?: RepairsFilters,
@@ -96,6 +106,31 @@ export async function getKanbanCounts(): Promise<KanbanCounts> {
     "/repairs/kanban-counts",
   );
   return data.data;
+}
+
+export interface PaginatedResponse<T> {
+  data: T;
+  meta: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
+}
+
+/** GET /repairs/history */
+export async function getHistory(
+  page: number = 1,
+  limit: number = 50,
+  search: string = "",
+): Promise<PaginatedResponse<TicketReparacion[]>> {
+  const { data } = await api.get<any>("/repairs/history", {
+    params: { page, limit, search },
+  });
+  return {
+    data: data.data,
+    meta: data.meta,
+  };
 }
 
 /** PATCH /repairs/:id/estado */

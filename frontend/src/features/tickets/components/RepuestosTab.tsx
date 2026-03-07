@@ -8,7 +8,6 @@ import {
   Select,
   NumberInput,
   ActionIcon,
-  Badge,
   Paper,
 } from "@mantine/core";
 import { IconTrash, IconPlus } from "@tabler/icons-react";
@@ -19,6 +18,7 @@ import {
 } from "../../../services";
 import { notifications } from "@mantine/notifications";
 import { useRepair } from "../../../services/hooks/useRepairs";
+import { useAuthStore } from "../../auth/store/auth.store";
 
 interface RepuestosTabProps {
   ticketId: string;
@@ -33,6 +33,7 @@ export function RepuestosTab({ ticketId }: RepuestosTabProps) {
   // Consider fetching only products with category "REPUESTO" if you want to filter
   const { data: products = [] } = useProducts();
   const { data: ticket, isLoading: isTicketLoading } = useRepair(ticketId);
+  const user = useAuthStore((state) => state.user);
 
   const addRepuestoMutation = useAddRepuesto();
   const removeRepuestoMutation = useRemoveRepuesto();
@@ -99,9 +100,11 @@ export function RepuestosTab({ ticketId }: RepuestosTabProps) {
       0,
     ) || 0;
 
+  const isLocked = ticket.estado === "ENTREGADO" && user?.rol !== "ADMIN";
+
   return (
     <Stack gap="md" mt="md">
-      {ticket.estado !== "ENTREGADO" && (
+      {!isLocked && (
         <Paper withBorder p="md" bg="gray.0">
           <Group align="flex-end">
             <Select
@@ -133,48 +136,50 @@ export function RepuestosTab({ ticketId }: RepuestosTabProps) {
       )}
 
       {ticket.repuestos && ticket.repuestos.length > 0 ? (
-        <Table striped highlightOnHover withTableBorder>
-          <Table.Thead>
-            <Table.Tr>
-              <Table.Th>Producto</Table.Th>
-              <Table.Th>Cantidad</Table.Th>
-              <Table.Th>Precio Unitario</Table.Th>
-              <Table.Th>Subtotal</Table.Th>
-              <Table.Th w={50}></Table.Th>
-            </Table.Tr>
-          </Table.Thead>
-          <Table.Tbody>
-            {ticket.repuestos.map((r) => (
-              <Table.Tr key={r.id}>
-                <Table.Td>
-                  {r.producto?.nombre}{" "}
-                  <Badge size="xs" variant="light">
-                    {r.producto?.sku}
-                  </Badge>
-                </Table.Td>
-                <Table.Td>{r.cantidad}</Table.Td>
-                <Table.Td>${r.precio_congelado_usd.toFixed(2)}</Table.Td>
-                <Table.Td>
-                  <Text size="sm">
-                    ${(r.cantidad * r.precio_congelado_usd).toFixed(2)}
-                  </Text>
-                </Table.Td>
-                <Table.Td>
-                  {ticket.estado !== "ENTREGADO" && (
-                    <ActionIcon
-                      color="red"
-                      variant="subtle"
-                      onClick={() => handleRemove(r.id)}
-                      loading={removeRepuestoMutation.isPending}
-                    >
-                      <IconTrash size={16} />
-                    </ActionIcon>
-                  )}
-                </Table.Td>
+        <Table.ScrollContainer minWidth={500}>
+          <Table striped highlightOnHover withTableBorder>
+            <Table.Thead>
+              <Table.Tr>
+                <Table.Th>Producto</Table.Th>
+                <Table.Th>Cantidad</Table.Th>
+                <Table.Th>Precio Unitario</Table.Th>
+                <Table.Th>Subtotal</Table.Th>
+                <Table.Th w={50}></Table.Th>
               </Table.Tr>
-            ))}
-          </Table.Tbody>
-        </Table>
+            </Table.Thead>
+            <Table.Tbody>
+              {ticket.repuestos.map((r) => (
+                <Table.Tr key={r.id}>
+                  <Table.Td>
+                    {r.producto?.nombre}{" "}
+                    <Text span size="xs" c="dimmed">
+                      ({r.producto?.categoria})
+                    </Text>
+                  </Table.Td>
+                  <Table.Td>{r.cantidad}</Table.Td>
+                  <Table.Td>${r.precio_congelado_usd.toFixed(2)}</Table.Td>
+                  <Table.Td>
+                    <Text size="sm">
+                      ${(r.cantidad * r.precio_congelado_usd).toFixed(2)}
+                    </Text>
+                  </Table.Td>
+                  <Table.Td>
+                    {!isLocked && (
+                      <ActionIcon
+                        color="red"
+                        variant="subtle"
+                        onClick={() => handleRemove(r.id)}
+                        loading={removeRepuestoMutation.isPending}
+                      >
+                        <IconTrash size={16} />
+                      </ActionIcon>
+                    )}
+                  </Table.Td>
+                </Table.Tr>
+              ))}
+            </Table.Tbody>
+          </Table>
+        </Table.ScrollContainer>
       ) : (
         <Text c="dimmed" ta="center" py="xl">
           No hay repuestos asignados a este ticket.

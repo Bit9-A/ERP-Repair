@@ -11,6 +11,7 @@ import {
   Paper,
   TextInput,
 } from "@mantine/core";
+import { useMediaQuery } from "@mantine/hooks";
 import { useEntregarTicket, useMonedas } from "../../../services";
 import { notifications } from "@mantine/notifications";
 import type { TicketReparacion } from "../../../types";
@@ -30,6 +31,7 @@ export function DeliveryModal({
 }: DeliveryModalProps) {
   const { data: monedas = [] } = useMonedas();
   const entregarMutation = useEntregarTicket();
+  const isMobile = useMediaQuery("(max-width: 768px)");
 
   const [monedaId, setMonedaId] = useState<string>("");
   const [metodo, setMetodo] = useState<string>("EFECTIVO");
@@ -97,6 +99,8 @@ export function DeliveryModal({
       onClose={onClose}
       title={`Entregar Ticket #T-${ticket.id.substring(0, 6)}`}
       size="lg"
+      fullScreen={isMobile}
+      radius={isMobile ? 0 : "md"}
     >
       <Stack gap="md">
         <Paper withBorder p="md" bg="blue.0">

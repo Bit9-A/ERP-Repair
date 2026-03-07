@@ -125,8 +125,8 @@ export function KanbanBoard({
         onDragLeave={handleDragLeave}
         onDrop={(e) => handleDrop(e, estado)}
         style={{
-          minWidth: 320,
-          maxWidth: 320,
+          minWidth: "var(--column-width, 320px)",
+          maxWidth: "var(--column-width, 320px)",
           height: "calc(100vh - 250px)",
           display: "flex",
           flexDirection: "column",
@@ -135,8 +135,9 @@ export function KanbanBoard({
             ? `2px dashed ${accentColor}`
             : "1px solid var(--border-subtle)",
           transition: "all 0.2s ease",
-          transform: isOver ? "none" : "none",
+          transform: "none",
           boxShadow: isOver ? "0 4px 20px rgba(15, 23, 42, 0.05)" : "none",
+          scrollSnapAlign: "center",
         }}
       >
         {/* Column header */}
@@ -183,7 +184,15 @@ export function KanbanBoard({
                   transition: "opacity 150ms ease",
                 }}
               >
-                <TicketCard ticket={ticket} onClick={onTicketClick} />
+                <TicketCard
+                  ticket={ticket}
+                  onClick={onTicketClick}
+                  onMoveTicket={
+                    ticket.estado !== "ENTREGADO"
+                      ? (nuevo) => onMoveTicket?.(ticket.id, nuevo)
+                      : undefined
+                  }
+                />
               </Box>
             ))}
 
@@ -199,10 +208,48 @@ export function KanbanBoard({
   };
 
   return (
-    <ScrollArea type="auto" offsetScrollbars pb="md">
-      <Group align="flex-start" wrap="nowrap" gap="md" pb="sm">
+    <Box
+      pb="md"
+      style={{
+        width: "100%",
+        overflowX: "auto",
+        overflowY: "hidden",
+        overscrollBehaviorX: "contain",
+        scrollSnapType: "x mandatory",
+        WebkitOverflowScrolling: "touch",
+        scrollbarWidth: "none", // Firefox
+        msOverflowStyle: "none", // IE
+      }}
+    >
+      <Group
+        align="flex-start"
+        wrap="nowrap"
+        gap="16px"
+        pb="sm"
+        style={{
+          width: "max-content",
+          padding: "0 16px", // So the first/last items aren't flush against screen edges
+        }}
+      >
         {ALL_COLUMNS.map(renderColumn)}
       </Group>
-    </ScrollArea>
+      <style>{`
+        /* Responsive CSS Variables for cards */
+        :root {
+          --column-width: calc(100vw - 48px);
+        }
+        @media (min-width: 768px) {
+          :root {
+            --column-width: 320px;
+          }
+        }
+        
+        /* Hide scrollbars for Webkit browsers */
+        ::-webkit-scrollbar {
+          width: 0px;
+          background: transparent; 
+        }
+      `}</style>
+    </Box>
   );
 }

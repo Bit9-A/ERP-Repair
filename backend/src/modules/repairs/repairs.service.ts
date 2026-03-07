@@ -10,7 +10,9 @@ export async function findAll(filters?: {
 }) {
   return prisma.ticketReparacion.findMany({
     where: {
-      ...(filters?.estado && { estado: filters.estado }),
+      ...(filters?.estado
+        ? { estado: filters.estado }
+        : { estado: { not: "ENTREGADO" } }),
       ...(filters?.tecnicoId && { tecnicoId: filters.tecnicoId }),
     },
     include: {
@@ -55,6 +57,50 @@ export async function findById(id: string) {
   if (!ticket)
     throw Object.assign(new Error("Ticket no encontrado"), { statusCode: 404 });
   return ticket;
+}
+
+// ── Paged History ──
+
+export async function getHistory(page: number, limit: number, search: string) {
+  const skip = (page - 1) * limit;
+  const where = {
+    estado: "ENTREGADO" as EstadoTicket,
+    ...(search && {
+      OR: [
+        { id: { contains: search, mode: "insensitive" } },
+        { equipo: { contains: search, mode: "insensitive" } },
+        { marca: { contains: search, mode: "insensitive" } },
+        { modelo: { contains: search, mode: "insensitive" } },
+        { cliente: { nombre: { contains: search, mode: "insensitive" } } },
+      ],
+    }),
+  } as any;
+
+  const [data, total] = await Promise.all([
+    prisma.ticketReparacion.findMany({
+      where,
+      skip,
+      take: limit,
+      include: {
+        cliente: {
+          select: { nombre: true, telefono: true, cedula: true, correo: true },
+        },
+        tecnico: { select: { nombre: true, rol: true } },
+      },
+      orderBy: { fecha_ingreso: "desc" },
+    }),
+    prisma.ticketReparacion.count({ where }),
+  ]);
+
+  return {
+    data,
+    meta: {
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit) || 1,
+    },
+  };
 }
 
 // ── Kanban stats ──
