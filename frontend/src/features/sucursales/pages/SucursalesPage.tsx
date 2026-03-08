@@ -290,7 +290,6 @@ export function SucursalesPage() {
       {/* Header */}
       <Group justify="space-between" align="center">
         <Group gap="xs">
-          <IconBuilding size={24} color="var(--primary)" />
           <Title order={2}>Sucursales</Title>
         </Group>
         <Group gap="sm">

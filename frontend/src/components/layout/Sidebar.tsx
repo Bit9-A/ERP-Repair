@@ -30,13 +30,13 @@ const NAV_ITEMS = [
   { label: "Ventas", icon: IconShoppingCart, path: "/ventas" },
   { label: "Clientes", icon: IconUsersGroup, path: "/clients" },
   { label: "Finanzas", icon: IconReportMoney, path: "/finanzas" },
-  { label: "Usuarios", icon: IconUsers, path: "/usuarios", adminOnly: true },
   {
     label: "Sucursales",
     icon: IconBuildingStore,
     path: "/sucursales",
     adminOnly: true,
   },
+  { label: "Usuarios", icon: IconUsers, path: "/usuarios", adminOnly: true },
 ];
 
 interface SidebarProps {

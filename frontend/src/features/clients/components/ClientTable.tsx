@@ -34,7 +34,7 @@ export function ClientTable({ clients, onEdit, onDelete }: ClientTableProps) {
         <Table.Tr>
           <Table.Th>Nombre / Cédula</Table.Th>
           <Table.Th>Contacto</Table.Th>
-          <Table.Th style={{ textAlign: "center" }}>Tickets</Table.Th>
+          <Table.Th style={{ textAlign: "center" }}>Reparaciones</Table.Th>
           <Table.Th style={{ textAlign: "center" }}>Ventas</Table.Th>
           <Table.Th style={{ textAlign: "right" }}>Fecha Registro</Table.Th>
           <Table.Th style={{ textAlign: "center" }}>Acciones</Table.Th>
@@ -55,7 +55,7 @@ export function ClientTable({ clients, onEdit, onDelete }: ClientTableProps) {
               {/* Nombre e Identificación */}
               <Table.Td>
                 <Text fw={600} size="sm">
-                  {client.nombre}
+                  {client.nombre}ñ
                 </Text>
                 <Text size="xs" c="dimmed" ff="monospace">
                   {client.cedula}

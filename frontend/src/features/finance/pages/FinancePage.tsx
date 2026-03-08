@@ -155,7 +155,6 @@ export function FinancePage() {
       {/* Header */}
       <Group justify="space-between" wrap="wrap" gap="sm">
         <Group gap="xs">
-          <IconWallet size={24} color="#22C55E" />
           <Title order={2}>Gestión Financiera</Title>
         </Group>
 

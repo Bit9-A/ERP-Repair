@@ -149,7 +149,7 @@ export function SalesPage() {
       {/* Header */}
       <Group justify="space-between" align="center" wrap="wrap" gap="sm">
         <Group gap="xs">
-          <IconShoppingCart size={24} color="var(--primary)" />
+
           <Title order={2}>Ventas</Title>
         </Group>
         <Button
