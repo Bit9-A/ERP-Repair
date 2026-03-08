@@ -66,6 +66,7 @@ export function ClientDataPanel({
             label="Cédula del Cliente"
             placeholder="V-12345678"
             required
+            error={form.errors.clienteId}
             value={cedula}
             onChange={(e) => {
               const val = e.currentTarget.value;

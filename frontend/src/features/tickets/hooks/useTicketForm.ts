@@ -86,11 +86,13 @@ export function useTicketForm({
       porcentaje_tecnico: 0.4,
     },
     validate: {
+      clienteId: (v) =>
+        !v || v.trim().length === 0 ? "El cliente es requerido" : null,
       marca: (v) =>
         !v || v.trim().length === 0 ? "La marca es requerida" : null,
       modelo: (v) =>
         !v || v.trim().length === 0 ? "El modelo es requerido" : null,
-      falla_reportada: (v) =>
+      falla: (v) =>
         !v || v.trim().length < 5
           ? "Especifique el problema (mín. 5 caracteres)"
           : null,
