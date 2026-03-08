@@ -38,6 +38,7 @@ import {
   useClientByCedula,
   useCreateClient,
 } from "../../../services";
+import { useAuthStore } from "../../auth/store/auth.store";
 import { BarcodeScanner } from "./BarcodeScanner";
 
 interface CartItem {
@@ -69,6 +70,9 @@ interface SaleFormProps {
 }
 
 export function SaleForm({ opened, onClose, onSubmit }: SaleFormProps) {
+  // -- User Session for Branch filtering --
+  const user = useAuthStore((state) => state.user);
+
   // -- DB exchange rates --
   const { data: monedas = [] } = useMonedas();
 
@@ -137,14 +141,19 @@ export function SaleForm({ opened, onClose, onSubmit }: SaleFormProps) {
   const { data: allProducts = [], isLoading: loadingProducts } = useProducts();
 
   // Filter products not already in cart and with stock > 0
-  const availableForAdd = allProducts.filter(
-    (p) =>
-      p.stock_actual > 0 &&
-      !cart.find((c) => c.productoId === p.id) &&
-      (productSearch === "" ||
-        p.nombre.toLowerCase().includes(productSearch.toLowerCase()) ||
-        p.sku.toLowerCase().includes(productSearch.toLowerCase())),
-  );
+  const availableForAdd = allProducts.filter((p) => {
+    if (cart.find((c) => c.productoId === p.id)) return false;
+
+    if (
+      productSearch &&
+      !p.nombre.toLowerCase().includes(productSearch.toLowerCase()) &&
+      !p.sku.toLowerCase().includes(productSearch.toLowerCase())
+    ) {
+      return false;
+    }
+
+    return p.stock_actual > 0;
+  });
 
   const subtotal = cart.reduce(
     (sum, item) => sum + item.precio_unitario * item.cantidad,
@@ -186,18 +195,38 @@ export function SaleForm({ opened, onClose, onSubmit }: SaleFormProps) {
       (p) => stripLeadingZeros(p.sku) === cleanCode,
     );
 
-    if (product && product.stock_actual > 0) {
-      // Pause scanner and show confirmation dialog
-      setScannerOpen(false);
-      setPendingScanProduct(product);
-      setPendingScanQty(1);
-    } else if (product) {
-      notifications.show({
-        title: "Sin stock",
-        message: `${product.nombre} no tiene stock disponible`,
-        color: "yellow",
-      });
-      setScannerOpen(false);
+    if (product) {
+      let localStock = 0;
+      let otherBranches: string[] = [];
+
+      if (product.inventario_sucursales) {
+        const localInv = product.inventario_sucursales.find(
+          (inv) => inv.sucursalId === user?.sucursalId,
+        );
+        localStock = localInv ? localInv.stock : 0;
+        otherBranches = product.inventario_sucursales
+          .filter((inv) => inv.sucursalId !== user?.sucursalId && inv.stock > 0)
+          .map((inv) => inv.sucursal.nombre);
+      } else {
+        localStock = product.stock_actual;
+      }
+
+      if (localStock > 0) {
+        // Pause scanner and show confirmation dialog
+        setScannerOpen(false);
+        setPendingScanProduct(product);
+        setPendingScanQty(1);
+      } else {
+        const hasOtherStock = otherBranches.length > 0;
+        notifications.show({
+          title: "Sin stock local",
+          message: hasOtherStock
+            ? `${product.nombre} agotado en esta sucursal. Disponible en: ${otherBranches.join(", ")}`
+            : `${product.nombre} no tiene stock en ninguna sucursal.`,
+          color: "yellow",
+        });
+        setScannerOpen(false);
+      }
     } else {
       notifications.show({
         title: "Producto no encontrado",
@@ -225,11 +254,20 @@ export function SaleForm({ opened, onClose, onSubmit }: SaleFormProps) {
     );
 
     if (existing) {
-      const remainingStock = existing.producto.stock_actual - existing.cantidad;
+      let remainingStock = 0;
+      if (existing.producto.inventario_sucursales) {
+        const localInv = existing.producto.inventario_sucursales.find(
+          (inv) => inv.sucursalId === user?.sucursalId,
+        );
+        remainingStock = (localInv?.stock || 0) - existing.cantidad;
+      } else {
+        remainingStock = existing.producto.stock_actual - existing.cantidad;
+      }
+
       if (qtyToAdd > remainingStock) {
         notifications.show({
-          title: "Stock Insuficiente",
-          message: `Solo quedan ${remainingStock} unidades disponibles de este producto.`,
+          title: "Stock Local Insuficiente",
+          message: `Solo quedan ${remainingStock} unidades disponibles en tu sucursal.`,
           color: "red",
         });
         return;
@@ -241,10 +279,20 @@ export function SaleForm({ opened, onClose, onSubmit }: SaleFormProps) {
         color: "blue",
       });
     } else {
-      if (qtyToAdd > pendingScanProduct.stock_actual) {
+      let localStock = 0;
+      if (pendingScanProduct.inventario_sucursales) {
+        const localInv = pendingScanProduct.inventario_sucursales.find(
+          (inv) => inv.sucursalId === user?.sucursalId,
+        );
+        localStock = localInv?.stock || 0;
+      } else {
+        localStock = pendingScanProduct.stock_actual;
+      }
+
+      if (qtyToAdd > localStock) {
         notifications.show({
-          title: "Stock Insuficiente",
-          message: `Solo hay ${pendingScanProduct.stock_actual} unidades disponibles.`,
+          title: "Stock Local Insuficiente",
+          message: `Solo hay ${localStock} unidades físicas en tu sucursal actual.`,
           color: "red",
         });
         return;
@@ -276,10 +324,16 @@ export function SaleForm({ opened, onClose, onSubmit }: SaleFormProps) {
     setCart((prev) =>
       prev.map((item) => {
         if (item.productoId !== productoId) return item;
-        const newQty = Math.max(
-          1,
-          Math.min(item.producto.stock_actual, item.cantidad + delta),
-        );
+
+        let localStock = item.producto.stock_actual;
+        if (item.producto.inventario_sucursales) {
+          const localInv = item.producto.inventario_sucursales.find(
+            (inv) => inv.sucursalId === user?.sucursalId,
+          );
+          localStock = localInv?.stock || 0;
+        }
+
+        const newQty = Math.max(1, Math.min(localStock, item.cantidad + delta));
         return { ...item, cantidad: newQty };
       }),
     );
@@ -296,6 +350,34 @@ export function SaleForm({ opened, onClose, onSubmit }: SaleFormProps) {
   };
 
   const handleSubmit = () => {
+    // Validations
+    if (cart.length === 0) {
+      notifications.show({
+        title: "Carrito vacío",
+        message: "No puede procesar una venta sin productos.",
+        color: "red",
+      });
+      return;
+    }
+
+    if (descuento > subtotal) {
+      notifications.show({
+        title: "Descuento inválido",
+        message: "El descuento no puede superar el comprobante de subtotal.",
+        color: "red",
+      });
+      return;
+    }
+
+    if (selectedMetodo !== "EFECTIVO" && !referencia.trim()) {
+      notifications.show({
+        title: "Falta referencia bancaria",
+        message: `Por favor introduzca el número de comprobante para el pago con ${selectedMetodo}.`,
+        color: "red",
+      });
+      return;
+    }
+
     onSubmit({
       clienteId,
       items: cart,
@@ -579,49 +661,92 @@ export function SaleForm({ opened, onClose, onSubmit }: SaleFormProps) {
               >
                 {availableForAdd.slice(0, 6).map((product) => {
                   const cat = PRODUCT_CATEGORIES[product.categoria];
+
+                  let localStock = 0;
+                  let otherBranches: { nombre: string; stock: number }[] = [];
+
+                  if (product.inventario_sucursales) {
+                    const localInv = product.inventario_sucursales.find(
+                      (inv) => inv.sucursalId === user?.sucursalId,
+                    );
+                    localStock = localInv ? localInv.stock : 0;
+                    otherBranches = product.inventario_sucursales
+                      .filter(
+                        (inv) =>
+                          inv.sucursalId !== user?.sucursalId && inv.stock > 0,
+                      )
+                      .map((inv) => ({
+                        nombre: inv.sucursal.nombre,
+                        stock: inv.stock,
+                      }));
+                  } else {
+                    // Fallback to global stock if backend didn't send array
+                    localStock = product.stock_actual;
+                  }
+
+                  const canAdd = localStock > 0;
+
                   return (
                     <Paper
                       key={product.id}
                       p="xs"
                       radius="sm"
                       style={{
-                        cursor: "pointer",
+                        cursor: canAdd ? "pointer" : "default",
                         transition: "background 150ms",
                         background: "var(--bg-elevated)",
+                        opacity: canAdd ? 1 : 0.7,
                       }}
-                      onClick={() => addProduct(product)}
+                      onClick={() => {
+                        if (canAdd) addProduct(product);
+                      }}
                     >
-                      <Group justify="space-between">
+                      <Group justify="space-between" align="center">
                         <Group gap="xs">
                           <Badge variant="filled" color={cat.color} size="xs">
                             {cat.label}
                           </Badge>
-                          <Text size="sm" fw={500}>
-                            {product.nombre}
-                          </Text>
-                          <Text size="xs" c="dimmed" ff="monospace">
-                            {product.sku}
-                          </Text>
+                          <Stack gap={0}>
+                            <Text size="sm" fw={500}>
+                              {product.nombre}
+                            </Text>
+                            <Text size="xs" c="dimmed" ff="monospace">
+                              {product.sku}
+                            </Text>
+                          </Stack>
                         </Group>
-                        <Group gap="xs">
-                          <Text size="xs" c="dimmed">
-                            Stock: {product.stock_actual}
-                          </Text>
-                          <Text size="sm" fw={700} ff="monospace" c="brand">
-                            ${product.precio_usd.toFixed(2)}
-                          </Text>
-                          <ActionIcon
-                            variant="light"
-                            color="brand"
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              addProduct(product);
-                            }}
-                          >
-                            <IconPlus size={14} />
-                          </ActionIcon>
-                        </Group>
+                        <Stack align="flex-end" gap={4}>
+                          <Group gap="xs">
+                            <Stack gap={0} align="flex-end">
+                              <Text size="xs" c={canAdd ? "dimmed" : "red.6"}>
+                                Stock: {localStock}
+                              </Text>
+                              {!canAdd && otherBranches.length > 0 && (
+                                <Text fz={10} c="yellow.7">
+                                  En:{" "}
+                                  {otherBranches
+                                    .map((b) => `${b.nombre} (${b.stock})`)
+                                    .join(", ")}
+                                </Text>
+                              )}
+                            </Stack>
+                            <Text size="sm" fw={700} ff="monospace" c="brand">
+                              ${product.precio_usd.toFixed(2)}
+                            </Text>
+                            <ActionIcon
+                              variant="light"
+                              color="brand"
+                              size="sm"
+                              disabled={!canAdd}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (canAdd) addProduct(product);
+                              }}
+                            >
+                              <IconPlus size={14} />
+                            </ActionIcon>
+                          </Group>
+                        </Stack>
                       </Group>
                     </Paper>
                   );
@@ -712,10 +837,27 @@ export function SaleForm({ opened, onClose, onSubmit }: SaleFormProps) {
                             variant="subtle"
                             color="gray"
                             size="xs"
-                            onClick={() => updateQuantity(item.productoId, 1)}
-                            disabled={
-                              item.cantidad >= item.producto.stock_actual
-                            }
+                            onClick={() => {
+                              let localStock = item.producto.stock_actual;
+                              if (item.producto.inventario_sucursales) {
+                                const localInv =
+                                  item.producto.inventario_sucursales.find(
+                                    (inv) =>
+                                      inv.sucursalId === user?.sucursalId,
+                                  );
+                                localStock = localInv?.stock || 0;
+                              }
+                              if (item.cantidad < localStock) {
+                                updateQuantity(item.productoId, 1);
+                              } else {
+                                notifications.show({
+                                  title: "Stock tope alcanzado",
+                                  message:
+                                    "Ya agregaste todo el inventario de esta sucursal",
+                                  color: "orange",
+                                });
+                              }
+                            }}
                           >
                             <IconPlus size={12} />
                           </ActionIcon>

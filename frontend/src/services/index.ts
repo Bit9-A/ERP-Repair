@@ -43,6 +43,7 @@ export {
 
 export {
   useRepairs,
+  useRepairsHistory,
   useRepair,
   useKanbanCounts,
   useCreateRepair,
@@ -50,6 +51,9 @@ export {
   useUpdateEstado,
   useAddRepuesto,
   useAddServicio,
+  useRemoveRepuesto,
+  useRemoveServicio,
+  useEntregarTicket,
   useDeleteRepair,
 } from "./hooks/useRepairs";
 
@@ -118,6 +122,7 @@ export {
   useUpdateSucursal,
   useDeleteSucursal,
   useTransferirStock,
+  useSetSucursalPrincipal,
 } from "./hooks/useSucursales";
 
 // -- Service types re-exports --

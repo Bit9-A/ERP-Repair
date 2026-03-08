@@ -63,6 +63,14 @@ export function useDeleteSucursal() {
   });
 }
 
+export function useSetSucursalPrincipal() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: sucursalesService.setPrincipal,
+    onSuccess: () => qc.invalidateQueries({ queryKey: QUERY_KEY }),
+  });
+}
+
 export function useTransferirStock() {
   const qc = useQueryClient();
   return useMutation({

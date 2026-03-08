@@ -34,6 +34,20 @@ export async function updateOne(req: Request, res: Response) {
   res.json({ success: true, data });
 }
 
+export async function setPrincipal(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const id = req.params["id"] as string;
+    const data = await service.setPrincipal(id);
+    res.json({ success: true, data });
+  } catch (err) {
+    next(err);
+  }
+}
+
 export async function deleteOne(req: Request, res: Response) {
   const id = req.params["id"] as string;
   const data = await service.remove(id);

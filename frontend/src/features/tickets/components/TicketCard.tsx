@@ -1,17 +1,30 @@
-import { Card, Text, Group, Badge, Stack, Paper } from "@mantine/core";
+import {
+  Card,
+  Text,
+  Group,
+  Badge,
+  Stack,
+  Paper,
+  Menu,
+  ActionIcon,
+} from "@mantine/core";
 import {
   IconDeviceMobile,
   IconClock,
   IconAlertTriangle,
   IconLock,
   IconFingerprint,
+  IconDotsVertical,
+  IconArrowRight,
 } from "@tabler/icons-react";
-import type { TicketReparacion } from "../../../types";
+import type { TicketReparacion, EstadoTicket } from "../../../types";
+import { KANBAN_COLUMNS, TICKET_STATUS } from "../../../lib/constants";
 import dayjs from "dayjs";
 
 interface TicketCardProps {
   ticket: TicketReparacion;
   onClick?: (ticket: TicketReparacion) => void;
+  onMoveTicket?: (newEstado: EstadoTicket) => void;
 }
 
 const STATUS_COLORS: Record<string, string> = {
@@ -23,7 +36,7 @@ const STATUS_COLORS: Record<string, string> = {
   ABANDONO: "red",
 };
 
-export function TicketCard({ ticket, onClick }: TicketCardProps) {
+export function TicketCard({ ticket, onClick, onMoveTicket }: TicketCardProps) {
   const diasTranscurridos = dayjs().diff(dayjs(ticket.fecha_ingreso), "day");
   const esAlerta = diasTranscurridos >= 60;
   const esCritico = diasTranscurridos >= 90;
@@ -46,19 +59,51 @@ export function TicketCard({ ticket, onClick }: TicketCardProps) {
       }}
     >
       {/* Header: ID y Alerta de Tiempo */}
-      <Group justify="space-between" mb="xs">
-        <Text size="xs" fw={700} c="dimmed">
-          #T-{ticket.id.substring(0, 6)}
-        </Text>
-        {esAlerta && (
-          <Badge
-            color="red"
-            variant="light"
-            size="xs"
-            leftSection={<IconAlertTriangle size={10} />}
-          >
-            {esCritico ? "ABANDONO" : `${diasTranscurridos} DÍAS`}
-          </Badge>
+      <Group justify="space-between" mb="xs" align="flex-start">
+        <Stack gap={2}>
+          <Text size="xs" fw={700} c="dimmed">
+            #T-{ticket.id.substring(0, 6)}
+          </Text>
+          {esAlerta && (
+            <Badge
+              color="red"
+              variant="light"
+              size="xs"
+              leftSection={<IconAlertTriangle size={10} />}
+            >
+              {esCritico ? "ABANDONO" : `${diasTranscurridos} DÍAS`}
+            </Badge>
+          )}
+        </Stack>
+
+        {/* Mobile Action Menu (Oculto en desktop vía CSS/lógica si se quiere, o útil para todos) */}
+        {onMoveTicket && (
+          <Menu shadow="md" width={200} position="bottom-end" withinPortal>
+            <Menu.Target>
+              <ActionIcon
+                variant="subtle"
+                color="gray"
+                size="sm"
+                onClick={(e) => e.stopPropagation()} // Prevent opening card when clicking menu
+              >
+                <IconDotsVertical size={16} />
+              </ActionIcon>
+            </Menu.Target>
+            <Menu.Dropdown onClick={(e) => e.stopPropagation()}>
+              <Menu.Label>Mover Orden A:</Menu.Label>
+              {KANBAN_COLUMNS.filter((col) => col !== ticket.estado).map(
+                (col) => (
+                  <Menu.Item
+                    key={col}
+                    leftSection={<IconArrowRight size={14} />}
+                    onClick={() => onMoveTicket(col)}
+                  >
+                    {TICKET_STATUS[col].label}
+                  </Menu.Item>
+                ),
+              )}
+            </Menu.Dropdown>
+          </Menu>
         )}
       </Group>
 

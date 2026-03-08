@@ -41,6 +41,16 @@ export interface KanbanCounts {
   ABANDONO: number;
 }
 
+export interface PaginatedResponse<T> {
+  data: T;
+  meta: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
+}
+
 /** GET /repairs */
 export async function getAll(
   filters?: RepairsFilters,
@@ -98,6 +108,31 @@ export async function getKanbanCounts(): Promise<KanbanCounts> {
   return data.data;
 }
 
+export interface PaginatedResponse<T> {
+  data: T;
+  meta: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
+}
+
+/** GET /repairs/history */
+export async function getHistory(
+  page: number = 1,
+  limit: number = 50,
+  search: string = "",
+): Promise<PaginatedResponse<TicketReparacion[]>> {
+  const { data } = await api.get<any>("/repairs/history", {
+    params: { page, limit, search },
+  });
+  return {
+    data: data.data,
+    meta: data.meta,
+  };
+}
+
 /** PATCH /repairs/:id/estado */
 export async function updateEstado(
   id: string,
@@ -132,6 +167,45 @@ export async function addServicio(
   const { data } = await api.post<ApiResponse<TicketReparacion>>(
     `/repairs/${id}/servicios`,
     { servicioId, precioCobrado },
+  );
+  return data.data;
+}
+
+/** DELETE /repairs/:id/repuestos/:repuestoId */
+export async function removeRepuesto(
+  id: string,
+  repuestoId: string,
+): Promise<TicketReparacion> {
+  const { data } = await api.delete<ApiResponse<TicketReparacion>>(
+    `/repairs/${id}/repuestos/${repuestoId}`,
+  );
+  return data.data;
+}
+
+/** DELETE /repairs/:id/servicios/:servicioId */
+export async function removeServicio(
+  id: string,
+  servicioId: string,
+): Promise<TicketReparacion> {
+  const { data } = await api.delete<ApiResponse<TicketReparacion>>(
+    `/repairs/${id}/servicios/${servicioId}`,
+  );
+  return data.data;
+}
+
+/** POST /repairs/:id/entregar */
+export async function entregarTicket(
+  id: string,
+  pagos: Array<{
+    monedaId: string;
+    monto_moneda_local: number;
+    metodo: string;
+    referencia?: string;
+  }>,
+): Promise<TicketReparacion> {
+  const { data } = await api.post<ApiResponse<TicketReparacion>>(
+    `/repairs/${id}/entregar`,
+    { pagos },
   );
   return data.data;
 }

@@ -1,21 +1,27 @@
 import {
   Table,
-  Badge,
   Group,
   Text,
   ActionIcon,
   Tooltip,
   Paper,
   ScrollArea,
-  Select,
+  Menu,
+  Stack,
+  Card,
+  Badge,
+  Box,
 } from "@mantine/core";
+import { useMediaQuery } from "@mantine/hooks";
 import {
   IconEye,
   IconClock,
   IconAlertTriangle,
   IconDeviceMobile,
+  IconDotsVertical,
+  IconArrowRight,
 } from "@tabler/icons-react";
-import { TICKET_STATUS } from "../../../lib/constants";
+import { TICKET_STATUS, KANBAN_COLUMNS } from "../../../lib/constants";
 import type { EstadoTicket, TicketReparacion } from "../../../types";
 import dayjs from "dayjs";
 
@@ -39,17 +45,12 @@ export function TicketListView({
   onTicketClick,
   onMoveTicket,
 }: TicketListViewProps) {
-  const statusOptions = Object.entries(TICKET_STATUS).map(
-    ([value, { label }]) => ({
-      value,
-      label,
-    }),
-  );
+  const isMobile = useMediaQuery("(max-width: 768px)");
+
   const rows = tickets.map((ticket) => {
     const diasTranscurridos = dayjs().diff(dayjs(ticket.fecha_ingreso), "day");
     const esAlerta = diasTranscurridos >= 60;
     const esCritico = diasTranscurridos >= 90;
-    const status = TICKET_STATUS[ticket.estado as EstadoTicket];
     const color = STATUS_COLORS[ticket.estado] || "gray";
 
     return (
@@ -87,29 +88,47 @@ export function TicketListView({
           </Text>
         </Table.Td>
         <Table.Td>
-          <Select
-            size="xs"
-            variant="filled"
-            data={statusOptions}
-            value={ticket.estado}
-            onChange={(v) => {
-              if (v && onMoveTicket) {
-                onMoveTicket(ticket.id, v as EstadoTicket);
-              }
-            }}
-            onClick={(e) => e.stopPropagation()}
-            styles={{
-              input: {
-                backgroundColor: `var(--mantine-color-${color}-filled)`,
-                color: "var(--mantine-color-white)",
-                fontWeight: 700,
-                border: "none",
-                fontSize: "12px",
-                height: "26px",
-                minHeight: "26px",
-              },
-            }}
-          />
+          {/* Menú de estado (ahora usamos un Menu nativo) */}
+          <Menu
+            shadow="md"
+            width={200}
+            position="bottom-start"
+            withinPortal
+            disabled={ticket.estado === "ENTREGADO"}
+          >
+            <Menu.Target>
+              <Badge
+                color={color}
+                variant="filled"
+                style={{
+                  cursor:
+                    ticket.estado === "ENTREGADO" ? "not-allowed" : "pointer",
+                }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                }}
+              >
+                {TICKET_STATUS[ticket.estado].label}
+              </Badge>
+            </Menu.Target>
+            <Menu.Dropdown onClick={(e) => e.stopPropagation()}>
+              <Menu.Label>Mover Orden A:</Menu.Label>
+              {KANBAN_COLUMNS.filter((col) => col !== ticket.estado).map(
+                (col) => (
+                  <Menu.Item
+                    key={col}
+                    leftSection={<IconArrowRight size={14} />}
+                    onClick={() =>
+                      onMoveTicket &&
+                      onMoveTicket(ticket.id, col as EstadoTicket)
+                    }
+                  >
+                    {TICKET_STATUS[col as EstadoTicket].label}
+                  </Menu.Item>
+                ),
+              )}
+            </Menu.Dropdown>
+          </Menu>
         </Table.Td>
         <Table.Td>
           <Group gap={4} wrap="nowrap">
@@ -151,6 +170,148 @@ export function TicketListView({
       </Table.Tr>
     );
   });
+
+  const renderMobileCards = () => {
+    if (tickets.length === 0) {
+      return (
+        <Text ta="center" c="dimmed" py="xl" size="sm">
+          No hay tickets registrados
+        </Text>
+      );
+    }
+
+    return (
+      <Stack gap="sm">
+        {tickets.map((ticket) => {
+          const diasTranscurridos = dayjs().diff(
+            dayjs(ticket.fecha_ingreso),
+            "day",
+          );
+          const esAlerta = diasTranscurridos >= 60;
+          const esCritico = diasTranscurridos >= 90;
+          const colorEstado = STATUS_COLORS[ticket.estado] || "gray";
+
+          return (
+            <Card
+              key={ticket.id}
+              padding="md"
+              radius="md"
+              className="ticket-card-hover"
+              onClick={() => onTicketClick?.(ticket)}
+              style={{
+                cursor: "pointer",
+                background: "var(--bg-card)",
+                border: "1px solid var(--border-subtle)",
+                borderLeft: `3px solid var(--mantine-color-${colorEstado}-filled)`,
+                backgroundColor: esCritico
+                  ? "rgba(239, 68, 68, 0.04)"
+                  : undefined,
+                boxShadow: "0 2px 8px rgba(15, 23, 42, 0.04)",
+                transition: "all 0.2s ease",
+              }}
+            >
+              <Group justify="space-between" mb="xs" align="flex-start">
+                <Stack gap={2}>
+                  <Text size="xs" fw={700} c="dimmed">
+                    #T-{ticket.id.substring(0, 6)}
+                  </Text>
+                  {esAlerta && (
+                    <Badge
+                      color="red"
+                      variant="light"
+                      size="xs"
+                      leftSection={<IconAlertTriangle size={10} />}
+                    >
+                      {esCritico ? "ABANDONO" : `${diasTranscurridos} DÍAS`}
+                    </Badge>
+                  )}
+                </Stack>
+                {onMoveTicket && (
+                  <Menu
+                    shadow="md"
+                    width={200}
+                    position="bottom-end"
+                    withinPortal
+                    disabled={ticket.estado === "ENTREGADO"}
+                  >
+                    <Menu.Target>
+                      <ActionIcon
+                        variant="subtle"
+                        color="gray"
+                        size="sm"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <IconDotsVertical size={16} />
+                      </ActionIcon>
+                    </Menu.Target>
+                    <Menu.Dropdown onClick={(e) => e.stopPropagation()}>
+                      <Menu.Label>Mover Orden A:</Menu.Label>
+                      {KANBAN_COLUMNS.filter(
+                        (col) => col !== ticket.estado,
+                      ).map((col) => (
+                        <Menu.Item
+                          key={col}
+                          leftSection={<IconArrowRight size={14} />}
+                          onClick={() =>
+                            onMoveTicket(ticket.id, col as EstadoTicket)
+                          }
+                        >
+                          {TICKET_STATUS[col].label}
+                        </Menu.Item>
+                      ))}
+                    </Menu.Dropdown>
+                  </Menu>
+                )}
+              </Group>
+
+              <Stack gap={4} mb="sm">
+                <Text size="sm" fw={700} lineClamp={1}>
+                  {ticket.cliente?.nombre || "Sin cliente"}
+                </Text>
+                <Group gap={5}>
+                  <IconDeviceMobile
+                    size={14}
+                    style={{ color: "var(--text-muted)" }}
+                  />
+                  <Text size="sm" fw={600} c="dimmed">
+                    {ticket.marca} {ticket.modelo}
+                  </Text>
+                </Group>
+                <Text size="xs" c="dimmed" lineClamp={2} mt={2}>
+                  {ticket.falla}
+                </Text>
+              </Stack>
+
+              <Group justify="space-between" mt="auto">
+                <Badge color={colorEstado} variant="filled" size="sm">
+                  {TICKET_STATUS[ticket.estado].label}
+                </Badge>
+
+                <Group gap="sm">
+                  <Group gap={4}>
+                    <IconClock
+                      size={12}
+                      style={{ color: "var(--mantine-color-dimmed)" }}
+                    />
+                    <Text size="xs" c="dimmed">
+                      {dayjs(ticket.fecha_ingreso).format("DD/MMM")}
+                    </Text>
+                  </Group>
+                  <Text size="sm" ff="monospace" fw={700} c="brand.4">
+                    ${ticket.precio_total_usd?.toFixed(2) || "0.00"}
+                  </Text>
+                </Group>
+              </Group>
+            </Card>
+          );
+        })}
+      </Stack>
+    );
+  };
+
+  if (isMobile) {
+    return <Box pb="xl">{renderMobileCards()}</Box>;
+  }
 
   return (
     <Paper

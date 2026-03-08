@@ -1,0 +1,27 @@
+src/features/tickets/components/TicketForm.tsx(11,39): error TS2307: Cannot find module '../../../../types' or its corresponding type declarations.
+src/features/tickets/components/TicketForm.tsx(12,39): error TS2307: Cannot find module '../../../types/tickets.types' or its corresponding type declarations.
+src/features/tickets/components/TicketFormGeneral/ChecklistDataPanel.tsx(10,39): error TS2307: Cannot find module '../../../types/tickets.types' or its corresponding type declarations.
+src/features/tickets/components/TicketFormGeneral/ClientDataPanel.tsx(15,39): error TS2307: Cannot find module '../../../types/tickets.types' or its corresponding type declarations.
+src/features/tickets/components/TicketFormGeneral/CostosDataPanel.tsx(14,39): error TS2307: Cannot find module '../../../types/tickets.types' or its corresponding type declarations.
+src/features/tickets/components/TicketFormGeneral/EquipmentDataPanel.tsx(14,39): error TS2307: Cannot find module '../../../types/tickets.types' or its corresponding type declarations.
+src/features/tickets/hooks/useTicketForm.ts(4,39): error TS2307: Cannot find module '../../types/tickets.types' or its corresponding type declarations.
+src/features/tickets/hooks/useTicketForm.ts(5,39): error TS2307: Cannot find module '../../../../types' or its corresponding type declarations.
+src/features/tickets/hooks/useTicketForm.ts(14,8): error TS2307: Cannot find module '../../../../services' or its corresponding type declarations.
+src/features/tickets/hooks/useTicketForm.ts(45,14): error TS7006: Parameter 'u' implicitly has an 'any' type.
+src/features/tickets/hooks/useTicketForm.ts(46,11): error TS7006: Parameter 'u' implicitly has an 'any' type.
+src/features/tickets/hooks/useTicketForm.ts(130,18): error TS7006: Parameter 'sum' implicitly has an 'any' type.
+src/features/tickets/hooks/useTicketForm.ts(130,23): error TS7006: Parameter 'r' implicitly has an 'any' type.
+src/features/tickets/hooks/useTicketForm.ts(134,18): error TS7006: Parameter 'sum' implicitly has an 'any' type.
+src/features/tickets/hooks/useTicketForm.ts(134,23): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/features/tickets/hooks/useTicketForm.ts(140,36): error TS7006: Parameter 'm' implicitly has an 'any' type.
+src/features/tickets/hooks/useTicketForm.ts(161,32): error TS7006: Parameter 'm' implicitly has an 'any' type.
+src/features/tickets/hooks/useTicketForm.ts(214,8): error TS7006: Parameter 'sum' implicitly has an 'any' type.
+src/features/tickets/hooks/useTicketForm.ts(214,13): error TS7006: Parameter 'r' implicitly has an 'any' type.
+src/features/tickets/hooks/useTicketForm.ts(219,8): error TS7006: Parameter 'sum' implicitly has an 'any' type.
+src/features/tickets/hooks/useTicketForm.ts(219,13): error TS7006: Parameter 'r' implicitly has an 'any' type.
+src/features/tickets/hooks/useTicketForm.ts(223,37): error TS7006: Parameter 'sum' implicitly has an 'any' type.
+src/features/tickets/hooks/useTicketForm.ts(223,42): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/features/tickets/hooks/useTicketForm.ts(256,36): error TS7006: Parameter 'm' implicitly has an 'any' type.
+src/features/tickets/hooks/useTicketForm.ts(261,20): error TS7006: Parameter 'm' implicitly has an 'any' type.
+src/features/tickets/hooks/useTicketForm.ts(263,16): error TS7006: Parameter 'm' implicitly has an 'any' type.
+src/features/tickets/hooks/useTicketForm.ts(264,25): error TS7006: Parameter 'm' implicitly has an 'any' type.

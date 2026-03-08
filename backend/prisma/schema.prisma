@@ -73,6 +73,7 @@ model Sucursal {
   nombre    String   @unique
   direccion String?
   activa    Boolean  @default(true)
+  principal Boolean  @default(false)
 
   // Relaciones
   usuarios         Usuario[]
@@ -111,6 +112,9 @@ model Usuario {
   password_hash            String
 
   porcentaje_comision_base Float               @default(0.40)
+  gana_comision            Boolean             @default(true)
+  gana_salario             Boolean             @default(false)
+  salario_base_usd         Float               @default(0)
 
   // Feature 4: Sucursal asignada (null = sin restricción / ADMIN)
   sucursalId               String?

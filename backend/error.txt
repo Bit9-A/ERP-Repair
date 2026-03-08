@@ -1,0 +1,9 @@
+
+Invalid `prisma.sucursal.findFirst()` invocation in
+C:\Users\adria\Desktop\Escritorio\Pruebas Tecnicas\Trabajo\ERP-Repair\backend\rebuild-stock.ts:8:49
+
+  5 async function rebuildStock() {
+  6   console.log("Recalculando stock desde Movimientos históricos...");
+  7 
+→ 8   let sucursalPrincipal = await prisma.sucursal.findFirst(
+The column `(not available)` does not exist in the current database.

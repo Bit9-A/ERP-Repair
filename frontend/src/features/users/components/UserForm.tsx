@@ -34,7 +34,12 @@ const ADMIN_DEFAULTS: Required<UserPermisos> = {
   },
   ventas: { ver: true, crear: true, anular: true },
   finanzas: { ver: true },
-  tickets: { ver: true, asignar: true, cambiarEstado: true },
+  tickets: {
+    ver: true,
+    asignar: true,
+    cambiarEstado: true,
+    editarComision: true,
+  },
   usuarios: { ver: true, gestionar: true },
 };
 
@@ -47,7 +52,12 @@ const TECNICO_DEFAULTS: Required<UserPermisos> = {
   },
   ventas: { ver: false, crear: false, anular: false },
   finanzas: { ver: false },
-  tickets: { ver: true, asignar: false, cambiarEstado: true },
+  tickets: {
+    ver: true,
+    asignar: false,
+    cambiarEstado: true,
+    editarComision: false,
+  },
   usuarios: { ver: false, gestionar: false },
 };
 
@@ -60,7 +70,12 @@ const VENDEDOR_DEFAULTS: Required<UserPermisos> = {
   },
   ventas: { ver: true, crear: true, anular: false },
   finanzas: { ver: false },
-  tickets: { ver: false, asignar: false, cambiarEstado: false },
+  tickets: {
+    ver: false,
+    asignar: false,
+    cambiarEstado: false,
+    editarComision: false,
+  },
   usuarios: { ver: false, gestionar: false },
 };
 
@@ -80,6 +95,9 @@ export function UserForm({
       password: "",
       rol: "TECNICO",
       porcentaje_comision_base: 0,
+      gana_comision: true,
+      gana_salario: false,
+      salario_base_usd: 0,
       sucursalId: undefined,
       permisos: undefined,
     },
@@ -91,6 +109,10 @@ export function UserForm({
         !isEditing && v.length < 4 ? "Mínimo 4 caracteres" : null,
       porcentaje_comision_base: (v) =>
         v < 0 || v > 1 ? "Debe ser entre 0 y 1 (ej: 0.40 = 40%)" : null,
+      salario_base_usd: (v, values) =>
+        values.gana_salario && (v === undefined || v < 0)
+          ? "El salario no puede ser negativo"
+          : null,
     },
   });
 
@@ -135,6 +157,9 @@ export function UserForm({
         password: "",
         rol: initialData.rol,
         porcentaje_comision_base: initialData.porcentaje_comision_base,
+        gana_comision: initialData.gana_comision ?? true,
+        gana_salario: initialData.gana_salario ?? false,
+        salario_base_usd: initialData.salario_base_usd ?? 0,
         sucursalId: initialData.sucursalId ?? undefined,
         permisos: initialData.permisos,
       });
@@ -203,16 +228,49 @@ export function UserForm({
                 form.setFieldValue("permisos", undefined);
               }}
             />
-            <NumberInput
-              label="Comisión Base"
-              min={0}
-              max={1}
-              step={0.05}
-              decimalScale={2}
-              fixedDecimalScale
-              placeholder="Ej: 0.40 = 40%"
-              {...form.getInputProps("porcentaje_comision_base")}
+          </Group>
+
+          <Divider label="Esquema de Remuneración" labelPosition="center" />
+          <SimpleGrid cols={2} spacing="md">
+            <Switch
+              label="Recibe Comisión por Trabajos"
+              {...form.getInputProps("gana_comision", { type: "checkbox" })}
             />
+            <Switch
+              label="Recibe Salario Fijo"
+              {...form.getInputProps("gana_salario", { type: "checkbox" })}
+            />
+          </SimpleGrid>
+
+          <Group grow>
+            {form.values.gana_comision ? (
+              <NumberInput
+                label="Comisión Base"
+                min={0}
+                max={1}
+                step={0.05}
+                decimalScale={2}
+                fixedDecimalScale
+                placeholder="Ej: 0.40 = 40%"
+                {...form.getInputProps("porcentaje_comision_base")}
+              />
+            ) : (
+              <div />
+            )}
+            {form.values.gana_salario ? (
+              <NumberInput
+                label="Salario Mensual (USD)"
+                min={0}
+                step={10}
+                decimalScale={2}
+                fixedDecimalScale
+                hideControls
+                placeholder="Ej: 200.00"
+                {...form.getInputProps("salario_base_usd")}
+              />
+            ) : (
+              <div />
+            )}
           </Group>
 
           {/* Feature 4: Branch assignment */}
@@ -340,6 +398,17 @@ export function UserForm({
                       handleTogglePermiso(
                         "tickets",
                         "cambiarEstado",
+                        e.currentTarget.checked,
+                      )
+                    }
+                  />
+                  <Switch
+                    label="Editar ganancias/comisión"
+                    checked={effectivePerms.tickets.editarComision}
+                    onChange={(e) =>
+                      handleTogglePermiso(
+                        "tickets",
+                        "editarComision",
                         e.currentTarget.checked,
                       )
                     }

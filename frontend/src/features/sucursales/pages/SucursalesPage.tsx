@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Stack,
   Title,
@@ -10,249 +11,47 @@ import {
   Badge,
   ActionIcon,
   Tooltip,
-  Modal,
-  TextInput,
-  Textarea,
-  Switch,
   Loader,
   Box,
   Divider,
-  Table,
   ThemeIcon,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
-import { useForm } from "@mantine/form";
 import { notifications } from "@mantine/notifications";
 import {
   IconBuilding,
   IconPlus,
-  IconEdit,
-  IconTrash,
-  IconPackage,
-  IconUsers,
-  IconShoppingCart,
+  IconArrowsExchange,
+  IconStar,
+  IconStarFilled,
+  IconBuildingStore,
   IconCheck,
   IconX,
-  IconBuildingStore,
-  IconArrowsExchange,
+  IconUsers,
+  IconShoppingCart,
+  IconPackage,
+  IconEdit,
+  IconTrash,
 } from "@tabler/icons-react";
 import {
   useSucursales,
-  useCreateSucursal,
-  useUpdateSucursal,
+  useSetSucursalPrincipal,
   useDeleteSucursal,
-  useSucursalInventario,
 } from "../../../services";
 import type { Sucursal } from "../../../types";
+import { SucursalFormModal } from "../components/SucursalFormModal";
 import { TransferModal } from "../components/TransferModal";
-
-// ── Sub-component: Sucursal Inventory Modal ──────────────────────────────────
-function InventarioModal({
-  sucursal,
-  opened,
-  onClose,
-}: {
-  sucursal: Sucursal;
-  opened: boolean;
-  onClose: () => void;
-}) {
-  const { data: inventario = [], isLoading } = useSucursalInventario(
-    opened ? sucursal.id : "",
-  );
-
-  return (
-    <Modal
-      opened={opened}
-      onClose={onClose}
-      title={`Inventario — ${sucursal.nombre}`}
-      size="xl"
-    >
-      {isLoading ? (
-        <Group justify="center" py="xl">
-          <Loader size="sm" />
-        </Group>
-      ) : inventario.length === 0 ? (
-        <Text c="dimmed" ta="center" py="xl">
-          No hay productos en esta sucursal aún.
-        </Text>
-      ) : (
-        <Table
-          horizontalSpacing="sm"
-          verticalSpacing="sm"
-          styles={{
-            th: {
-              color: "var(--text-secondary)",
-              fontSize: "12px",
-              textTransform: "uppercase",
-              letterSpacing: "0.05em",
-            },
-            td: {
-              borderColor: "var(--border-subtle)",
-              paddingTop: "14px",
-              paddingBottom: "14px",
-            },
-          }}
-        >
-          <Table.Thead>
-            <Table.Tr>
-              <Table.Th>SKU</Table.Th>
-              <Table.Th>Producto</Table.Th>
-              <Table.Th style={{ textAlign: "right" }}>Stock</Table.Th>
-              <Table.Th style={{ textAlign: "right" }}>Precio</Table.Th>
-            </Table.Tr>
-          </Table.Thead>
-          <Table.Tbody>
-            {inventario.map((sp) => (
-              <Table.Tr key={sp.productoId}>
-                <Table.Td>
-                  <Text size="xs" ff="monospace" c="dimmed">
-                    {sp.producto?.sku}
-                  </Text>
-                </Table.Td>
-                <Table.Td>
-                  <Text size="sm">{sp.producto?.nombre}</Text>
-                </Table.Td>
-                <Table.Td style={{ textAlign: "right" }}>
-                  <Badge
-                    color={
-                      sp.stock === 0
-                        ? "red"
-                        : sp.stock <= 3
-                          ? "yellow"
-                          : "green"
-                    }
-                    variant="filled"
-                    size="sm"
-                  >
-                    {sp.stock} u.
-                  </Badge>
-                </Table.Td>
-                <Table.Td style={{ textAlign: "right" }}>
-                  <Text size="sm" ff="monospace">
-                    ${sp.producto?.precio_usd?.toFixed(2)}
-                  </Text>
-                </Table.Td>
-              </Table.Tr>
-            ))}
-          </Table.Tbody>
-        </Table>
-      )}
-    </Modal>
-  );
-}
-
-// ── Sub-component: Sucursal Form Modal ───────────────────────────────────────
-interface SucursalFormValues {
-  nombre: string;
-  direccion: string;
-  activa: boolean;
-}
-
-function SucursalFormModal({
-  opened,
-  onClose,
-  editData,
-}: {
-  opened: boolean;
-  onClose: () => void;
-  editData?: Sucursal | null;
-}) {
-  const isEditing = !!editData;
-  const createSucursal = useCreateSucursal();
-  const updateSucursal = useUpdateSucursal();
-
-  const form = useForm<SucursalFormValues>({
-    initialValues: {
-      nombre: editData?.nombre ?? "",
-      direccion: editData?.direccion ?? "",
-      activa: editData?.activa ?? true,
-    },
-  });
-
-  // Sync when editData changes
-  useState(() => {
-    if (opened) {
-      form.setValues({
-        nombre: editData?.nombre ?? "",
-        direccion: editData?.direccion ?? "",
-        activa: editData?.activa ?? true,
-      });
-    }
-  });
-
-  const handleSubmit = async (values: SucursalFormValues) => {
-    try {
-      if (isEditing && editData) {
-        await updateSucursal.mutateAsync({ id: editData.id, data: values });
-        notifications.show({ message: "Sucursal actualizada", color: "green" });
-      } else {
-        await createSucursal.mutateAsync(values);
-        notifications.show({ message: "Sucursal creada", color: "green" });
-      }
-      form.reset();
-      onClose();
-    } catch {
-      notifications.show({ message: "Error al guardar", color: "red" });
-    }
-  };
-
-  return (
-    <Modal
-      opened={opened}
-      onClose={onClose}
-      title={isEditing ? "Editar Sucursal" : "Nueva Sucursal"}
-      size="md"
-    >
-      <form onSubmit={form.onSubmit(handleSubmit)}>
-        <Stack gap="md">
-          <TextInput
-            label="Nombre"
-            placeholder="Ej: Sucursal Centro"
-            required
-            {...form.getInputProps("nombre")}
-          />
-          <Textarea
-            label="Dirección"
-            placeholder="Dirección completa (opcional)"
-            autosize
-            minRows={2}
-            {...form.getInputProps("direccion")}
-          />
-          {isEditing && (
-            <Switch
-              label="Sucursal activa"
-              {...form.getInputProps("activa", { type: "checkbox" })}
-            />
-          )}
-          <Group justify="flex-end" mt="md">
-            <Button variant="subtle" onClick={onClose}>
-              Cancelar
-            </Button>
-            <Button
-              type="submit"
-              loading={createSucursal.isPending || updateSucursal.isPending}
-            >
-              {isEditing ? "Guardar Cambios" : "Crear Sucursal"}
-            </Button>
-          </Group>
-        </Stack>
-      </form>
-    </Modal>
-  );
-}
 
 // ── Main Page ────────────────────────────────────────────────────────────────
 export function SucursalesPage() {
+  const navigate = useNavigate();
   const { data: sucursales = [], isLoading } = useSucursales();
+  const setPrincipal = useSetSucursalPrincipal();
   const deleteSucursal = useDeleteSucursal();
 
   const [formOpened, { open: openForm, close: closeForm }] =
     useDisclosure(false);
   const [editData, setEditData] = useState<Sucursal | null>(null);
-  const [inventarioSucursal, setInventarioSucursal] = useState<Sucursal | null>(
-    null,
-  );
-  const [invOpened, { open: openInv, close: closeInv }] = useDisclosure(false);
   const [transferOpened, { open: openTransfer, close: closeTransfer }] =
     useDisclosure(false);
 
@@ -266,9 +65,8 @@ export function SucursalesPage() {
     openForm();
   };
 
-  const handleViewInventario = (s: Sucursal) => {
-    setInventarioSucursal(s);
-    openInv();
+  const handleViewInventario = (sucursal: Sucursal) => {
+    navigate(`/inventario?sucursalId=${sucursal.id}`);
   };
 
   const handleDelete = async (id: string) => {
@@ -280,6 +78,21 @@ export function SucursalesPage() {
     } catch {
       notifications.show({
         message: "No se pudo eliminar la sucursal",
+        color: "red",
+      });
+    }
+  };
+
+  const handleSetPrincipal = async (id: string, nombre: string) => {
+    try {
+      await setPrincipal.mutateAsync(id);
+      notifications.show({
+        message: `${nombre} ahora es la sucursal principal`,
+        color: "yellow",
+      });
+    } catch {
+      notifications.show({
+        message: "Error al cambiar sucursal principal",
         color: "red",
       });
     }
@@ -387,6 +200,16 @@ export function SucursalesPage() {
                   <Text fw={700} size="md">
                     {s.nombre}
                   </Text>
+                  {s.principal && (
+                    <Badge
+                      size="xs"
+                      color="yellow"
+                      variant="light"
+                      leftSection={<IconStarFilled size={10} />}
+                    >
+                      Principal
+                    </Badge>
+                  )}
                 </Group>
                 {s.direccion && (
                   <Text size="xs" c="dimmed" ml={32}>
@@ -483,6 +306,17 @@ export function SucursalesPage() {
                   <IconEdit size={16} />
                 </ActionIcon>
               </Tooltip>
+              {!s.principal && (
+                <Tooltip label="Hacer principal">
+                  <ActionIcon
+                    variant="subtle"
+                    color="yellow"
+                    onClick={() => handleSetPrincipal(s.id, s.nombre)}
+                  >
+                    <IconStar size={16} />
+                  </ActionIcon>
+                </Tooltip>
+              )}
               <Tooltip label="Eliminar">
                 <ActionIcon
                   variant="subtle"
@@ -503,14 +337,6 @@ export function SucursalesPage() {
         onClose={closeForm}
         editData={editData}
       />
-
-      {inventarioSucursal && (
-        <InventarioModal
-          sucursal={inventarioSucursal}
-          opened={invOpened}
-          onClose={closeInv}
-        />
-      )}
 
       <TransferModal opened={transferOpened} onClose={closeTransfer} />
     </Stack>

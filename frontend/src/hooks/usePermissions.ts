@@ -11,7 +11,12 @@ const ADMIN_DEFAULTS: Required<UserPermisos> = {
   },
   ventas: { ver: true, crear: true, anular: true },
   finanzas: { ver: true },
-  tickets: { ver: true, asignar: true, cambiarEstado: true },
+  tickets: {
+    ver: true,
+    asignar: true,
+    cambiarEstado: true,
+    editarComision: true,
+  },
   usuarios: { ver: true, gestionar: true },
 };
 
@@ -24,7 +29,12 @@ const TECNICO_DEFAULTS: Required<UserPermisos> = {
   },
   ventas: { ver: false, crear: false, anular: false },
   finanzas: { ver: false },
-  tickets: { ver: true, asignar: false, cambiarEstado: true },
+  tickets: {
+    ver: true,
+    asignar: false,
+    cambiarEstado: true,
+    editarComision: false,
+  },
   usuarios: { ver: false, gestionar: false },
 };
 
@@ -37,7 +47,12 @@ const VENDEDOR_DEFAULTS: Required<UserPermisos> = {
   },
   ventas: { ver: true, crear: true, anular: false },
   finanzas: { ver: false },
-  tickets: { ver: false, asignar: false, cambiarEstado: false },
+  tickets: {
+    ver: false,
+    asignar: false,
+    cambiarEstado: false,
+    editarComision: false,
+  },
   usuarios: { ver: false, gestionar: false },
 };
 

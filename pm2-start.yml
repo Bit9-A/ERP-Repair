@@ -1,0 +1,3 @@
+apps:
+  - name: "erp-repair"
+    script: "pnpm --filter ** start"
