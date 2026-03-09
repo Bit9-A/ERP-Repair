@@ -177,9 +177,14 @@ export async function cierreDeCaja(fecha?: string) {
   };
 }
 
+import { processRecurringExpenses } from "./recurringFinance.service";
+
 // ── Stats ──
 
 export async function getStats(periodo?: Periodo) {
+  // Always trigger recurring expense processing when stats are requested
+  await processRecurringExpenses();
+
   const { start: startOfDay, end: endOfDay } = getDateRange(periodo);
 
   const [ingresosHoy, egresosHoy, totalPagos] = await Promise.all([
@@ -213,4 +218,42 @@ export async function getStats(periodo?: Periodo) {
     cantidadEgresosHoy: egresosHoy._count,
     totalPagosHistorico: totalPagos,
   };
+}
+
+// ── Egresos (Gastos) ──
+
+export async function createEgreso(data: {
+  monto_usd: number;
+  concepto: string;
+  categoria?: string;
+  esFijo?: boolean;
+}) {
+  return prisma.transaccionFinanciera.create({
+    data: {
+      tipo: "EGRESO",
+      monto_usd: data.monto_usd,
+      concepto: data.concepto,
+      categoria: data.categoria || "OTROS",
+      esFijo: data.esFijo || false,
+    },
+  });
+}
+
+export async function getEgresos(periodo?: Periodo) {
+  await processRecurringExpenses();
+  const { start: startOfDay, end: endOfDay } = getDateRange(periodo);
+
+  return prisma.transaccionFinanciera.findMany({
+    where: {
+      tipo: "EGRESO",
+      createdAt: { gte: startOfDay, lte: endOfDay },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+}
+
+export async function deleteEgreso(id: string) {
+  return prisma.transaccionFinanciera.delete({
+    where: { id },
+  });
 }

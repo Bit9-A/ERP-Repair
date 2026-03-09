@@ -261,9 +261,25 @@ export interface TransaccionFinanciera {
   monto_usd: number;
   concepto: string;
   categoria?: string;
+  esFijo?: boolean;
   ticketId?: string;
   ventaId?: string;
   createdAt: string;
+}
+
+// -- Egresos Recurrentes --
+export type FrecuenciaGasto = "DIARIO" | "SEMANAL" | "MENSUAL";
+
+export interface GastoRecurrente {
+  id: string;
+  concepto: string;
+  monto_usd: number;
+  categoria?: string;
+  frecuencia: FrecuenciaGasto;
+  proximaFecha: string;
+  activo: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
 // -- API Response wrappers --

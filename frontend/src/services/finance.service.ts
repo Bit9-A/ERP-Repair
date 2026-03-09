@@ -1,5 +1,11 @@
 import { api } from "../lib/api";
-import type { ApiResponse, Moneda, Pago } from "../types";
+import type {
+  ApiResponse,
+  Moneda,
+  Pago,
+  GastoRecurrente,
+  FrecuenciaGasto,
+} from "../types";
 
 // ============================================
 // Finance service — /api/finance
@@ -108,5 +114,95 @@ export async function getStats(
   const { data } = await api.get<ApiResponse<FinanceStats>>("/finance/stats", {
     params: periodo ? { periodo } : undefined,
   });
+  return data.data;
+}
+
+// ============================================
+// Egresos (Gastos)
+// ============================================
+
+export interface CreateEgresoPayload {
+  monto_usd: number;
+  concepto: string;
+  categoria?: string;
+  esFijo?: boolean;
+}
+
+/** GET /finance/egresos */
+export async function getEgresos(
+  periodo?: "dia" | "semana" | "mes",
+): Promise<import("../types").TransaccionFinanciera[]> {
+  const { data } = await api.get<
+    ApiResponse<import("../types").TransaccionFinanciera[]>
+  >("/finance/egresos", {
+    params: periodo ? { periodo } : undefined,
+  });
+  return data.data;
+}
+
+/** POST /finance/egresos */
+export async function createEgreso(
+  payload: CreateEgresoPayload,
+): Promise<import("../types").TransaccionFinanciera> {
+  const { data } = await api.post<
+    ApiResponse<import("../types").TransaccionFinanciera>
+  >("/finance/egresos", payload);
+  return data.data;
+}
+
+/** DELETE /finance/egresos/:id */
+export async function deleteEgreso(
+  id: string,
+): Promise<import("../types").TransaccionFinanciera> {
+  const { data } = await api.delete<
+    ApiResponse<import("../types").TransaccionFinanciera>
+  >(`/finance/egresos/${id}`);
+  return data.data;
+}
+
+// ============================================
+// Egresos Recurrentes (Programados)
+// ============================================
+
+export interface CreateRecurrentePayload {
+  monto_usd: number;
+  concepto: string;
+  frecuencia: FrecuenciaGasto;
+  categoria?: string;
+  proximaFecha?: string;
+}
+
+export async function getRecurrentes(): Promise<GastoRecurrente[]> {
+  const { data } = await api.get<ApiResponse<GastoRecurrente[]>>(
+    "/finance/egresos/recurrentes",
+  );
+  return data.data;
+}
+
+export async function createRecurrente(
+  payload: CreateRecurrentePayload,
+): Promise<GastoRecurrente> {
+  const { data } = await api.post<ApiResponse<GastoRecurrente>>(
+    "/finance/egresos/recurrentes",
+    payload,
+  );
+  return data.data;
+}
+
+export async function deleteRecurrente(id: string): Promise<null> {
+  const { data } = await api.delete<ApiResponse<null>>(
+    `/finance/egresos/recurrentes/${id}`,
+  );
+  return data.data;
+}
+
+export async function updateRecurrente(
+  id: string,
+  payload: Partial<CreateRecurrentePayload>,
+): Promise<GastoRecurrente> {
+  const { data } = await api.patch<ApiResponse<GastoRecurrente>>(
+    `/finance/egresos/recurrentes/${id}`,
+    payload,
+  );
   return data.data;
 }
