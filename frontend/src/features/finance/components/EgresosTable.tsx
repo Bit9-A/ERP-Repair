@@ -178,9 +178,16 @@ export function EgresosTable({ periodo }: EgresosTableProps) {
               {egresos.map((egreso) => (
                 <Table.Tr key={egreso.id}>
                   <Table.Td>
-                    <Text size="sm" fw={600}>
-                      {egreso.concepto}
-                    </Text>
+                    <Stack gap={2}>
+                      <Text size="sm" fw={600}>
+                        {egreso.concepto}
+                      </Text>
+                      {egreso.ticket && (
+                        <Text size="xs" c="dimmed">
+                          {egreso.ticket.marca} {egreso.ticket.modelo}
+                        </Text>
+                      )}
+                    </Stack>
                   </Table.Td>
                   <Table.Td>
                     <Badge color="gray" size="xs" variant="light">

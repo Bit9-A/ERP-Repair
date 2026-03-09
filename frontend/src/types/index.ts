@@ -248,8 +248,25 @@ export interface Pago {
   metodo: string;
   referencia?: string;
   fecha_pago: string;
-  venta?: { id: string; numero: number; cliente?: { nombre: string } };
-  ticket?: { id: string; equipo: string; cliente?: { nombre: string } };
+  venta?: {
+    id: string;
+    numero: number;
+    cliente?: { nombre: string };
+    items?: Array<{
+      producto: {
+        nombre: string;
+        marca_comp?: string;
+        modelo_comp?: string;
+      };
+    }>;
+  };
+  ticket?: {
+    id: string;
+    equipo: string;
+    marca: string;
+    modelo: string;
+    cliente?: { nombre: string };
+  };
 }
 
 // -- Financial transactions (ingreso / egreso) --
@@ -263,7 +280,13 @@ export interface TransaccionFinanciera {
   categoria?: string;
   esFijo?: boolean;
   ticketId?: string;
+  ticket?: {
+    id: string;
+    marca: string;
+    modelo: string;
+  };
   ventaId?: string;
+  venta?: Venta;
   createdAt: string;
 }
 

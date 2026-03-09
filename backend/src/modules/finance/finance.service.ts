@@ -130,6 +130,17 @@ export async function findPagosByDate(periodo?: Periodo) {
           id: true,
           numero: true,
           total_usd: true,
+          items: {
+            include: {
+              producto: {
+                select: {
+                  nombre: true,
+                  marca_comp: true,
+                  modelo_comp: true,
+                },
+              },
+            },
+          },
         },
       },
     },
@@ -247,6 +258,15 @@ export async function getEgresos(periodo?: Periodo) {
     where: {
       tipo: "EGRESO",
       createdAt: { gte: startOfDay, lte: endOfDay },
+    },
+    include: {
+      ticket: {
+        select: {
+          id: true,
+          marca: true,
+          modelo: true,
+        },
+      },
     },
     orderBy: { createdAt: "desc" },
   });
