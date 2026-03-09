@@ -55,7 +55,7 @@ export function ClientTable({ clients, onEdit, onDelete }: ClientTableProps) {
               {/* Nombre e Identificación */}
               <Table.Td>
                 <Text fw={600} size="sm">
-                  {client.nombre}ñ
+                  {client.nombre}
                 </Text>
                 <Text size="xs" c="dimmed" ff="monospace">
                   {client.cedula}
