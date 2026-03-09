@@ -89,6 +89,7 @@ export function EquipmentDataPanel({
               data={marcaOptions}
               value={form.values.marca || null}
               onChange={handleMarcaChange}
+              error={form.errors.marca}
               searchable
               onSearchChange={setMarcaSearch}
               rightSection={loadingMarcas ? <Loader size={14} /> : undefined}
@@ -121,6 +122,7 @@ export function EquipmentDataPanel({
               data={modeloOptions}
               value={form.values.modelo || null}
               onChange={(v) => form.setFieldValue("modelo", v || "")}
+              error={form.errors.modelo}
               searchable
               onSearchChange={setModeloSearch}
               disabled={!form.values.marca}

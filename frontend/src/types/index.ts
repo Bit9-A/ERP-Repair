@@ -248,8 +248,25 @@ export interface Pago {
   metodo: string;
   referencia?: string;
   fecha_pago: string;
-  venta?: { id: string; numero: number; cliente?: { nombre: string } };
-  ticket?: { id: string; equipo: string; cliente?: { nombre: string } };
+  venta?: {
+    id: string;
+    numero: number;
+    cliente?: { nombre: string };
+    items?: Array<{
+      producto: {
+        nombre: string;
+        marca_comp?: string;
+        modelo_comp?: string;
+      };
+    }>;
+  };
+  ticket?: {
+    id: string;
+    equipo: string;
+    marca: string;
+    modelo: string;
+    cliente?: { nombre: string };
+  };
 }
 
 // -- Financial transactions (ingreso / egreso) --
@@ -261,9 +278,31 @@ export interface TransaccionFinanciera {
   monto_usd: number;
   concepto: string;
   categoria?: string;
+  esFijo?: boolean;
   ticketId?: string;
+  ticket?: {
+    id: string;
+    marca: string;
+    modelo: string;
+  };
   ventaId?: string;
+  venta?: Venta;
   createdAt: string;
+}
+
+// -- Egresos Recurrentes --
+export type FrecuenciaGasto = "DIARIO" | "SEMANAL" | "MENSUAL";
+
+export interface GastoRecurrente {
+  id: string;
+  concepto: string;
+  monto_usd: number;
+  categoria?: string;
+  frecuencia: FrecuenciaGasto;
+  proximaFecha: string;
+  activo: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
 // -- API Response wrappers --

@@ -22,14 +22,51 @@ import {
 } from "@tabler/icons-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../../features/auth/store/auth.store";
+import { usePermissions } from "../../hooks/usePermissions";
+import type { UserPermisos } from "../../types";
 
-const NAV_ITEMS = [
+type NavItem = {
+  label: string;
+  icon: any;
+  path: string;
+  adminOnly?: boolean;
+  moduleKey?: keyof Required<UserPermisos>;
+};
+
+const NAV_ITEMS: NavItem[] = [
   { label: "Dashboard", icon: IconLayoutDashboard, path: "/" },
-  { label: "Reparaciones", icon: IconTool, path: "/reparaciones" },
-  { label: "Inventario", icon: IconPackage, path: "/inventario" },
-  { label: "Ventas", icon: IconShoppingCart, path: "/ventas" },
+  {
+    label: "Reparaciones",
+    icon: IconTool,
+    path: "/reparaciones",
+    moduleKey: "tickets",
+  },
+  {
+    label: "Inventario",
+    icon: IconPackage,
+    path: "/inventario",
+    moduleKey: "inventario",
+  },
+  {
+    label: "Ventas",
+    icon: IconShoppingCart,
+    path: "/ventas",
+    moduleKey: "ventas",
+  },
   { label: "Clientes", icon: IconUsersGroup, path: "/clients" },
-  { label: "Finanzas", icon: IconReportMoney, path: "/finanzas" },
+  {
+    label: "Finanzas",
+    icon: IconReportMoney,
+    path: "/finanzas",
+    moduleKey: "finanzas",
+  },
+  {
+    label: "Usuarios",
+    icon: IconUsers,
+    path: "/usuarios",
+    adminOnly: true,
+    moduleKey: "usuarios",
+  },
   {
     label: "Sucursales",
     icon: IconBuildingStore,
@@ -65,12 +102,22 @@ export function Sidebar({
     onNavigate?.();
   };
 
-  // On mobile, always show expanded (never collapsed icons-only mode)
   const isCollapsed = isMobile ? false : collapsed;
   const isAdmin = user?.rol === "ADMIN";
-  const visibleNavItems = NAV_ITEMS.filter(
-    (item) => !(item as { adminOnly?: boolean }).adminOnly || isAdmin,
-  );
+  const permissions = usePermissions();
+
+  const visibleNavItems = NAV_ITEMS.filter((item) => {
+    if (isAdmin) return true;
+    if (item.adminOnly) return false;
+
+    // Si la ruta requiere un permiso de módulo, lo validamos
+    if (item.moduleKey) {
+      const modulePerms = permissions[item.moduleKey];
+      if (!modulePerms?.ver) return false;
+    }
+
+    return true;
+  });
 
   return (
     <Box

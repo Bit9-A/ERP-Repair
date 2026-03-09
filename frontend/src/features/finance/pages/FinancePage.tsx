@@ -16,6 +16,7 @@ import {
   Notification,
   LoadingOverlay,
   SegmentedControl,
+  Tabs,
 } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import {
@@ -36,6 +37,8 @@ import {
 } from "@tabler/icons-react";
 import { StatCard } from "../../../components/ui/StatCard";
 import { PaymentsTable } from "../components/PaymentsTable";
+import { EgresosTable } from "../components/EgresosTable";
+import { RecurringExpensesPanel } from "../components/RecurringExpensesPanel";
 import { useMonedas, useUpdateTasa, useFinanceStats } from "../../../services";
 
 type Periodo = "dia" | "semana" | "mes";
@@ -394,8 +397,44 @@ export function FinancePage() {
         </Notification>
       )}
 
-      {/* Payments Table — filtered by selected period */}
-      <PaymentsTable periodo={periodo} />
+      {/* Main Content Tabs */}
+      <Tabs defaultValue="recaudacion" variant="outline" radius="md">
+        <Tabs.List mb="md">
+          <Tabs.Tab
+            value="recaudacion"
+            leftSection={<IconReportMoney size={16} />}
+          >
+            Recaudación (Ingresos)
+          </Tabs.Tab>
+          <Tabs.Tab
+            value="gastos"
+            leftSection={<IconTrendingDown size={16} />}
+            color="red"
+          >
+            Gastos & Egresos
+          </Tabs.Tab>
+
+          <Tabs.Tab
+            value="recurrentes"
+            leftSection={<IconCalendarStats size={16} />}
+            color="violet"
+          >
+            Gastos Fijos Programados
+          </Tabs.Tab>
+        </Tabs.List>
+
+        <Tabs.Panel value="recaudacion">
+          <PaymentsTable periodo={periodo} />
+        </Tabs.Panel>
+
+        <Tabs.Panel value="gastos">
+          <EgresosTable periodo={periodo} />
+        </Tabs.Panel>
+
+        <Tabs.Panel value="recurrentes">
+          <RecurringExpensesPanel />
+        </Tabs.Panel>
+      </Tabs>
 
       {/* Arqueo de Caja */}
       <Paper

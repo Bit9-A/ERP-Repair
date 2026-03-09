@@ -82,6 +82,13 @@ export {
   useRegistrarPago,
   useCierre,
   useFinanceStats,
+  useEgresos,
+  useCreateEgreso,
+  useDeleteEgreso,
+  useRecurrentes,
+  useCreateRecurrente,
+  useDeleteRecurrente,
+  useUpdateRecurrente,
 } from "./hooks/useFinance";
 
 export {
