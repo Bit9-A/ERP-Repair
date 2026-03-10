@@ -115,7 +115,11 @@ export function ProductForm({
         precio_usd: initialData.precio_usd,
       });
 
-      const marca = marcas.find((m) => m.nombre === initialData.marca_comp);
+      const marca = marcas.find(
+        (m) =>
+          m.nombre.toLowerCase() ===
+          (initialData.marca_comp || "").toLowerCase(),
+      );
       if (marca) setSelectedMarcaId(marca.id);
     } else if (opened && !initialData && !form.isDirty()) {
       // Only reset if it's cleanly opened without data and we haven't typed anything yet
@@ -126,7 +130,11 @@ export function ProductForm({
   // Sync initial brand ID once marcas load if editing
   useEffect(() => {
     if (opened && initialData && marcas.length > 0 && !selectedMarcaId) {
-      const marca = marcas.find((m) => m.nombre === initialData.marca_comp);
+      const marca = marcas.find(
+        (m) =>
+          m.nombre.toLowerCase() ===
+          (initialData.marca_comp || "").toLowerCase(),
+      );
       if (marca) setSelectedMarcaId(marca.id);
     }
   }, [marcas, opened, initialData, selectedMarcaId]);
@@ -140,9 +148,9 @@ export function ProductForm({
   const existingProductMatch =
     !initialData && form.values.sku.trim().length > 1
       ? allProducts.find(
-        (p) =>
-          stripLeadingZeros(p.sku) === stripLeadingZeros(form.values.sku),
-      )
+          (p) =>
+            stripLeadingZeros(p.sku) === stripLeadingZeros(form.values.sku),
+        )
       : null;
 
   const handleSubmit = (values: ProductFormValues) => {
@@ -188,9 +196,12 @@ export function ProductForm({
   };
 
   const handleMarcaChange = (value: string | null) => {
-    form.setFieldValue("marca_comp", (value || "").toUpperCase());
+    const uppercased = (value || "").toUpperCase();
+    form.setFieldValue("marca_comp", uppercased);
     form.setFieldValue("modelo_comp", ""); // reset modelo when marca changes
-    const marca = marcas.find((m) => m.nombre === (value || "").toUpperCase());
+    const marca = marcas.find(
+      (m) => m.nombre.toLowerCase() === uppercased.toLowerCase(),
+    );
     setSelectedMarcaId(marca?.id ?? null);
   };
 
@@ -248,16 +259,20 @@ export function ProductForm({
   const modeloOptions = selectedMarcaId
     ? modelos.map((m) => ({ value: m.nombre, label: m.nombre }))
     : marcas
-      .find((m) => m.nombre === form.values.marca_comp)
-      ?.modelos?.map((m) => ({ value: m.nombre, label: m.nombre })) || [];
+        .find(
+          (m) =>
+            m.nombre.toLowerCase() ===
+            (form.values.marca_comp || "").toLowerCase(),
+        )
+        ?.modelos?.map((m) => ({ value: m.nombre, label: m.nombre })) || [];
 
   const margen =
     form.values.precio_usd > 0 && form.values.costo_usd > 0
       ? (
-        ((form.values.precio_usd - form.values.costo_usd) /
-          form.values.costo_usd) *
-        100
-      ).toFixed(1)
+          ((form.values.precio_usd - form.values.costo_usd) /
+            form.values.costo_usd) *
+          100
+        ).toFixed(1)
       : "0.0";
 
   return (
@@ -274,9 +289,9 @@ export function ProductForm({
           onSubmit={
             existingProductMatch
               ? (e) => {
-                e.preventDefault();
-                handleSubmit(form.values);
-              }
+                  e.preventDefault();
+                  handleSubmit(form.values);
+                }
               : form.onSubmit(handleSubmit)
           }
         >

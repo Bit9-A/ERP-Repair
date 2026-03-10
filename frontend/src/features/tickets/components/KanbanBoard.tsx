@@ -208,17 +208,13 @@ export function KanbanBoard({
   };
 
   return (
-    <Box
+    <ScrollArea
       pb="md"
-      style={{
-        width: "100%",
-        overflowX: "auto",
-        overflowY: "hidden",
-        overscrollBehaviorX: "contain",
-        scrollSnapType: "x mandatory",
-        WebkitOverflowScrolling: "touch",
-        scrollbarWidth: "none", // Firefox
-        msOverflowStyle: "none", // IE
+      offsetScrollbars
+      type="auto"
+      scrollbarSize={12}
+      styles={{
+        viewport: { paddingBottom: 16 },
       }}
     >
       <Group
@@ -228,28 +224,12 @@ export function KanbanBoard({
         pb="sm"
         style={{
           width: "max-content",
-          padding: "0 16px", // So the first/last items aren't flush against screen edges
+          minWidth: "100%",
+          padding: "0 16px",
         }}
       >
         {ALL_COLUMNS.map(renderColumn)}
       </Group>
-      <style>{`
-        /* Responsive CSS Variables for cards */
-        :root {
-          --column-width: calc(100vw - 48px);
-        }
-        @media (min-width: 768px) {
-          :root {
-            --column-width: 320px;
-          }
-        }
-        
-        /* Hide scrollbars for Webkit browsers */
-        ::-webkit-scrollbar {
-          width: 0px;
-          background: transparent; 
-        }
-      `}</style>
-    </Box>
+    </ScrollArea>
   );
 }

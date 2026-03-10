@@ -66,7 +66,14 @@ interface CreateVentaDTO {
 }
 
 export async function create(data: CreateVentaDTO) {
-  // 1. Validate stock for all items
+  // 1. Get seller role
+  const user = await prisma.usuario.findUnique({
+    where: { id: data.vendedorId },
+    select: { rol: true },
+  });
+  const isAdmin = user?.rol === "ADMIN";
+
+  // 2. Validate stock for all items
   const productos = await Promise.all(
     data.items.map(async (item) => {
       const producto = await prisma.producto.findUnique({
@@ -79,21 +86,35 @@ export async function create(data: CreateVentaDTO) {
           { statusCode: 404 },
         );
 
-      let localStock = producto.stock_actual;
-      if (data.sucursalId) {
+      let availableStock = producto.stock_actual;
+
+      // Only check branch-specific stock if NOT admin
+      if (!isAdmin && data.sucursalId) {
         const branchStock = producto.inventario_sucursales.find(
           (inv) => inv.sucursalId === data.sucursalId,
         );
-        localStock = branchStock?.stock || 0;
+        availableStock = branchStock?.stock || 0;
+
+        if (availableStock < item.cantidad) {
+          throw Object.assign(
+            new Error(
+              `Stock insuficiente para ${producto.nombre}: ${availableStock} disponibles en esta sucursal`,
+            ),
+            { statusCode: 400 },
+          );
+        }
+      } else {
+        // For admin (global check) or if no sucursalId provided
+        if (producto.stock_actual < item.cantidad) {
+          throw Object.assign(
+            new Error(
+              `Stock global insuficiente para ${producto.nombre}: ${producto.stock_actual} disponibles`,
+            ),
+            { statusCode: 400 },
+          );
+        }
       }
 
-      if (localStock < item.cantidad)
-        throw Object.assign(
-          new Error(
-            `Stock insuficiente para ${producto.nombre}: ${localStock} disponibles en esta sucursal`,
-          ),
-          { statusCode: 400 },
-        );
       return { ...item, producto };
     }),
   );

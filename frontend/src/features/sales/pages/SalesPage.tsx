@@ -74,7 +74,12 @@ export function SalesPage() {
     return matchesSearch && matchesStatus;
   });
 
-  const activeSales = sales.filter((s) => s.estado !== "ANULADA");
+  const todayStr = new Date().toLocaleDateString("en-CA"); // YYYY-MM-DD
+  const activeSales = sales.filter(
+    (s) =>
+      s.estado !== "ANULADA" &&
+      new Date(s.createdAt).toLocaleDateString("en-CA") === todayStr,
+  );
   const ventasHoy = activeSales.length;
   const ingresosHoy = activeSales.reduce((sum, s) => sum + s.total_usd, 0);
   const pendientes = sales.filter((s) => s.estado === "PENDIENTE").length;
@@ -154,7 +159,6 @@ export function SalesPage() {
       {/* Header */}
       <Group justify="space-between" align="center" wrap="wrap" gap="sm">
         <Group gap="xs">
-
           <Title order={2}>Ventas</Title>
         </Group>
         <Button

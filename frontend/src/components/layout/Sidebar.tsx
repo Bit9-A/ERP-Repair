@@ -73,7 +73,6 @@ const NAV_ITEMS: NavItem[] = [
     path: "/sucursales",
     adminOnly: true,
   },
-  { label: "Usuarios", icon: IconUsers, path: "/usuarios", adminOnly: true },
 ];
 
 interface SidebarProps {
