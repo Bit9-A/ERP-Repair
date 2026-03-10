@@ -23,6 +23,17 @@ interface DeliveryModalProps {
   onSuccess: () => void;
 }
 
+// Diccionario para etiquetas visuales (Opción 3)
+// El "key" es lo que va al Backend, el "value" es lo que ve el usuario
+const METODOS_LABELS: Record<string, string> = {
+  EFECTIVO: "Efectivo",
+  ZELLE: "Zelle",
+  PAGO_MOVIL: "Pago Móvil",
+  TRANSFERENCIA: "Transferencia",
+  PUNTO_DE_VENTA: "Punto de Venta",
+  BINANCE: "Binance",
+};
+
 export function DeliveryModal({
   opened,
   onClose,
@@ -37,21 +48,20 @@ export function DeliveryModal({
   const [metodo, setMetodo] = useState<string>("EFECTIVO");
   const [referencia, setReferencia] = useState<string>("");
 
+  // Mapeo de monedas para el select
   const monedaOptions = monedas.map((m) => ({ value: m.id, label: m.codigo }));
-  const METODOS = [
-    "EFECTIVO",
-    "ZELLE",
-    "PAGO_MOVIL",
-    "TRANSFERENCIA",
-    "PUNTO_DE_VENTA",
-    "BINANCE",
-  ];
+
+  // Mapeo de métodos de pago para el select de Mantine
+  const metodosOptions = Object.entries(METODOS_LABELS).map(([key, label]) => ({
+    value: key,
+    label: label,
+  }));
 
   const activeMonedaId = monedaId || (monedas.length > 0 ? monedas[0].id : "");
   const selectedMoneda = monedas.find((m) => m.id === activeMonedaId);
   const precioTotalUsd = ticket?.precio_total_usd || 0;
 
-  // Calculate exact requested amount
+  // Cálculo del monto local basado en la tasa de cambio
   const montoLocalConvertido =
     precioTotalUsd * (selectedMoneda?.tasa_cambio || 1);
 
@@ -65,7 +75,7 @@ export function DeliveryModal({
           {
             monedaId: activeMonedaId,
             monto_moneda_local: montoLocalConvertido,
-            metodo,
+            metodo, // Sigue enviando "EFECTIVO", "PAGO_MOVIL", etc.
             referencia,
           },
         ],
@@ -78,7 +88,7 @@ export function DeliveryModal({
       onSuccess();
       onClose();
 
-      // Reset state for next open
+      // Reset state para la próxima apertura
       setMonedaId("");
       setMetodo("EFECTIVO");
       setReferencia("");
@@ -133,7 +143,7 @@ export function DeliveryModal({
           />
           <Select
             label="Método de Pago"
-            data={METODOS}
+            data={metodosOptions} // Usamos las opciones formateadas
             value={metodo}
             onChange={(v) => {
               setMetodo(v || "EFECTIVO");

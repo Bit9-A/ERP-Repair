@@ -10,7 +10,8 @@
   --brand-200: #b5dbff;
   --brand-300: #84b3ff;
   --brand-400: #4d94e8;
-  --brand-500: #237cd5; /* Primary */
+  --brand-500: #237cd5;
+  /* Primary */
   --brand-600: #1c63aa;
   --brand-700: #154a80;
   --brand-800: #0e3155;
@@ -54,12 +55,16 @@
 /* ── Light Mode (Premium Tech / Refined Utilitarian) ── */
 [data-mantine-color-scheme="light"] {
   /* -- App custom vars -- */
-  --bg-main: #f8fafc; /* Ligeramente más cálido/cremoso que el gris frío anterior */
+  --bg-main: #f8fafc;
+  /* Ligeramente más cálido/cremoso que el gris frío anterior */
   --bg-card: #ffffff;
   --bg-elevated: #f1f5f9;
-  --text-primary: #0f172a; /* Slate 900 - contraste profundo */
-  --text-secondary: #334155; /* Slate 700 */
-  --text-muted: #64748b; /* Slate 500 */
+  --text-primary: #0f172a;
+  /* Slate 900 - contraste profundo */
+  --text-secondary: #334155;
+  /* Slate 700 */
+  --text-muted: #64748b;
+  /* Slate 500 */
 
   --border-subtle: rgba(15, 23, 42, 0.06);
   --border-default: rgba(15, 23, 42, 0.12);
@@ -82,12 +87,8 @@
 
 /* ── Light Mode: Force dark text in main content area ──
    Excludes: svg/path, button elements, children of [data-variant="filled"] */
-[data-mantine-color-scheme="light"]
-  .mantine-AppShell-main
-  *:not(svg):not(path):not(button),
-[data-mantine-color-scheme="light"]
-  .mantine-AppShell-header
-  *:not(svg):not(path):not(button) {
+[data-mantine-color-scheme="light"] .mantine-AppShell-main *:not(svg):not(path):not(button),
+[data-mantine-color-scheme="light"] .mantine-AppShell-header *:not(svg):not(path):not(button) {
   color: #0f172a !important;
 }
 
@@ -106,9 +107,7 @@
 }
 
 /* Muted / secondary text */
-[data-mantine-color-scheme="light"]
-  .mantine-AppShell-main
-  .mantine-InputWrapper-description {
+[data-mantine-color-scheme="light"] .mantine-AppShell-main .mantine-InputWrapper-description {
   color: #64748b !important;
 }
 
@@ -120,34 +119,22 @@
 /* ── Light Mode portals (Modals, Dropdowns) — dark text by default ──
    Mantine renders these outside AppShell, so we need a separate rule. */
 [data-mantine-color-scheme="light"] .mantine-Modal-content *:not(svg):not(path),
-[data-mantine-color-scheme="light"]
-  .mantine-Popover-dropdown
-  *:not(svg):not(path),
+[data-mantine-color-scheme="light"] .mantine-Popover-dropdown *:not(svg):not(path),
 [data-mantine-color-scheme="light"] .mantine-Menu-dropdown *:not(svg):not(path),
-[data-mantine-color-scheme="light"]
-  .mantine-Combobox-dropdown
-  *:not(svg):not(path),
-[data-mantine-color-scheme="light"]
-  .mantine-Select-dropdown
-  *:not(svg):not(path),
-[data-mantine-color-scheme="light"]
-  .mantine-Tooltip-tooltip
-  *:not(svg):not(path) {
+[data-mantine-color-scheme="light"] .mantine-Combobox-dropdown *:not(svg):not(path),
+[data-mantine-color-scheme="light"] .mantine-Select-dropdown *:not(svg):not(path),
+[data-mantine-color-scheme="light"] .mantine-Tooltip-tooltip *:not(svg):not(path) {
   color: #0f172a !important;
 }
 
 /* Keep sidebar text always white (sidebar bg is always dark).
    !important needed to beat Mantine's inline CSS variable color. */
-[data-mantine-color-scheme="light"]
-  .mantine-AppShell-navbar
-  *:not(svg):not(path) {
+[data-mantine-color-scheme="light"] .mantine-AppShell-navbar *:not(svg):not(path) {
   color: #ffffff !important;
 }
+
 /* But preserve badge/status colors inside the navbar */
-[data-mantine-color-scheme="light"]
-  .mantine-AppShell-navbar
-  .mantine-Badge-root
-  * {
+[data-mantine-color-scheme="light"] .mantine-AppShell-navbar .mantine-Badge-root * {
   color: inherit !important;
 }
 
@@ -176,6 +163,7 @@
 .mantine-AppShell-navbar .mantine-NavLink-root:hover {
   background-color: rgba(255, 255, 255, 0.08);
 }
+
 .mantine-AppShell-navbar .mantine-NavLink-root[data-active] {
   background-color: var(--brand-600);
   color: #ffffff;
@@ -191,6 +179,7 @@
 [data-mantine-color-scheme="dark"] .mantine-Table-tr:hover {
   background-color: rgba(255, 255, 255, 0.03) !important;
 }
+
 [data-mantine-color-scheme="light"] .mantine-Table-tr:hover {
   background-color: rgba(0, 0, 0, 0.03) !important;
 }
@@ -216,6 +205,7 @@
 
 /* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
+
   .stat-card,
   .quick-action-card,
   .kanban-card {
@@ -234,6 +224,7 @@
    ============================================ */
 
 @media (max-width: 48em) {
+
   /* Sidebar: constrain width on mobile (override Mantine's 100% default) */
   .mantine-AppShell-navbar {
     max-width: 280px !important;
@@ -241,7 +232,7 @@
 
   /* Tables: horizontal scroll on mobile */
   .mantine-Table-scrollContainer,
-  .mantine-Paper-root > .mantine-Table-table {
+  .mantine-Paper-root>.mantine-Table-table {
     display: block;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
@@ -270,7 +261,7 @@
     padding-bottom: 8px;
   }
 
-  .kanban-columns > * {
+  .kanban-columns>* {
     scroll-snap-align: start;
     min-width: 280px;
     flex-shrink: 0;

@@ -85,6 +85,7 @@ export function CostosDataPanel({
             <Select
               label="Técnico"
               placeholder="Asignar"
+              description="Según tecnico a reparar"
               data={tecnicoOptions}
               searchable
               clearable
@@ -163,9 +164,9 @@ export function CostosDataPanel({
                   $
                   {canEditarComision
                     ? (isEdit
-                        ? gananciaLocalEdit
-                        : gananciaLocalCreate
-                      ).toFixed(2)
+                      ? gananciaLocalEdit
+                      : gananciaLocalCreate
+                    ).toFixed(2)
                     : (isEdit ? precioTotalEdit : precioTotalCreate).toFixed(2)}
                 </Text>
               </Stack>

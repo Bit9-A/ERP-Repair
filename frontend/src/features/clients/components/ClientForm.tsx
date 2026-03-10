@@ -1,7 +1,9 @@
-import { Modal, TextInput, Stack, Button, Group } from "@mantine/core";
+import { Modal, TextInput, Stack, Button, Group, Loader, Paper, Text, Badge } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { useEffect } from "react";
+import { IconSearch, IconUserCheck } from "@tabler/icons-react";
 import type { Cliente } from "../../../services/clients.service";
+import { useClientByCedula } from "../../../services";
 
 export interface ClientFormValues {
   nombre: string;
@@ -43,6 +45,13 @@ export function ClientForm({
     },
   });
 
+  const cedulaValue = form.values.cedula;
+  const { data: foundClient, isFetching: searchingClient } = useClientByCedula(
+    !isEditing && cedulaValue.length >= 3 ? cedulaValue : ""
+  );
+
+  const clientExists = !!foundClient && !isEditing;
+
   useEffect(() => {
     if (opened && initialData) {
       form.setValues({
@@ -77,12 +86,21 @@ export function ClientForm({
     >
       <form onSubmit={form.onSubmit(handleSubmit)}>
         <Stack gap="md">
-          <Group grow>
+          <Group grow align="flex-start">
             <TextInput
               label="Cédula / Identificación"
               placeholder="V-12345678"
               withAsterisk
-              disabled={isEditing} // La cédula no se actualiza según el endpoint
+              disabled={isEditing}
+              leftSection={<IconSearch size={16} />}
+              rightSection={
+                searchingClient ? (
+                  <Loader size={14} />
+                ) : foundClient && !isEditing ? (
+                  <IconUserCheck size={16} color="var(--mantine-color-green-6)" />
+                ) : undefined
+              }
+              error={clientExists ? "Esta cédula ya está registrada" : form.errors.cedula}
               {...form.getInputProps("cedula")}
             />
             <TextInput
@@ -92,6 +110,30 @@ export function ClientForm({
               {...form.getInputProps("nombre")}
             />
           </Group>
+
+          {foundClient && !isEditing && (
+            <Paper
+              p="sm"
+              radius="md"
+              style={{
+                background: "rgba(34, 197, 94, 0.08)",
+                border: "1px solid rgba(34, 197, 94, 0.2)",
+              }}
+            >
+              <Group justify="space-between">
+                <Group gap="xs">
+                  <IconUserCheck size={18} color="var(--mantine-color-green-6)" />
+                  <div>
+                    <Text size="sm" fw={600}>{foundClient.nombre}</Text>
+                    <Text size="xs" c="dimmed">
+                      {foundClient.cedula} • {foundClient.telefono}
+                    </Text>
+                  </div>
+                </Group>
+                <Badge variant="light" color="green" size="sm">Ya registrado</Badge>
+              </Group>
+            </Paper>
+          )}
 
           <Group grow>
             <TextInput
@@ -111,7 +153,7 @@ export function ClientForm({
             <Button variant="subtle" onClick={onClose}>
               Cancelar
             </Button>
-            <Button type="submit">
+            <Button type="submit" disabled={clientExists}>
               {isEditing ? "Guardar Cambios" : "Crear Cliente"}
             </Button>
           </Group>
