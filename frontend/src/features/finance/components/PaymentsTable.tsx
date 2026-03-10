@@ -4,6 +4,7 @@ import {
   Table,
   Text,
   Group,
+  Stack,
   LoadingOverlay,
   Title,
 } from "@mantine/core";
@@ -111,11 +112,28 @@ export function PaymentsTable({ periodo }: PaymentsTableProps) {
                   )}
                 </Table.Td>
                 <Table.Td>
-                  <Text size="sm" fw={500}>
-                    {pay.venta?.cliente?.nombre ??
-                      pay.ticket?.cliente?.nombre ??
-                      "Sin Cliente"}
-                  </Text>
+                  <Stack gap={2}>
+                    <Text size="sm" fw={500}>
+                      {pay.venta?.cliente?.nombre ??
+                        pay.ticket?.cliente?.nombre ??
+                        "Sin Cliente"}
+                    </Text>
+                    {pay.ticket && (
+                      <Text size="xs" c="dimmed">
+                        {pay.ticket.marca} {pay.ticket.modelo}
+                      </Text>
+                    )}
+                    {pay.venta?.items && pay.venta.items.length > 0 && (
+                      <Text size="xs" c="dimmed" truncate="end" maw={200}>
+                        {pay.venta.items
+                          .map(
+                            (it) =>
+                              `${it.producto.nombre}${it.producto.marca_comp ? ` [${it.producto.marca_comp}]` : ""}`,
+                          )
+                          .join(", ")}
+                      </Text>
+                    )}
+                  </Stack>
                 </Table.Td>
                 <Table.Td style={{ textAlign: "right" }}>
                   <Text ff="monospace" size="sm" fw={800} c="brand.6">

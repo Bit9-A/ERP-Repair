@@ -7,9 +7,294 @@ datasource db {
   provider = "postgresql"
 }
 
-// ==========================================
-// ENUMS
-// ==========================================
+model Sucursal {
+  id               String             @id @default(uuid())
+  nombre           String             @unique
+  direccion        String?
+  activa           Boolean            @default(true)
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  principal        Boolean            @default(false)
+  movimientosStock MovimientoStock[]
+  inventario       SucursalProducto[]
+  tickets          TicketReparacion[]
+  usuarios         Usuario[]
+  ventas           Venta[]
+}
+
+model SucursalProducto {
+  sucursalId String
+  productoId String
+  stock      Int      @default(0)
+  producto   Producto @relation(fields: [productoId], references: [id], onDelete: Cascade)
+  sucursal   Sucursal @relation(fields: [sucursalId], references: [id], onDelete: Cascade)
+
+  @@id([sucursalId, productoId])
+  @@index([sucursalId])
+  @@index([productoId])
+}
+
+model Usuario {
+  id                       String             @id @default(uuid())
+  nombre                   String
+  rol                      RolUsuario
+  email                    String             @unique
+  password_hash            String
+  porcentaje_comision_base Float              @default(0.40)
+  createdAt                DateTime           @default(now())
+  updatedAt                DateTime           @updatedAt
+  sucursalId               String?
+  permisos                 Json?
+  gana_comision            Boolean            @default(true)
+  gana_salario             Boolean            @default(false)
+  salario_base_usd         Float              @default(0)
+  tickets_asignados        TicketReparacion[]
+  sucursal                 Sucursal?          @relation(fields: [sucursalId], references: [id])
+  ventas_realizadas        Venta[]
+
+  @@index([sucursalId])
+}
+
+model Cliente {
+  id        String             @id @default(uuid())
+  nombre    String
+  cedula    String             @unique
+  telefono  String
+  correo    String?
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+  tickets   TicketReparacion[]
+  ventas    Venta[]
+}
+
+model Producto {
+  id                    String             @id @default(uuid())
+  sku                   String             @unique
+  nombre                String
+  marca_comp            String?
+  modelo_comp           String?
+  categoria             CategoriaProducto  @default(REPUESTO)
+  propiedad             TipoPropiedad      @default(PROPIA)
+  propietario           String?
+  stock_actual          Int                @default(0)
+  stock_minimo          Int                @default(2)
+  costo_usd             Float
+  precio_usd            Float
+  createdAt             DateTime           @default(now())
+  updatedAt             DateTime           @updatedAt
+  activo                Boolean            @default(true)
+  movimientos           MovimientoStock[]
+  inventario_sucursales SucursalProducto[]
+  tickets               Ticket_Producto[]
+  ventas                Venta_Producto[]
+
+  @@index([categoria])
+  @@index([propiedad])
+}
+
+model MovimientoStock {
+  id                 String         @id @default(uuid())
+  productoId         String
+  tipo               TipoMovimiento
+  cantidad           Int
+  referencia         String?
+  nota               String?
+  createdAt          DateTime       @default(now())
+  actualizar_costo   Boolean        @default(false)
+  costo_unitario_usd Float?
+  sucursalId         String?
+  producto           Producto       @relation(fields: [productoId], references: [id])
+  sucursal           Sucursal?      @relation(fields: [sucursalId], references: [id])
+
+  @@index([productoId])
+  @@index([tipo])
+  @@index([createdAt])
+  @@index([sucursalId])
+}
+
+model Servicio {
+  id         String            @id @default(uuid())
+  nombre     String
+  precio_usd Float
+  createdAt  DateTime          @default(now())
+  tickets    Ticket_Servicio[]
+}
+
+model TicketReparacion {
+  id                  String                  @id @default(uuid())
+  clienteId           String
+  tecnicoId           String?
+  equipo              String?
+  tipo_equipo         String                  @default("Smartphone")
+  marca               String
+  modelo              String
+  imei                String?
+  clave               String?
+  patron_visual       String?
+  checklist           Json?
+  falla               String
+  falla_reportada     String?
+  observaciones       String?
+  estado              EstadoTicket            @default(RECIBIDO)
+  costo_repuestos_usd Float                   @default(0)
+  precio_total_usd    Float                   @default(0)
+  porcentaje_tecnico  Float                   @default(0.40)
+  fecha_ingreso       DateTime                @default(now())
+  fecha_entrega       DateTime?
+  sucursalId          String?
+  pagos               Pago[]
+  cliente             Cliente                 @relation(fields: [clienteId], references: [id])
+  sucursal            Sucursal?               @relation(fields: [sucursalId], references: [id])
+  tecnico             Usuario?                @relation(fields: [tecnicoId], references: [id])
+  repuestos           Ticket_Producto[]
+  servicios           Ticket_Servicio[]
+  transacciones       TransaccionFinanciera[]
+
+  @@index([estado])
+  @@index([fecha_ingreso])
+  @@index([sucursalId])
+}
+
+model Ticket_Producto {
+  id                   String           @id @default(uuid())
+  ticketId             String
+  productoId           String
+  cantidad             Int              @default(1)
+  precio_congelado_usd Float
+  costo_congelado_usd  Float
+  producto             Producto         @relation(fields: [productoId], references: [id])
+  ticket               TicketReparacion @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+}
+
+model Ticket_Servicio {
+  id                   String           @id @default(uuid())
+  ticketId             String
+  servicioId           String
+  precio_cobrado_usd   Float
+  comision_tecnico_usd Float
+  servicio             Servicio         @relation(fields: [servicioId], references: [id])
+  ticket               TicketReparacion @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+}
+
+model Venta {
+  id                    String                  @id @default(uuid())
+  clienteId             String?
+  vendedorId            String?
+  subtotal_usd          Float
+  descuento_usd         Float                   @default(0)
+  total_usd             Float
+  estado                EstadoVenta             @default(PENDIENTE)
+  createdAt             DateTime                @default(now())
+  numero                Int                     @unique @default(autoincrement())
+  sucursalId            String?
+  tasas_cambio_snapshot Json?
+  pagos                 Pago[]
+  transacciones         TransaccionFinanciera[]
+  cliente               Cliente?                @relation(fields: [clienteId], references: [id])
+  sucursal              Sucursal?               @relation(fields: [sucursalId], references: [id])
+  vendedor              Usuario?                @relation(fields: [vendedorId], references: [id])
+  items                 Venta_Producto[]
+
+  @@index([estado])
+  @@index([createdAt])
+  @@index([sucursalId])
+}
+
+model Venta_Producto {
+  id                   String   @id @default(uuid())
+  ventaId              String
+  productoId           String
+  cantidad             Int      @default(1)
+  precio_congelado_usd Float
+  costo_congelado_usd  Float
+  producto             Producto @relation(fields: [productoId], references: [id])
+  venta                Venta    @relation(fields: [ventaId], references: [id], onDelete: Cascade)
+}
+
+model Moneda {
+  id          String   @id @default(uuid())
+  codigo      String   @unique
+  nombre      String?
+  tasa_cambio Float    @default(1)
+  updatedAt   DateTime @updatedAt
+  pagos       Pago[]
+}
+
+model Pago {
+  id                 String            @id @default(uuid())
+  ticketId           String?
+  ventaId            String?
+  monedaId           String
+  monto_moneda_local Float
+  equivalente_usd    Float
+  referencia         String?
+  fecha_pago         DateTime          @default(now())
+  metodo             MetodoPago
+  tasa_cambio_usada  Float?
+  moneda             Moneda            @relation(fields: [monedaId], references: [id])
+  ticket             TicketReparacion? @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  venta              Venta?            @relation(fields: [ventaId], references: [id], onDelete: Cascade)
+
+  @@index([fecha_pago])
+}
+
+model TransaccionFinanciera {
+  id        String            @id @default(uuid())
+  tipo      TipoTransaccion
+  monto_usd Float
+  concepto  String
+  categoria String?
+  ticketId  String?
+  ventaId   String?
+  esFijo    Boolean           @default(false)
+  createdAt DateTime          @default(now())
+  ticket    TicketReparacion? @relation(fields: [ticketId], references: [id], onDelete: SetNull)
+  venta     Venta?            @relation(fields: [ventaId], references: [id], onDelete: SetNull)
+
+  @@index([tipo])
+  @@index([createdAt])
+  @@index([categoria])
+}
+
+model GastoRecurrente {
+  id           String           @id @default(uuid())
+  concepto     String
+  monto_usd    Float
+  categoria    String?          @default("OTROS")
+  frecuencia   FrecuenciaGasto  @default(MENSUAL)
+  proximaFecha DateTime
+  activo       Boolean          @default(true)
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  @@index([proximaFecha])
+  @@index([activo])
+}
+
+model Marca {
+  id        String   @id @default(uuid())
+  nombre    String   @unique
+  createdAt DateTime @default(now())
+  modelos   Modelo[]
+}
+
+model Modelo {
+  id        String   @id @default(uuid())
+  nombre    String
+  marcaId   String
+  createdAt DateTime @default(now())
+  marca     Marca    @relation(fields: [marcaId], references: [id], onDelete: Cascade)
+
+  @@unique([nombre, marcaId])
+  @@index([marcaId])
+}
+
+model Configuracion {
+  id                 Int      @id @default(1)
+  nombre_local       String
+  porcentaje_defecto Float    @default(0.40)
+  updatedAt          DateTime @updatedAt
+}
 
 enum RolUsuario {
   ADMIN
@@ -27,14 +312,14 @@ enum EstadoTicket {
 }
 
 enum CategoriaProducto {
-  EQUIPO     // Teléfonos, tablets completos
-  ACCESORIO  // Fundas, cargadores, audífonos
-  REPUESTO   // Pantallas, baterías, flex
+  EQUIPO
+  ACCESORIO
+  REPUESTO
 }
 
 enum TipoPropiedad {
-  PROPIA     // Mercancía comprada por el local
-  PRESTADA   // Mercancía en consignación
+  PROPIA
+  PRESTADA
 }
 
 enum EstadoVenta {
@@ -44,16 +329,16 @@ enum EstadoVenta {
 }
 
 enum TipoMovimiento {
-  ENTRADA           // Compra / reposición
-  SALIDA_REPARACION // Repuesto usado en ticket
-  SALIDA_VENTA      // Producto vendido
-  AJUSTE            // Ajuste manual de inventario
-  DEVOLUCION        // Devolución de producto
+  ENTRADA
+  SALIDA_REPARACION
+  SALIDA_VENTA
+  AJUSTE
+  DEVOLUCION
 }
 
 enum TipoTransaccion {
-  INGRESO  // Cobro de reparación, venta
-  EGRESO   // Compra de inventario, pago a técnico, gastos
+  INGRESO
+  EGRESO
 }
 
 enum MetodoPago {
@@ -64,367 +349,8 @@ enum MetodoPago {
   BINANCE
 }
 
-// ==========================================
-// SUCURSALES  (Feature 3)
-// ==========================================
-
-model Sucursal {
-  id        String   @id @default(uuid())
-  nombre    String   @unique
-  direccion String?
-  activa    Boolean  @default(true)
-  principal Boolean  @default(false)
-
-  // Relaciones
-  usuarios         Usuario[]
-  inventario       SucursalProducto[]
-  ventas           Venta[]
-  tickets          TicketReparacion[]
-  movimientosStock MovimientoStock[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-// Stock por sucursal (pivot)
-model SucursalProducto {
-  sucursalId String
-  productoId String
-  stock      Int      @default(0)
-
-  sucursal   Sucursal @relation(fields: [sucursalId], references: [id], onDelete: Cascade)
-  producto   Producto @relation(fields: [productoId], references: [id], onDelete: Cascade)
-
-  @@id([sucursalId, productoId])
-  @@index([sucursalId])
-  @@index([productoId])
-}
-
-// ==========================================
-// USUARIOS
-// ==========================================
-
-model Usuario {
-  id                       String              @id @default(uuid())
-  nombre                   String
-  rol                      RolUsuario
-  email                    String              @unique
-  password_hash            String
-
-  porcentaje_comision_base Float               @default(0.40)
-  gana_comision            Boolean             @default(true)
-  gana_salario             Boolean             @default(false)
-  salario_base_usd         Float               @default(0)
-
-  // Feature 4: Sucursal asignada (null = sin restricción / ADMIN)
-  sucursalId               String?
-  sucursal                 Sucursal?           @relation(fields: [sucursalId], references: [id])
-
-  // Feature 5: Permisos granulares por usuario (JSON, nullable = usa defaults por rol)
-  permisos                 Json?
-
-  tickets_asignados        TicketReparacion[]
-  ventas_realizadas        Venta[]
-
-  createdAt                DateTime            @default(now())
-  updatedAt                DateTime            @updatedAt
-
-  @@index([sucursalId])
-}
-
-// ==========================================
-// CLIENTES
-// ==========================================
-
-model Cliente {
-  id        String              @id @default(uuid())
-  nombre    String
-  cedula    String              @unique
-  telefono  String
-  correo    String?
-
-  tickets   TicketReparacion[]
-  ventas    Venta[]
-
-  createdAt DateTime            @default(now())
-  updatedAt DateTime            @updatedAt
-}
-
-// ==========================================
-// INVENTARIO
-// ==========================================
-
-model Producto {
-  id           String             @id @default(uuid())
-  sku          String             @unique
-  nombre       String
-  marca_comp   String?
-  modelo_comp  String?
-
-  categoria    CategoriaProducto  @default(REPUESTO)
-  propiedad    TipoPropiedad      @default(PROPIA)
-  propietario  String?
-  activo       Boolean            @default(true)
-
-  stock_actual Int                @default(0)  // Stock global (suma de sucursales)
-  stock_minimo Int                @default(2)
-  costo_usd    Float
-  precio_usd   Float
-
-  tickets                  Ticket_Producto[]
-  ventas                   Venta_Producto[]
-  movimientos              MovimientoStock[]
-  inventario_sucursales    SucursalProducto[]   // Feature 3
-
-  createdAt    DateTime           @default(now())
-  updatedAt    DateTime           @updatedAt
-
-  @@index([categoria])
-  @@index([propiedad])
-}
-
-model MovimientoStock {
-  id         String         @id @default(uuid())
-  productoId String
-  tipo       TipoMovimiento
-  cantidad   Int
-  referencia String?
-  nota       String?
-
-  // Feature 2: Precio de proveedor en esta entrada
-  costo_unitario_usd Float?
-  actualizar_costo   Boolean  @default(false)
-
-  // Feature 3: Sucursal donde ocurrió el movimiento
-  sucursalId String?
-  sucursal   Sucursal?      @relation(fields: [sucursalId], references: [id])
-
-  producto   Producto       @relation(fields: [productoId], references: [id])
-  createdAt  DateTime       @default(now())
-
-  @@index([productoId])
-  @@index([tipo])
-  @@index([createdAt])
-  @@index([sucursalId])
-}
-
-// ==========================================
-// SERVICIOS
-// ==========================================
-
-model Servicio {
-  id         String            @id @default(uuid())
-  nombre     String
-  precio_usd Float
-  tickets    Ticket_Servicio[]
-  createdAt  DateTime          @default(now())
-}
-
-// ==========================================
-// REPARACIONES (TICKETS)
-// ==========================================
-
-model TicketReparacion {
-  id              String       @id @default(uuid())
-  clienteId       String
-  tecnicoId       String?
-
-  // Feature 3: Sucursal donde se recibió
-  sucursalId      String?
-  sucursal        Sucursal?    @relation(fields: [sucursalId], references: [id])
-
-  equipo          String?
-  tipo_equipo     String       @default("Smartphone")
-  marca           String
-  modelo          String
-  imei            String?
-  clave           String?
-  patron_visual   String?
-
-  checklist       Json?
-
-  falla           String
-  falla_reportada String?
-  observaciones   String?
-  estado          EstadoTicket @default(RECIBIDO)
-
-  costo_repuestos_usd Float    @default(0)
-  precio_total_usd    Float    @default(0)
-  porcentaje_tecnico  Float    @default(0.40)
-
-  fecha_ingreso   DateTime     @default(now())
-  fecha_entrega   DateTime?
-
-  cliente         Cliente      @relation(fields: [clienteId], references: [id])
-  tecnico         Usuario?     @relation(fields: [tecnicoId], references: [id])
-
-  repuestos       Ticket_Producto[]
-  servicios       Ticket_Servicio[]
-  pagos           Pago[]
-  transacciones   TransaccionFinanciera[]
-
-  @@index([estado])
-  @@index([fecha_ingreso])
-  @@index([sucursalId])
-}
-
-model Ticket_Producto {
-  id                   String           @id @default(uuid())
-  ticketId             String
-  productoId           String
-  cantidad             Int              @default(1)
-  precio_congelado_usd Float
-  costo_congelado_usd  Float
-
-  ticket               TicketReparacion @relation(fields: [ticketId], references: [id], onDelete: Cascade)
-  producto             Producto         @relation(fields: [productoId], references: [id])
-}
-
-model Ticket_Servicio {
-  id                   String           @id @default(uuid())
-  ticketId             String
-  servicioId           String
-  precio_cobrado_usd   Float
-  comision_tecnico_usd Float
-
-  ticket               TicketReparacion @relation(fields: [ticketId], references: [id], onDelete: Cascade)
-  servicio             Servicio         @relation(fields: [servicioId], references: [id])
-}
-
-// ==========================================
-// VENTAS DIRECTAS
-// ==========================================
-
-model Venta {
-  id            String        @id @default(uuid())
-  numero        Int           @unique @default(autoincrement())
-  clienteId     String?
-  vendedorId    String?
-
-  // Feature 3: Sucursal donde se realizó la venta
-  sucursalId    String?
-  sucursal      Sucursal?     @relation(fields: [sucursalId], references: [id])
-
-  subtotal_usd  Float
-  descuento_usd Float         @default(0)
-  total_usd     Float
-
-  // Feature 1: Snapshot de tasas al momento de la venta { "VES": 36.5, "COP": 4100 }
-  tasas_cambio_snapshot Json?
-
-  estado        EstadoVenta   @default(PENDIENTE)
-
-  cliente       Cliente?      @relation(fields: [clienteId], references: [id])
-  vendedor      Usuario?      @relation(fields: [vendedorId], references: [id])
-  items         Venta_Producto[]
-  pagos         Pago[]
-  transacciones TransaccionFinanciera[]
-
-  createdAt     DateTime      @default(now())
-
-  @@index([estado])
-  @@index([createdAt])
-  @@index([sucursalId])
-}
-
-model Venta_Producto {
-  id                   String   @id @default(uuid())
-  ventaId              String
-  productoId           String
-  cantidad             Int      @default(1)
-  precio_congelado_usd Float
-  costo_congelado_usd  Float
-
-  venta                Venta    @relation(fields: [ventaId], references: [id], onDelete: Cascade)
-  producto             Producto @relation(fields: [productoId], references: [id])
-}
-
-// ==========================================
-// FINANZAS
-// ==========================================
-
-model Moneda {
-  id          String   @id @default(uuid())
-  codigo      String   @unique
-  nombre      String?
-  tasa_cambio Float    @default(1)
-
-  pagos       Pago[]
-  updatedAt   DateTime @updatedAt
-}
-
-model Pago {
-  id                 String            @id @default(uuid())
-  ticketId           String?
-  ventaId            String?
-  monedaId           String
-
-  monto_moneda_local Float
-  equivalente_usd    Float
-  metodo             MetodoPago
-  referencia         String?
-
-  // Feature 1: Tasa usada para convertir (snapshot inmutable)
-  tasa_cambio_usada  Float?
-
-  fecha_pago         DateTime          @default(now())
-
-  moneda             Moneda            @relation(fields: [monedaId], references: [id])
-  ticket             TicketReparacion? @relation(fields: [ticketId], references: [id], onDelete: Cascade)
-  venta              Venta?            @relation(fields: [ventaId], references: [id], onDelete: Cascade)
-
-  @@index([fecha_pago])
-}
-
-model TransaccionFinanciera {
-  id        String          @id @default(uuid())
-  tipo      TipoTransaccion
-  monto_usd Float
-  concepto  String
-  categoria String?
-
-  ticketId  String?
-  ventaId   String?
-
-  ticket    TicketReparacion? @relation(fields: [ticketId], references: [id], onDelete: SetNull)
-  venta     Venta?            @relation(fields: [ventaId], references: [id], onDelete: SetNull)
-
-  createdAt DateTime         @default(now())
-
-  @@index([tipo])
-  @@index([createdAt])
-  @@index([categoria])
-}
-
-// ==========================================
-// CATÁLOGO: MARCAS Y MODELOS
-// ==========================================
-
-model Marca {
-  id        String   @id @default(uuid())
-  nombre    String   @unique
-  modelos   Modelo[]
-  createdAt DateTime @default(now())
-}
-
-model Modelo {
-  id        String   @id @default(uuid())
-  nombre    String
-  marcaId   String
-  marca     Marca    @relation(fields: [marcaId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
-
-  @@unique([nombre, marcaId])
-  @@index([marcaId])
-}
-
-// ==========================================
-// CONFIGURACIÓN GLOBAL
-// ==========================================
-
-model Configuracion {
-  id                 Int      @id @default(1)
-  nombre_local       String
-  porcentaje_defecto Float    @default(0.40)
-  updatedAt          DateTime @updatedAt
+enum FrecuenciaGasto {
+  DIARIO
+  SEMANAL
+  MENSUAL
 }

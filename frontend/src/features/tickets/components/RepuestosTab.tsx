@@ -40,10 +40,14 @@ export function RepuestosTab({ ticketId }: RepuestosTabProps) {
 
   const productOptions = products
     .filter((p) => p.stock_actual > 0 && p.categoria === "REPUESTO")
-    .map((p) => ({
-      value: p.id,
-      label: `${p.nombre} (Stock: ${p.stock_actual}) - $${p.precio_usd.toFixed(2)}`,
-    }));
+    .map((p) => {
+      const brand = p.marca_comp ? ` [${p.marca_comp}]` : "";
+      const model = p.modelo_comp ? ` (${p.modelo_comp})` : "";
+      return {
+        value: p.id,
+        label: `${p.nombre}${brand}${model} - Stock: ${p.stock_actual} - $${p.precio_usd.toFixed(2)}`,
+      };
+    });
 
   const handleAdd = async () => {
     if (!selectedProductId || cantidad <= 0) return;
@@ -105,7 +109,14 @@ export function RepuestosTab({ ticketId }: RepuestosTabProps) {
   return (
     <Stack gap="md" mt="md">
       {!isLocked && (
-        <Paper withBorder p="md" bg="gray.0">
+        <Paper
+          withBorder
+          p="md"
+          radius="md"
+          style={{
+            background: "var(--mantine-color-default-hover)",
+          }}
+        >
           <Group align="flex-end">
             <Select
               label="Buscar Repuesto"

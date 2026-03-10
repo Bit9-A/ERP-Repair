@@ -54,6 +54,11 @@ export const queryKeys = {
         ? (["finance", "cierre", fecha] as const)
         : (["finance", "cierre"] as const),
     stats: ["finance", "stats"] as const,
+    egresos: (periodo?: string) =>
+      periodo
+        ? (["finance", "egresos", periodo] as const)
+        : (["finance", "egresos"] as const),
+    recurrentes: ["finance", "egresos", "recurrentes"] as const,
   },
 
   // -- Transactions --

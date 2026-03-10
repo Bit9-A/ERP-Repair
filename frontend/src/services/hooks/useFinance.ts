@@ -83,3 +83,83 @@ export function useFinanceStats(periodo?: "dia" | "semana" | "mes") {
     refetchOnWindowFocus: true,
   });
 }
+
+// -- Egresos (Gastos) --
+
+export function useEgresos(periodo?: "dia" | "semana" | "mes") {
+  return useQuery({
+    queryKey: queryKeys.finance.egresos(periodo),
+    queryFn: () => financeService.getEgresos(periodo),
+  });
+}
+
+export function useCreateEgreso() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: financeService.CreateEgresoPayload) =>
+      financeService.createEgreso(payload),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["finance"] });
+      qc.invalidateQueries({ queryKey: ["transactions"] });
+      qc.invalidateQueries({ queryKey: ["dashboard"] });
+    },
+  });
+}
+
+export function useDeleteEgreso() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => financeService.deleteEgreso(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["finance"] });
+      qc.invalidateQueries({ queryKey: ["transactions"] });
+      qc.invalidateQueries({ queryKey: ["dashboard"] });
+    },
+  });
+}
+
+// -- Egresos Recurrentes --
+
+export function useRecurrentes() {
+  return useQuery({
+    queryKey: queryKeys.finance.recurrentes,
+    queryFn: financeService.getRecurrentes,
+  });
+}
+
+export function useCreateRecurrente() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: financeService.CreateRecurrentePayload) =>
+      financeService.createRecurrente(payload),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.finance.recurrentes });
+    },
+  });
+}
+
+export function useDeleteRecurrente() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => financeService.deleteRecurrente(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.finance.recurrentes });
+    },
+  });
+}
+
+export function useUpdateRecurrente() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      id,
+      payload,
+    }: {
+      id: string;
+      payload: Partial<financeService.CreateRecurrentePayload>;
+    }) => financeService.updateRecurrente(id, payload),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.finance.recurrentes });
+    },
+  });
+}

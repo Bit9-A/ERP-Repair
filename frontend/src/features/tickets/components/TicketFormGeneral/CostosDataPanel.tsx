@@ -65,7 +65,7 @@ export function CostosDataPanel({
       </Accordion.Control>
       <Accordion.Panel>
         <Stack gap="sm">
-          <SimpleGrid cols={{ base: 1, sm: 3 }} mb="sm">
+          <SimpleGrid cols={{ base: 1, sm: isEdit ? 3 : 2 }} mb="sm">
             <NumberInput
               label="Mano de Obra ($)"
               description="Lo que cobras por reparar"
@@ -73,21 +73,13 @@ export function CostosDataPanel({
               min={0}
               {...form.getInputProps("mano_de_obra_usd")}
             />
-            {isEdit ? (
+            {isEdit && (
               <NumberInput
                 label="Repuestos en Ticket ($)"
                 description="Calculado automáticamente"
                 prefix="$"
                 readOnly
                 value={totalRepuestosCliente}
-              />
-            ) : (
-              <NumberInput
-                label="Precio Proveedor Repuestos ($)"
-                description="Costo de las partes"
-                prefix="$"
-                min={0}
-                {...form.getInputProps("costo_repuestos_usd")}
               />
             )}
             <Select
