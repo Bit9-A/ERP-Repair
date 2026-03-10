@@ -5,6 +5,7 @@
 export interface TicketFormValues {
   clienteId: string;
   tecnicoId?: string;
+  sucursalId: string;
   tipo_equipo: string;
   marca: string;
   modelo: string;

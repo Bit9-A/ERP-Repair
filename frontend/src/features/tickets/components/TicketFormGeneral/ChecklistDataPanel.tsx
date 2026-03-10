@@ -20,7 +20,7 @@ export function ChecklistDataPanel({ form }: ChecklistDataPanelProps) {
   return (
     <Accordion.Item value="estado">
       <Accordion.Control>
-        <Text fw={600}>3. Estado al Recibir (Checklist)</Text>
+        <Text fw={600}>4. Estado al Recibir (Checklist)</Text>
       </Accordion.Control>
       <Accordion.Panel>
         <style dangerouslySetInnerHTML={{

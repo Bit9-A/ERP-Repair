@@ -9,8 +9,9 @@ import {
   Badge,
   SimpleGrid,
   Button,
+  Select,
 } from "@mantine/core";
-import { IconSearch, IconUserCheck, IconUserPlus } from "@tabler/icons-react";
+import { IconSearch, IconUserCheck, IconUserPlus, IconBuildingStore } from "@tabler/icons-react";
 import type { UseFormReturnType } from "@mantine/form";
 import type { TicketFormValues } from "../../types/tickets.types";
 
@@ -29,6 +30,8 @@ interface ClientDataPanelProps {
   queries: {
     foundClient: any;
     searchingClient: boolean;
+    sucursalOptions: { value: string; label: string }[];
+    loadingSucursales: boolean;
   };
   actions: {
     createClient: any;
@@ -51,17 +54,32 @@ export function ClientDataPanel({
     clienteCorreo,
     setClienteCorreo,
   } = state;
-  const { foundClient, searchingClient } = queries;
+  const { foundClient, searchingClient, sucursalOptions, loadingSucursales } = queries;
   const { createClient } = actions;
 
   return (
-    <Accordion.Item value="cliente">
+    <Accordion.Item value="sucursal">
       <Accordion.Control>
-        <Text fw={600}>1. Datos del Cliente</Text>
+        <Text fw={600}>1. Datos de Sucursal</Text>
       </Accordion.Control>
       <Accordion.Panel>
         <Stack gap="sm">
+          {/* Sucursal Selector */}
+          <Select
+            label="Sucursal de Reparación"
+            placeholder="Seleccione la sucursal"
+            required
+            data={sucursalOptions}
+            {...form.getInputProps("sucursalId")}
+            leftSection={<IconBuildingStore size={16} />}
+            rightSection={loadingSucursales ? <Loader size={14} /> : undefined}
+            searchable
+            mb="xs"
+            disabled={loadingSucursales}
+          />
+
           {/* Cédula lookup field */}
+          <Text fw={600}>2. Datos de Cliente</Text>
           <TextInput
             label="Cédula del Cliente"
             placeholder="V-12345678"

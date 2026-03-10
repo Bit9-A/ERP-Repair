@@ -145,6 +145,8 @@ export interface TicketReparacion {
   cliente?: Cliente;
   tecnicoId?: string;
   tecnico?: Usuario;
+  sucursalId?: string;
+  sucursal?: { id: string; nombre: string };
   equipo?: string;
   tipo_equipo: string;
   marca: string;

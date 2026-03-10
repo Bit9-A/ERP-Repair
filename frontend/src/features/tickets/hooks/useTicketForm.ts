@@ -11,6 +11,7 @@ import {
   useClientByCedula,
   useCreateClient,
   useUsers,
+  useSucursales,
 } from "../../../services";
 
 import { usePermissions } from "../../../hooks/usePermissions";
@@ -59,11 +60,14 @@ export function useTicketForm({
   );
   const createModelo = useCreateModelo();
 
+  const { data: sucursales = [], isLoading: loadingSucursales } = useSucursales();
+
   // -- Form Initialization --
   const form = useForm<TicketFormValues>({
     initialValues: {
       clienteId: "",
       tecnicoId: undefined,
+      sucursalId: "",
       tipo_equipo: "Smartphone",
       marca: "",
       modelo: "",
@@ -142,6 +146,7 @@ export function useTicketForm({
         form.setValues({
           clienteId: initialData.clienteId,
           tecnicoId: initialData.tecnicoId,
+          sucursalId: initialData.sucursalId || "",
           tipo_equipo: initialData.tipo_equipo,
           marca: initialData.marca,
           modelo: initialData.modelo,
@@ -205,6 +210,9 @@ export function useTicketForm({
             "porcentaje_tecnico",
             user.porcentaje_comision_base,
           );
+        }
+        if (user && user.sucursalId) {
+          form.setFieldValue("sucursalId", user.sucursalId);
         }
 
         setSelectedMarcaId(null);
@@ -338,6 +346,13 @@ export function useTicketForm({
         .find((m) => m.nombre === form.values.marca)
         ?.modelos?.map((m: any) => ({ value: m.nombre, label: m.nombre })) ||
       [];
+      
+  const sucursalOptions = sucursales
+    .filter((s: any) => s.activa)
+    .map((s: any) => ({
+      value: s.id,
+      label: s.nombre,
+    }));
 
   return {
     form,
@@ -363,8 +378,10 @@ export function useTicketForm({
       tecnicoOptions,
       loadingMarcas,
       loadingModelos,
+      loadingSucursales,
       marcaOptions,
       modeloOptions,
+      sucursalOptions,
     },
     actions: {
       handleMarcaChange,

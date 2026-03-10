@@ -61,7 +61,7 @@ export function CostosDataPanel({
   return (
     <Accordion.Item value="costos">
       <Accordion.Control>
-        <Text fw={600}>4. Costos y Split Dinámico</Text>
+        <Text fw={600}>5. Costos y Split Dinámico</Text>
       </Accordion.Control>
       <Accordion.Panel>
         <Stack gap="sm">

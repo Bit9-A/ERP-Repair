@@ -137,6 +137,7 @@ interface CreateTicketDTO {
   costo_repuestos_usd?: number;
   precio_total_usd?: number;
   porcentaje_tecnico?: number;
+  sucursalId?: string;
 }
 
 export async function create(data: CreateTicketDTO) {
@@ -158,6 +159,7 @@ export async function create(data: CreateTicketDTO) {
       costo_repuestos_usd: data.costo_repuestos_usd,
       precio_total_usd: data.precio_total_usd,
       porcentaje_tecnico: data.porcentaje_tecnico,
+      sucursalId: data.sucursalId,
     },
     include: {
       cliente: {
@@ -476,7 +478,7 @@ export async function entregar(
 }
 
 export async function update(id: string, data: Partial<CreateTicketDTO>) {
-  const { clienteId, tecnicoId, ...rest } = data;
+  const { clienteId, tecnicoId, sucursalId, ...rest } = data;
   const updateData: any = { ...rest };
 
   if (clienteId) {
@@ -487,6 +489,9 @@ export async function update(id: string, data: Partial<CreateTicketDTO>) {
   } else if (tecnicoId === null) {
     // Allows unassigning a technician
     updateData.tecnico = { disconnect: true };
+  }
+  if (sucursalId) {
+    updateData.sucursal = { connect: { id: sucursalId } };
   }
 
   return prisma.ticketReparacion.update({

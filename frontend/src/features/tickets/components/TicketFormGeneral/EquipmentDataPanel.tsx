@@ -66,7 +66,7 @@ export function EquipmentDataPanel({
   return (
     <Accordion.Item value="equipo">
       <Accordion.Control>
-        <Text fw={600}>2. Información del Equipo</Text>
+        <Text fw={600}>3. Información del Equipo</Text>
       </Accordion.Control>
       <Accordion.Panel>
         <Stack gap="sm">

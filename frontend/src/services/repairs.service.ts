@@ -25,6 +25,7 @@ export interface CreateRepairPayload {
   falla_reportada?: string;
   observaciones?: string;
   porcentaje_tecnico?: number;
+  sucursalId?: string;
 }
 
 export interface UpdateRepairPayload extends Partial<CreateRepairPayload> {
