@@ -5,6 +5,15 @@ import { startFinanceCronWorker } from "./workers/financeCron";
 
 const PORT = env.PORT;
 
+app.get("/health", (req, res) => {
+  res.json({
+    status: "ok",
+    timestamp: new Date().toISOString(),
+    service: "repairshop-erp-backend",
+    version: "1.0.0",
+  });
+});
+
 app.listen(PORT, () => {
   console.log(`
   ╔══════════════════════════════════════╗

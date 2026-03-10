@@ -115,7 +115,11 @@ export function ProductForm({
         precio_usd: initialData.precio_usd,
       });
 
-      const marca = marcas.find((m) => m.nombre === initialData.marca_comp);
+      const marca = marcas.find(
+        (m) =>
+          m.nombre.toLowerCase() ===
+          (initialData.marca_comp || "").toLowerCase(),
+      );
       if (marca) setSelectedMarcaId(marca.id);
     } else if (opened && !initialData && !form.isDirty()) {
       // Only reset if it's cleanly opened without data and we haven't typed anything yet
@@ -126,7 +130,11 @@ export function ProductForm({
   // Sync initial brand ID once marcas load if editing
   useEffect(() => {
     if (opened && initialData && marcas.length > 0 && !selectedMarcaId) {
-      const marca = marcas.find((m) => m.nombre === initialData.marca_comp);
+      const marca = marcas.find(
+        (m) =>
+          m.nombre.toLowerCase() ===
+          (initialData.marca_comp || "").toLowerCase(),
+      );
       if (marca) setSelectedMarcaId(marca.id);
     }
   }, [marcas, opened, initialData, selectedMarcaId]);
@@ -188,9 +196,12 @@ export function ProductForm({
   };
 
   const handleMarcaChange = (value: string | null) => {
-    form.setFieldValue("marca_comp", (value || "").toUpperCase());
+    const uppercased = (value || "").toUpperCase();
+    form.setFieldValue("marca_comp", uppercased);
     form.setFieldValue("modelo_comp", ""); // reset modelo when marca changes
-    const marca = marcas.find((m) => m.nombre === (value || "").toUpperCase());
+    const marca = marcas.find(
+      (m) => m.nombre.toLowerCase() === uppercased.toLowerCase(),
+    );
     setSelectedMarcaId(marca?.id ?? null);
   };
 
@@ -248,7 +259,11 @@ export function ProductForm({
   const modeloOptions = selectedMarcaId
     ? modelos.map((m) => ({ value: m.nombre, label: m.nombre }))
     : marcas
-        .find((m) => m.nombre === form.values.marca_comp)
+        .find(
+          (m) =>
+            m.nombre.toLowerCase() ===
+            (form.values.marca_comp || "").toLowerCase(),
+        )
         ?.modelos?.map((m) => ({ value: m.nombre, label: m.nombre })) || [];
 
   const margen =
@@ -285,7 +300,7 @@ export function ProductForm({
             <SimpleGrid cols={2}>
               <Autocomplete
                 label="SKU / Código"
-                placeholder="Ej: PANT-LCD-A54"
+                placeholder="Escribe o escanea el código de barras"
                 required
                 data={allProducts.map((p) => p.sku)}
                 {...form.getInputProps("sku")}
@@ -304,7 +319,7 @@ export function ProductForm({
               {!existingProductMatch && (
                 <TextInput
                   label="Nombre del Producto"
-                  placeholder="Ej: Pantalla LCD Samsung A54"
+                  placeholder="Ej: Pantalla, Batería, Flex..."
                   required
                   {...form.getInputProps("nombre")}
                 />

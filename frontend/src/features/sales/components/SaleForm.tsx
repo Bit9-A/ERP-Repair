@@ -147,12 +147,22 @@ export function SaleForm({ opened, onClose, onSubmit }: SaleFormProps) {
     if (
       productSearch &&
       !p.nombre.toLowerCase().includes(productSearch.toLowerCase()) &&
-      !p.sku.toLowerCase().includes(productSearch.toLowerCase())
+      !p.sku.toLowerCase().includes(productSearch.toLowerCase()) &&
+      !(p.marca_comp || "")
+        .toLowerCase()
+        .includes(productSearch.toLowerCase()) &&
+      !(p.modelo_comp || "").toLowerCase().includes(productSearch.toLowerCase())
     ) {
       return false;
     }
 
-    return p.stock_actual > 0;
+    const isAdmin = user?.rol === "ADMIN";
+    const localInv = p.inventario_sucursales?.find(
+      (inv) => inv.sucursalId === user?.sucursalId,
+    );
+    const localStock = localInv ? localInv.stock : 0;
+
+    return isAdmin ? p.stock_actual > 0 : localStock > 0;
   });
 
   const subtotal = cart.reduce(
@@ -195,6 +205,7 @@ export function SaleForm({ opened, onClose, onSubmit }: SaleFormProps) {
       (p) => stripLeadingZeros(p.sku) === cleanCode,
     );
 
+    const isAdmin = user?.rol === "ADMIN";
     if (product) {
       let localStock = 0;
       let otherBranches: string[] = [];
@@ -211,18 +222,20 @@ export function SaleForm({ opened, onClose, onSubmit }: SaleFormProps) {
         localStock = product.stock_actual;
       }
 
-      if (localStock > 0) {
-        // Pause scanner and show confirmation dialog
+      const canAdd = isAdmin ? product.stock_actual > 0 : localStock > 0;
+
+      if (canAdd) {
         setScannerOpen(false);
         setPendingScanProduct(product);
         setPendingScanQty(1);
       } else {
         const hasOtherStock = otherBranches.length > 0;
         notifications.show({
-          title: "Sin stock local",
-          message: hasOtherStock
-            ? `${product.nombre} agotado en esta sucursal. Disponible en: ${otherBranches.join(", ")}`
-            : `${product.nombre} no tiene stock en ninguna sucursal.`,
+          title: isAdmin ? "Sin stock global" : "Sin stock local",
+          message:
+            !isAdmin && hasOtherStock
+              ? `${product.nombre} agotado en esta sucursal. Disponible en: ${otherBranches.join(", ")}`
+              : `${product.nombre} no tiene stock disponible.`,
           color: "yellow",
         });
         setScannerOpen(false);
@@ -253,9 +266,10 @@ export function SaleForm({ opened, onClose, onSubmit }: SaleFormProps) {
       (item) => item.productoId === pendingScanProduct.id,
     );
 
+    const isAdmin = user?.rol === "ADMIN";
     if (existing) {
       let remainingStock = 0;
-      if (existing.producto.inventario_sucursales) {
+      if (!isAdmin && existing.producto.inventario_sucursales) {
         const localInv = existing.producto.inventario_sucursales.find(
           (inv) => inv.sucursalId === user?.sucursalId,
         );
@@ -266,8 +280,12 @@ export function SaleForm({ opened, onClose, onSubmit }: SaleFormProps) {
 
       if (qtyToAdd > remainingStock) {
         notifications.show({
-          title: "Stock Local Insuficiente",
-          message: `Solo quedan ${remainingStock} unidades disponibles en tu sucursal.`,
+          title: isAdmin
+            ? "Stock Global Insuficiente"
+            : "Stock Local Insuficiente",
+          message: isAdmin
+            ? `Solo quedan ${remainingStock} unidades globales.`
+            : `Solo quedan ${remainingStock} unidades disponibles en tu sucursal.`,
           color: "red",
         });
         return;
@@ -280,7 +298,7 @@ export function SaleForm({ opened, onClose, onSubmit }: SaleFormProps) {
       });
     } else {
       let localStock = 0;
-      if (pendingScanProduct.inventario_sucursales) {
+      if (!isAdmin && pendingScanProduct.inventario_sucursales) {
         const localInv = pendingScanProduct.inventario_sucursales.find(
           (inv) => inv.sucursalId === user?.sucursalId,
         );
@@ -291,8 +309,12 @@ export function SaleForm({ opened, onClose, onSubmit }: SaleFormProps) {
 
       if (qtyToAdd > localStock) {
         notifications.show({
-          title: "Stock Local Insuficiente",
-          message: `Solo hay ${localStock} unidades físicas en tu sucursal actual.`,
+          title: isAdmin
+            ? "Stock Global Insuficiente"
+            : "Stock Local Insuficiente",
+          message: isAdmin
+            ? `Solo hay ${localStock} unidades globales.`
+            : `Solo hay ${localStock} unidades físicas en tu sucursal actual.`,
           color: "red",
         });
         return;
@@ -321,12 +343,13 @@ export function SaleForm({ opened, onClose, onSubmit }: SaleFormProps) {
   };
 
   const updateQuantity = (productoId: string, delta: number) => {
+    const isAdmin = user?.rol === "ADMIN";
     setCart((prev) =>
       prev.map((item) => {
         if (item.productoId !== productoId) return item;
 
         let localStock = item.producto.stock_actual;
-        if (item.producto.inventario_sucursales) {
+        if (!isAdmin && item.producto.inventario_sucursales) {
           const localInv = item.producto.inventario_sucursales.find(
             (inv) => inv.sucursalId === user?.sucursalId,
           );
@@ -664,6 +687,7 @@ export function SaleForm({ opened, onClose, onSubmit }: SaleFormProps) {
 
                   let localStock = 0;
                   let otherBranches: { nombre: string; stock: number }[] = [];
+                  const isAdmin = user?.rol === "ADMIN";
 
                   if (product.inventario_sucursales) {
                     const localInv = product.inventario_sucursales.find(
@@ -680,11 +704,12 @@ export function SaleForm({ opened, onClose, onSubmit }: SaleFormProps) {
                         stock: inv.stock,
                       }));
                   } else {
-                    // Fallback to global stock if backend didn't send array
                     localStock = product.stock_actual;
                   }
 
-                  const canAdd = localStock > 0;
+                  const canAdd = isAdmin
+                    ? product.stock_actual > 0
+                    : localStock > 0;
 
                   return (
                     <Paper
@@ -708,7 +733,12 @@ export function SaleForm({ opened, onClose, onSubmit }: SaleFormProps) {
                           </Badge>
                           <Stack gap={0}>
                             <Text size="sm" fw={500}>
-                              {product.nombre}
+                              {product.nombre}{" "}
+                              {(product.marca_comp || product.modelo_comp) && (
+                                <Text component="span" size="xs" c="dimmed">
+                                  ({product.marca_comp} {product.modelo_comp})
+                                </Text>
+                              )}
                             </Text>
                             <Text size="xs" c="dimmed" ff="monospace">
                               {product.sku}
@@ -805,11 +835,22 @@ export function SaleForm({ opened, onClose, onSubmit }: SaleFormProps) {
                       <Table.Td>
                         <Stack gap={0}>
                           <Text size="sm" fw={500}>
-                            {item.producto.nombre}
+                            {item.producto.nombre}{" "}
+                            {(item.producto.marca_comp ||
+                              item.producto.modelo_comp) && (
+                              <Text component="span" size="xs" c="dimmed">
+                                ({item.producto.marca_comp}{" "}
+                                {item.producto.modelo_comp})
+                              </Text>
+                            )}
                           </Text>
                           <Text size="xs" c="dimmed" ff="monospace">
                             {item.producto.sku} • Stock:{" "}
-                            {item.producto.stock_actual}
+                            {user?.rol === "ADMIN"
+                              ? item.producto.stock_actual
+                              : item.producto.inventario_sucursales?.find(
+                                  (inv) => inv.sucursalId === user?.sucursalId,
+                                )?.stock || 0}
                           </Text>
                         </Stack>
                       </Table.Td>
@@ -838,22 +879,27 @@ export function SaleForm({ opened, onClose, onSubmit }: SaleFormProps) {
                             color="gray"
                             size="xs"
                             onClick={() => {
-                              let localStock = item.producto.stock_actual;
-                              if (item.producto.inventario_sucursales) {
+                              const isAdmin = user?.rol === "ADMIN";
+                              let availableStock = item.producto.stock_actual;
+                              if (
+                                !isAdmin &&
+                                item.producto.inventario_sucursales
+                              ) {
                                 const localInv =
                                   item.producto.inventario_sucursales.find(
                                     (inv) =>
                                       inv.sucursalId === user?.sucursalId,
                                   );
-                                localStock = localInv?.stock || 0;
+                                availableStock = localInv?.stock || 0;
                               }
-                              if (item.cantidad < localStock) {
+                              if (item.cantidad < availableStock) {
                                 updateQuantity(item.productoId, 1);
                               } else {
                                 notifications.show({
                                   title: "Stock tope alcanzado",
-                                  message:
-                                    "Ya agregaste todo el inventario de esta sucursal",
+                                  message: isAdmin
+                                    ? "Ya agregaste todo el inventario global"
+                                    : "Ya agregaste todo el inventario de esta sucursal",
                                   color: "orange",
                                 });
                               }
@@ -1234,7 +1280,13 @@ export function SaleForm({ opened, onClose, onSubmit }: SaleFormProps) {
             <NumberInput
               label="Cantidad a vender"
               min={1}
-              max={pendingScanProduct.stock_actual}
+              max={
+                user?.rol === "ADMIN"
+                  ? pendingScanProduct.stock_actual
+                  : pendingScanProduct.inventario_sucursales?.find(
+                      (inv) => inv.sucursalId === user?.sucursalId,
+                    )?.stock || 0
+              }
               value={pendingScanQty}
               onChange={setPendingScanQty}
               data-autofocus
