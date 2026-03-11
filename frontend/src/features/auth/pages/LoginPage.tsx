@@ -9,18 +9,15 @@ import {
   Text,
   TextInput,
   Title,
-  Group,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { notifications } from "@mantine/notifications";
-import { modals } from "@mantine/modals";
 import { IconLock, IconUser } from "@tabler/icons-react";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../store/auth.store";
 import { authService } from "../services/auth.service";
 import { APP_NAME, APP_SUBTITLE } from "../../../lib/constants";
 
-// Import modern fonts
 const FONT_IMPORT = "@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@800&family=Plus+Jakarta+Sans:wght@800&display=swap');";
 
 export function LoginPage() {
@@ -56,26 +53,6 @@ export function LoginPage() {
     }
   };
 
-  const handleForgotPassword = () => {
-    modals.open({
-      title: "Recuperación de Contraseña",
-      children: (
-        <Stack>
-          <Text size="sm">
-            Por motivos de seguridad, si has olvidado tu contraseña debes comunicárselo 
-            al <Text span fw={600}>Administrador o Gerente</Text> de forma directa para 
-            que te la restablezca en el sistema.
-          </Text>
-          <Button fullWidth onClick={() => modals.closeAll()} mt="md">
-            Entendido
-          </Button>
-        </Stack>
-      ),
-      centered: true,
-      overlayProps: { blur: 3, opacity: 0.55 },
-    });
-  };
-
   return (
     <Flex
       mih="100vh"
@@ -91,10 +68,8 @@ export function LoginPage() {
         overflow: "hidden"
       }}
     >
-      {/* Inject Modern Fonts */}
       <style dangerouslySetInnerHTML={{ __html: FONT_IMPORT }} />
 
-      {/* Deep Blue Overlay with Blur for background depth */}
       <Box
         style={{
           position: "absolute",
@@ -117,14 +92,12 @@ export function LoginPage() {
           boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.5)",
           zIndex: 10,
           position: "relative",
-          display: "flex",
-          flexDirection: "column",
         }}
       >
         <form onSubmit={form.onSubmit(handleSubmit)}>
           <Stack gap="xl">
             <Stack gap={4} align="center">
-              <Title order={1} style={{ 
+              <Title order={1} style={{
                 fontSize: "2.6rem",
                 fontWeight: 800,
                 color: "#ffffff",
@@ -161,11 +134,6 @@ export function LoginPage() {
                     background: "rgba(255, 255, 255, 0.03)",
                     border: "1px solid rgba(255, 255, 255, 0.1)",
                     color: "#ffffff",
-                    transition: "all 0.2s ease",
-                    '&:focus': { 
-                      borderColor: "#2563eb",
-                      background: "rgba(255, 255, 255, 0.05)",
-                    }
                   },
                   label: { color: "rgba(255, 255, 255, 0.8)", marginBottom: 8, fontSize: "0.85rem" }
                 }}
@@ -183,47 +151,32 @@ export function LoginPage() {
                     background: "rgba(255, 255, 255, 0.03)",
                     border: "1px solid rgba(255, 255, 255, 0.1)",
                     color: "#ffffff",
-                    transition: "all 0.2s ease",
-                    '&:focus': { 
-                      borderColor: "#2563eb",
-                      background: "rgba(255, 255, 255, 0.05)",
-                    }
                   },
                   label: { color: "rgba(255, 255, 255, 0.8)", marginBottom: 8, fontSize: "0.85rem" }
                 }}
                 {...form.getInputProps("password")}
               />
 
-            <Button
-              type="submit"
-              fullWidth
-              loading={loading}
-              size="lg"
-              radius="lg"
-              style={{
-                height: 52,
-                backgroundColor: "#2563eb",
-                fontSize: "0.9rem",
-                fontWeight: 600,
-                letterSpacing: "0.5px",
-                boxShadow: "0 10px 20px -5px rgba(37, 99, 235, 0.4)",
-                transition: "all 0.3s ease",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = "translateY(-2px)";
-                e.currentTarget.style.backgroundColor = "#1d4ed8";
-                e.currentTarget.style.boxShadow = "0 15px 25px -5px rgba(37, 99, 235, 0.5)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = "translateY(0)";
-                e.currentTarget.style.backgroundColor = "#2563eb";
-                e.currentTarget.style.boxShadow = "0 10px 20px -5px rgba(37, 99, 235, 0.4)";
-              }}
-            >
-              INICIAR SESIÓN
-            </Button>
+              <Button
+                type="submit"
+                fullWidth
+                loading={loading}
+                size="lg"
+                radius="lg"
+                mt="md"
+                style={{
+                  height: 52,
+                  backgroundColor: "#2563eb",
+                  fontSize: "0.9rem",
+                  fontWeight: 600,
+                  boxShadow: "0 10px 20px -5px rgba(37, 99, 235, 0.4)",
+                }}
+              >
+                INICIAR SESIÓN
+              </Button>
+            </Stack>
 
-            <Stack gap={4} align="center" mt="md">
+            <Stack gap={4} align="center">
               <Text style={{ fontSize: "10px", color: "rgba(255, 255, 255, 0.5)", fontWeight: 500, letterSpacing: "0.5px" }}>
                 ERP-REPAIR v1.0 • ACCESO PROTEGIDO
               </Text>
