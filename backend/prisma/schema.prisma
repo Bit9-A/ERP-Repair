@@ -87,6 +87,7 @@ model Producto {
   inventario_sucursales SucursalProducto[]
   tickets               Ticket_Producto[]
   ventas                Venta_Producto[]
+  egresos               TransaccionFinanciera[]
 
   @@index([categoria])
   @@index([propiedad])
@@ -246,10 +247,12 @@ model TransaccionFinanciera {
   categoria String?
   ticketId  String?
   ventaId   String?
+  productoId String?
   esFijo    Boolean           @default(false)
   createdAt DateTime          @default(now())
   ticket    TicketReparacion? @relation(fields: [ticketId], references: [id], onDelete: SetNull)
   venta     Venta?            @relation(fields: [ventaId], references: [id], onDelete: SetNull)
+  producto  Producto?         @relation(fields: [productoId], references: [id], onDelete: SetNull)
 
   @@index([tipo])
   @@index([createdAt])
