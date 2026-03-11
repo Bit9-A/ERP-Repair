@@ -59,6 +59,25 @@ export async function findById(id: string) {
   return ticket;
 }
 
+export async function findByClienteId(clienteId: string) {
+  return prisma.ticketReparacion.findMany({
+    where: { clienteId },
+    include: {
+      tecnico: {
+        select: {
+          id: true,
+          nombre: true,
+          rol: true,
+        },
+      },
+      repuestos: { include: { producto: true } },
+      servicios: { include: { servicio: true } },
+      pagos: { include: { moneda: true } },
+    },
+    orderBy: { fecha_ingreso: "desc" },
+  });
+}
+
 // ── Paged History ──
 
 export async function getHistory(page: number, limit: number, search: string) {
@@ -466,7 +485,7 @@ export async function entregar(
         monto_usd: parseFloat(totalUsdPaid.toFixed(2)),
         concepto: `Cobro Ticket #${ticketId.slice(0, 8)}`,
         categoria: "REPARACION",
-        ticketId,
+        ticket: { connect: { id: ticketId } },
       },
     });
 

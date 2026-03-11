@@ -38,7 +38,7 @@ import {
   useCreateProduct,
   useUpdateProduct,
   useDeleteProduct,
-  useAdjustStock,
+  useAddStock,
   useSucursales,
 } from "../../../services";
 import { useAuthStore } from "../../auth/store/auth.store";
@@ -74,7 +74,7 @@ export function InventoryPage() {
   );
   const createProduct = useCreateProduct();
   const updateProduct = useUpdateProduct();
-  const adjustStock = useAdjustStock();
+  const addStock = useAddStock();
   const deleteProduct = useDeleteProduct();
 
   const filtered = products.filter((p) => {
@@ -118,6 +118,8 @@ export function InventoryPage() {
       id?: string;
       isQuickAdd?: boolean;
       qtyAdded?: number;
+      costo_unitario_usd?: number;
+      sucursalId?: string;
     },
   ) => {
     try {
@@ -126,10 +128,12 @@ export function InventoryPage() {
         if (!targetId) return;
 
         if (values.isQuickAdd && values.qtyAdded) {
-          // Send to stock adjustment endpoint to properly log EGRESO financing
-          await adjustStock.mutateAsync({
+          // Send to addStock endpoint to properly log EGRESO and branch-specific entry
+          await addStock.mutateAsync({
             id: targetId,
             cantidad: values.qtyAdded,
+            costo_unitario_usd: values.costo_unitario_usd,
+            sucursalId: values.sucursalId,
             nota: "Actualización Rápida (Compra)",
           });
         } else {

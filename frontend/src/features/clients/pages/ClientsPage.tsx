@@ -22,11 +22,14 @@ import {
 import type { Cliente } from "../../../services/clients.service";
 import { ClientTable } from "../components/ClientTable";
 import { ClientForm, type ClientFormValues } from "../components/ClientForm";
+import { ClientHistoryDrawer } from "../components/ClientHistoryDrawer";
 
 export function ClientsPage() {
   const [search, setSearch] = useState("");
   const [opened, { open, close }] = useDisclosure(false);
+  const [historyOpened, { open: openHistory, close: closeHistory }] = useDisclosure(false);
   const [editingClient, setEditingClient] = useState<Cliente | null>(null);
+  const [historyClient, setHistoryClient] = useState<Cliente | null>(null);
 
   const { data: clients = [], isLoading } = useClients();
   const createClient = useCreateClient();
@@ -142,6 +145,10 @@ export function ClientsPage() {
               clients={filteredClients}
               onEdit={handleEdit}
               onDelete={handleDelete}
+              onViewHistory={(client) => {
+                setHistoryClient(client);
+                openHistory();
+              }}
             />
           </Paper>
         )}
@@ -152,6 +159,12 @@ export function ClientsPage() {
         onClose={close}
         onSubmit={handleSubmit}
         initialData={editingClient}
+      />
+      
+      <ClientHistoryDrawer
+        opened={historyOpened}
+        onClose={closeHistory}
+        cliente={historyClient}
       />
     </Container>
   );

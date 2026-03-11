@@ -29,3 +29,6 @@ app.listen(PORT, () => {
   // Iniciar el procesador de gastos recurrentes
   startFinanceCronWorker();
 });
+
+// Force restart 2026-03-10
+

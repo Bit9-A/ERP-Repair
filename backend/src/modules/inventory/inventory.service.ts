@@ -147,6 +147,7 @@ export async function create(data: {
         monto_usd: parseFloat(costoTotal.toFixed(2)),
         concepto: `Compra de inventario: ${data.nombre} (x${initialStock})`,
         categoria: "INVENTARIO",
+        producto: { connect: { id: product.id } },
       },
     });
   }
@@ -249,6 +250,7 @@ export async function addStock(
         monto_usd: parseFloat(costoTotal.toFixed(2)),
         concepto: `Compra de inventario: ${product.nombre} (x${data.cantidad}) a $${costoUnitario}/u`,
         categoria: "INVENTARIO",
+        producto: { connect: { id } },
       },
     });
 

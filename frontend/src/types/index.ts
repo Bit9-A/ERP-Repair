@@ -289,6 +289,12 @@ export interface TransaccionFinanciera {
   };
   ventaId?: string;
   venta?: Venta;
+  productoId?: string;
+  producto?: {
+    id: string;
+    marca_comp?: string;
+    modelo_comp?: string;
+  };
   createdAt: string;
 }
 

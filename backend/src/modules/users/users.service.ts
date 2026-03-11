@@ -139,6 +139,16 @@ export async function update(
   return userSafe;
 }
 
+export async function resetPasswordByAdmin(id: string, newPassword: string) {
+  const hash = await bcrypt.hash(newPassword, 10);
+  const user = await prisma.usuario.update({
+    where: { id },
+    data: { password_hash: hash },
+  });
+  const { password_hash: _, ...userSafe } = user;
+  return userSafe;
+}
+
 export async function remove(id: string) {
   await prisma.usuario.delete({ where: { id } });
   return { message: "Usuario eliminado" };

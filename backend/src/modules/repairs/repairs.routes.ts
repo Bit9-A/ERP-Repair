@@ -8,6 +8,7 @@ router.use(authMiddleware);
 
 router.get("/kanban-counts", ctrl.getKanbanCounts);
 router.get("/history", ctrl.getHistory);
+router.get("/cliente/:clienteId", ctrl.findByClienteId);
 router.get("/", ctrl.findAll);
 router.get("/:id", ctrl.findById);
 router.post("/", ctrl.create);

@@ -36,6 +36,14 @@ export function useRepair(id: string) {
   });
 }
 
+export function useClientRepairs(clienteId: string) {
+  return useQuery({
+    queryKey: ["repairs", "cliente", clienteId] as const,
+    queryFn: () => repairsService.getRepairsByClient(clienteId),
+    enabled: !!clienteId,
+  });
+}
+
 export function useKanbanCounts() {
   return useQuery({
     queryKey: queryKeys.repairs.kanbanCounts,

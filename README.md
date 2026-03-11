@@ -1,154 +1,148 @@
 # RepairShop ERP — PRO MAX 🚀
 
-Un moderno sistema ERP diseñado específicamente para talleres de reparación de dispositivos electrónicos (celulares, tablets, laptops). Facilita la gestión integral del negocio: desde el ingreso de tickets y seguimiento Kanban, hasta el control de inventario, finanzas multimoneda y cálculo de comisiones.
+Un moderno y robusto **Sistema de Planificación de Recursos Empresariales (ERP)** diseñado end-to-end específicamente para talleres de reparación de dispositivos electrónicos (celulares, tablets, laptops, consolas).
+
+Este sistema facilita y unifica la gestión integral del negocio: desde la captura de clientes y el ingreso de tickets (con seguimiento visual Kanban), hasta el control multi-sucursal de inventarios, finanzas multimoneda y el cálculo de comisiones escalonadas para el personal técnico.
 
 ![RepairShop ERP](https://via.placeholder.com/800x400?text=RepairShop+ERP+PRO+MAX)
+
+---
+
+## 📐 Arquitectura del Sistema
+
+El proyecto sigue una arquitectura Cliente-Servidor separada en dos directorios principales (`/frontend` y `/backend`), operando sobre una pila **PERN** (PostgreSQL, Express, React, Node) optimizada con Prisma ORM.
+
+```mermaid
+flowchart LR
+    subgraph Client [Capa de Presentación]
+        A[Frontend React / Vite]
+        B[Mantine UI v7]
+    end
+
+    subgraph Server [Capa de Negocio API]
+        C(Backend Express / Node.js)
+        D[JWT Auth & MW]
+        E[Workers Cron]
+    end
+
+    subgraph Data [Capa de Persistencia]
+        F[(PostgreSQL DB)]
+    end
+
+    A -->|REST JSON / HTTP| C
+    C -->|Prisma ORM| F
+    E -.->|Sync & Background| F
+    B -.->|Componentes| A
+    C -.->|Protección Rutas| D
+```
+
+---
+
+## 🗄️ Modelo de Datos (Core)
+
+La base de datos relacional está altamente normalizada para permitir auditorías fiables en transacciones e inventario multi-sucursal.
+
+```mermaid
+erDiagram
+    SUCURSAL ||--o{ TICKET_REPARACION : "procesa"
+    SUCURSAL ||--o{ SUCURSAL_PRODUCTO : "almacena"
+    SUCURSAL ||--o{ USUARIO : "emplea"
+    
+    CLIENTE ||--o{ TICKET_REPARACION : "solicita"
+    CLIENTE ||--o{ VENTA : "realiza"
+
+    USUARIO ||--o{ TICKET_REPARACION : "repara (Técnico)"
+    
+    PRODUCTO ||--o{ SUCURSAL_PRODUCTO : "stock en"
+    PRODUCTO ||--o{ MOVIMIENTO_STOCK : "registra historial"
+
+    TICKET_REPARACION ||--o{ TICKET_PRODUCTO : "consume repuestos"
+    TICKET_REPARACION ||--o{ TICKET_SERVICIO : "aplica mano de obra"
+    TICKET_REPARACION ||--o{ PAGO : "recibe pagos"
+```
+
+---
 
 ## 📋 Características Principales
 
 ### 💻 Frontend (React + Vite + Mantine UI)
-
-- **Dashboard Interactivo:** Vista rápida de KPIs (Tickets activos, ingresos del día, stock bajo) y un resumen del "Workflow Status" estilo Kanban.
-- **Módulo de Reparaciones (Kanban):** Tablero _drag-and-drop_ para gestionar el flujo de trabajo de los equipos (Cotización -> Recibido -> Revisión -> Esperando Repuesto -> Reparado -> Entregado).
-- **Control de Inventario:** Listado de stock en tiempo real, alertas de bajo stock, y gestión de categorías (Repuestos, Accesorios).
-- **Gestión Financiera Multimoneda:** Soporte nativo para transacciones en múltiples monedas (USD, VES, COP) con tasas de cambio actualizables, Arqueo de Caja y panel de conciliación.
-- **Catálogo de Servicios:** Administración de la mano de obra, precios base y comisiones para técnicos.
-- **Gestión de Usuarios:** Roles (Admin, Técnico) con lógica de nómina (salario fijo, comisión pura, mixto).
+- **Dashboard Estadístico:** Vista ejecutiva de KPIs (Tickets activos, ingresos monetarios del día, alertas predictivas de bajo stock).
+- **Tablero Kanban de Reparaciones:** Flujo de trabajo interactivo _drag-and-drop_ para rastrear el ciclo de vida del ticket (Recibido → Revisión → Esperando Repuesto → Reparado → Entregado).
+- **Gestión Multi-Sucursal de Inventario:** Listado de stock en tiempo real diferenciado por sucursales, traspaso de mercancía y gestión de categorías (Repuestos, Accesorios).
+- **Motor Financiero Multimoneda:** Soporte nativo para transacciones simultáneas en múltiples divisas (USD, MONEDA_LOCAL) con tasas de cambio flotantes, registro de ingresos/egresos y herramientas de cierre de caja.
+- **Nómina y Comisiones:** Fórmulas dinámicas para técnicos basadas en porcentajes por servicio completado o salarios fijos.
 
 ### ⚙️ Backend (Node.js + Express + Prisma + PostgreSQL)
-
-- **Arquitectura DDD (Domain-Driven Design):** Código organizado por dominios de negocio (`users`, `inventory`, `services`, `repairs`, `finance`) para alta escalabilidad y fácil mantenimiento.
-- **API RESTful Segura:** Autenticación basada en JWT (`Bearer tokens`) y Guards por roles de usuario.
-- **Congelación de Precios:** Los precios de los repuestos y las comisiones de los servicios se "congelan" al momento de asociarlos a un ticket, preservando la integridad del historial financiero ante futuros cambios de precios.
-- **Validación Transaccional:** Uso de `Prisma $transaction` para asegurar la coherencia de datos (ej. descontar stock solo si se asigna el repuesto exitosamente).
-- **Cierre de Caja:** Endpoints dedicados para agrupar ingresos diarios por método de pago y moneda.
+- **Domain-Driven Design (DDD):** Código rigurosamente estructurado por la lógica de los dominios de negocio (`finance`, `inventory`, `repairs`, `users`) garantizando su alta cohesión y escaso acoplamiento vertical.
+- **Transacciones Seguras:** Implementación exhaustiva de hooks `.transaction()` de Prisma para asegurar principios ACID al realizar operaciones críticas (p. ej., descontar inventario *sólo si* la factura se genera).
+- **Fotografías Financieras (Snapshots):** Los precios de catálogo y las comisiones en el momento de crear el ticket quedan "congeladas" en modelos intermedios, blindando los historiales contables ante alteraciones inflacionarias futuras.
+- **Workers Auxiliares:** Tareas en segundo plano (Cron Jobs) que re-calculan o sincronizan información de gastos fijos concurrentes.
 
 ---
 
-## 🛠️ Tecnologías Utilizadas
+## 🛠️ Stack Tecnológico
 
-**Frontend (`/frontend`)**
-
-- React 18 + TypeScript
-- Vite
-- Mantine UI v7 (Componentes, Hooks, Form)
-- Tabler Icons React
-- CSS Variables + CSS Modules
-
-**Backend (`/backend`)**
-
-- Node.js (Express 5) + TypeScript
-- Prisma ORM
-- PostgreSQL
-- JWT & bcryptjs para Autenticación
+| Entorno | Tecnologías Destacadas |
+|---|---|
+| **Frontend** | React 18, TypeScript, Vite, Mantine UI v7, React Query (TanStack), Tabler Icons, CSS Variables |
+| **Backend** | Node.js (Express 5), TypeScript, Prisma ORM, JSON Web Tokens (JWT), Bcryptjs |
+| **Database** | PostgreSQL |
 
 ---
 
-## 🚀 Guía de Instalación y Ejecución Local
+## 🚀 Guía de Instalación Rápida
 
-Para levantar este proyecto en tu entorno de desarrollo, sigue estos pasos:
+Para desplegar localmente el entorno de desarrollo:
 
-### 1. Requisitos Previos
-
-- [Node.js](https://nodejs.org/) (v18 o superior)
-- [PostgreSQL](https://www.postgresql.org/) (Corriendo localmente en el puerto `5432`)
+### 1. Requisitos Previos mínimos
+- [Node.js](https://nodejs.org/) (v18+)
+- [PostgreSQL](https://www.postgresql.org/) (Corriendo en puerto `default: 5432` o acceso URI)
 - Git
 
-### 2. Clonar el Repositorio
+### 2. Clonar el repositorio e Iniciar
 
 ```bash
 git clone <URL_DEL_REPOSITORIO>
 cd ERP-Repair
 ```
 
-### 3. Configuración del Backend
+### 3. Backend Setup
 
 ```bash
 cd backend
-
-# 1. Instalar dependencias
 npm install
 
-# 2. Configurar variables de entorno
+# Generar y configurar Variables de Entorno (Agrega tu DATABASE_URL y JWT_SECRET al .env)
 cp .env.example .env
-# Edita el .env con tus credenciales de PostgreSQL (DATABASE_URL) y tu JWT_SECRET
 
-# 3. Preparar la Base de Datos (Prisma)
+# Sincronizar el Schema en la Base de Datos local
 npx prisma generate
-npx prisma migrate dev --name init
+npx prisma db push
 
-# 4. Iniciar el servidor en modo desarrollo
+# Levantar el servidor en http://localhost:3001
 npm run dev
-# El servidor se levantará en http://localhost:3001
 ```
 
-### 4. Configuración del Frontend
+### 4. Frontend Setup
 
 ```bash
 cd frontend
-
-# 1. Instalar dependencias
 npm install
 
-# 2. Iniciar el servidor de desarrollo Vite
+# Levantar cliente web en http://localhost:5173
 npm run dev
-# La aplicación estará disponible en http://localhost:5173
 ```
 
 ---
 
-## 📂 Estructura del Proyecto
+## 🤝 Flujo de Contribución
 
-### Backend
-
-```text
-/backend
-├── prisma/
-│   └── schema.prisma           # Esquema de BD (PostgreSQL)
-├── src/
-│   ├── config/                 # Configuración de Entorno y Prisma
-│   ├── core/                   # Middlewares (Auth, Errores) y Utilidades (Moneda)
-│   ├── modules/                # Dominios del Negocio (DDD)
-│   │   ├── finance/
-│   │   ├── inventory/
-│   │   ├── repairs/
-│   │   ├── services/
-│   │   └── users/
-│   ├── app.ts                  # Configuración de Express
-│   └── server.ts               # Punto de entrada
-└── package.json
-```
-
-### Frontend
-
-```text
-/frontend
-├── src/
-│   ├── app/                    # Entry point y Theme de Mantine
-│   ├── components/             # Componentes UI reutilizables (Sidebar, TopBar, StatCard)
-│   ├── features/               # Dominios del UI
-│   │   ├── auth/
-│   │   ├── dashboard/
-│   │   ├── finance/
-│   │   ├── inventory/
-│   │   ├── repairs/
-│   │   └── tickets/
-│   ├── lib/                    # Constantes globales (Estados, Colores)
-│   ├── styles/                 # CSS Global
-│   └── types/                  # Interfaces Globales de TS
-└── index.html
-```
-
----
-
-## 🤝 Contribución
-
-1. Haz un _Fork_ del proyecto
-2. Crea una nueva rama para tu funcionalidad (`git checkout -b feature/NuevaFuncionalidad`)
-3. Haz _Commit_ de tus cambios (`git commit -m 'Añadir Nueva Funcionalidad'`)
-4. Haz _Push_ a la rama (`git push origin feature/NuevaFuncionalidad`)
-5. Abre un _Pull Request_
+1. Haz un _Fork_ de este repositorio.
+2. Crea una rama semántica partiendo desde `main` (`git checkout -b feature/NuevoModulo`).
+3. Efectúa _Commit_ bajo convenciones convencionales (`git commit -m 'feat: Añade panel de envíos local'`).
+4. _Push_ la rama a tu control de versiones (`git push origin feature/NuevoModulo`).
+5. Abre y solicita un _Pull Request_.
 
 ## 📄 Licencia
 
-Este proyecto está bajo la Licencia MIT - ver el archivo [LICENSE.md](LICENSE.md) para más detalles.
+Software amparado bajo la Licencia **MIT**. Consulta el documento interno de licencia para requerimientos de atribución.

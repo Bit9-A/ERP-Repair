@@ -9,9 +9,11 @@ import {
   Text,
   TextInput,
   Title,
+  Group,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { notifications } from "@mantine/notifications";
+import { modals } from "@mantine/modals";
 import { IconLock, IconUser } from "@tabler/icons-react";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../store/auth.store";
@@ -52,6 +54,26 @@ export function LoginPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleForgotPassword = () => {
+    modals.open({
+      title: "Recuperación de Contraseña",
+      children: (
+        <Stack>
+          <Text size="sm">
+            Por motivos de seguridad, si has olvidado tu contraseña debes comunicárselo 
+            al <Text span fw={600}>Administrador o Gerente</Text> de forma directa para 
+            que te la restablezca en el sistema.
+          </Text>
+          <Button fullWidth onClick={() => modals.closeAll()} mt="md">
+            Entendido
+          </Button>
+        </Stack>
+      ),
+      centered: true,
+      overlayProps: { blur: 3, opacity: 0.55 },
+    });
   };
 
   return (
@@ -171,7 +193,6 @@ export function LoginPage() {
                 }}
                 {...form.getInputProps("password")}
               />
-            </Stack>
 
             <Button
               type="submit"

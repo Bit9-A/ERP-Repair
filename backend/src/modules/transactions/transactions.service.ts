@@ -53,8 +53,8 @@ export async function create(data: CreateTransaccionDTO) {
       monto_usd: data.monto_usd,
       concepto: data.concepto,
       categoria: data.categoria,
-      ticketId: data.ticketId,
-      ventaId: data.ventaId,
+      ticket: data.ticketId ? { connect: { id: data.ticketId } } : undefined,
+      venta: data.ventaId ? { connect: { id: data.ventaId } } : undefined,
     },
   });
 }

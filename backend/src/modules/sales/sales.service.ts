@@ -224,7 +224,7 @@ export async function create(data: CreateVentaDTO) {
           monto_usd: parseFloat(data.pago.equivalente_usd.toFixed(2)),
           concepto: `Venta Comercial #${newVenta.numero || newVenta.id.slice(0, 8)}`,
           categoria: "VENTA",
-          ventaId: newVenta.id,
+          venta: { connect: { id: newVenta.id } },
         },
       });
     }

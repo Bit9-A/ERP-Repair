@@ -70,6 +70,16 @@ export async function getById(id: string): Promise<TicketReparacion> {
   return data.data;
 }
 
+/** GET /repairs/cliente/:clienteId */
+export async function getRepairsByClient(
+  clienteId: string,
+): Promise<TicketReparacion[]> {
+  const { data } = await api.get<ApiResponse<TicketReparacion[]>>(
+    `/repairs/cliente/${clienteId}`,
+  );
+  return data.data;
+}
+
 /** POST /repairs */
 export async function create(
   payload: CreateRepairPayload,

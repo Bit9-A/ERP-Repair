@@ -25,6 +25,7 @@ export {
   useCreateUser,
   useUpdateUser,
   useDeleteUser,
+  useResetPassword,
 } from "./hooks/useUsers";
 
 export {

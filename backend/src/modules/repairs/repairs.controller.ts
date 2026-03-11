@@ -25,6 +25,19 @@ export async function findAll(req: Request, res: Response, next: NextFunction) {
   }
 }
 
+export async function findByClienteId(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const tickets = await service.findByClienteId(req.params["clienteId"] as string);
+    res.json({ success: true, data: tickets });
+  } catch (err) {
+    next(err);
+  }
+}
+
 export async function getHistory(
   req: Request,
   res: Response,
