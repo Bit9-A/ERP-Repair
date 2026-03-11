@@ -42,7 +42,7 @@ export function TicketForm({
     });
 
   const modalTitle = initialData
-    ? `Editar Ticket #T-${initialData.id.substring(0, 6)}`
+    ? `Editar Orden  #-${initialData.id.substring(0, 6)}`
     : "Nueva Orden de Reparación";
 
   const isMobile = useMediaQuery("(max-width: 768px)");
@@ -92,7 +92,7 @@ export function TicketForm({
                 : undefined
             }
           >
-            {isEdit ? "Actualizar Ticket" : "Crear Ticket"}
+            {isEdit ? "Actualizar Orden" : "Crear Orden"}
           </Button>
         </Group>
       </Stack>
