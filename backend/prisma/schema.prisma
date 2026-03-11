@@ -45,6 +45,7 @@ model Usuario {
   updatedAt                DateTime           @updatedAt
   sucursalId               String?
   permisos                 Json?
+
   gana_comision            Boolean            @default(true)
   gana_salario             Boolean            @default(false)
   salario_base_usd         Float              @default(0)

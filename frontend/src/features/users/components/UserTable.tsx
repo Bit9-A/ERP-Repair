@@ -1,11 +1,12 @@
 import { Table, Text, Group, ActionIcon, Tooltip, Badge } from "@mantine/core";
-import { IconPencil, IconTrash, IconBuilding } from "@tabler/icons-react";
+import { IconPencil, IconTrash, IconBuilding, IconKey } from "@tabler/icons-react";
 import type { Usuario } from "../../../types";
 
 interface UserTableProps {
   users: Usuario[];
   onEdit: (user: Usuario) => void;
   onDelete: (user: Usuario) => void;
+  onResetPassword: (user: Usuario) => void;
 }
 
 const ROL_CONFIG: Record<string, { label: string; color: string }> = {
@@ -14,7 +15,7 @@ const ROL_CONFIG: Record<string, { label: string; color: string }> = {
   VENDEDOR: { label: "Vendedor", color: "blue" },
 };
 
-export function UserTable({ users, onEdit, onDelete }: UserTableProps) {
+export function UserTable({ users, onEdit, onDelete, onResetPassword }: UserTableProps) {
   return (
     <Table
       highlightOnHover
@@ -98,6 +99,19 @@ export function UserTable({ users, onEdit, onDelete }: UserTableProps) {
                       }}
                     >
                       <IconPencil size={16} />
+                    </ActionIcon>
+                  </Tooltip>
+                  <Tooltip label="Resetear Contraseña">
+                    <ActionIcon
+                      variant="subtle"
+                      color="orange"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onResetPassword(user);
+                      }}
+                    >
+                      <IconKey size={16} />
                     </ActionIcon>
                   </Tooltip>
                   <Tooltip label="Eliminar">

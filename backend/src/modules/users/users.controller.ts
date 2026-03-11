@@ -67,6 +67,22 @@ export async function update(req: Request, res: Response, next: NextFunction) {
   }
 }
 
+export async function resetPassword(req: Request, res: Response, next: NextFunction) {
+  try {
+    const { newPassword } = req.body;
+    if (!newPassword || newPassword.length < 6) {
+      throw Object.assign(new Error("La nueva contraseña debe tener al menos 6 caracteres"), { statusCode: 400 });
+    }
+    const user = await usersService.resetPasswordByAdmin(
+      req.params["id"] as string,
+      newPassword,
+    );
+    res.json({ success: true, data: user, message: "Contraseña reseteada exitosamente" });
+  } catch (err) {
+    next(err);
+  }
+}
+
 export async function remove(req: Request, res: Response, next: NextFunction) {
   try {
     const result = await usersService.remove(req.params["id"] as string);

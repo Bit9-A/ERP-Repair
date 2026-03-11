@@ -53,6 +53,19 @@ export function useUpdateUser() {
   });
 }
 
+export function useResetPassword() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, newPassword }: { id: string; newPassword: string }) =>
+      usersService.resetPassword(id, newPassword),
+    onSuccess: (_data, variables) => {
+      qc.invalidateQueries({
+        queryKey: queryKeys.users.detail(variables.id),
+      });
+    },
+  });
+}
+
 export function useDeleteUser() {
   const qc = useQueryClient();
   return useMutation({

@@ -57,6 +57,12 @@ export async function update(
   return data.data;
 }
 
+/** PUT /users/:id/reset-password */
+export async function resetPassword(id: string, newPassword: string): Promise<Usuario> {
+  const { data } = await api.put<ApiResponse<Usuario>>(`/users/${id}/reset-password`, { newPassword });
+  return data.data;
+}
+
 /** DELETE /users/:id */
 export async function remove(id: string): Promise<Usuario> {
   const { data } = await api.delete<ApiResponse<Usuario>>(`/users/${id}`);

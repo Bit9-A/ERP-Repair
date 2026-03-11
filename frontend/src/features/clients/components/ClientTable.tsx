@@ -1,15 +1,16 @@
 import { Table, Text, Group, ActionIcon, Tooltip, Badge } from "@mantine/core";
 import { modals } from "@mantine/modals";
-import { IconPencil, IconTrash } from "@tabler/icons-react";
+import { IconPencil, IconTrash, IconClock } from "@tabler/icons-react";
 import type { Cliente } from "../../../services/clients.service";
 
 interface ClientTableProps {
   clients: Cliente[];
   onEdit: (client: Cliente) => void;
   onDelete: (client: Cliente) => void;
+  onViewHistory: (client: Cliente) => void;
 }
 
-export function ClientTable({ clients, onEdit, onDelete }: ClientTableProps) {
+export function ClientTable({ clients, onEdit, onDelete, onViewHistory }: ClientTableProps) {
   return (
     <Table
       highlightOnHover
@@ -106,6 +107,16 @@ export function ClientTable({ clients, onEdit, onDelete }: ClientTableProps) {
               {/* Acciones */}
               <Table.Td>
                 <Group gap="xs" justify="center">
+                  <Tooltip label="Ver Historial">
+                    <ActionIcon
+                      variant="subtle"
+                      color="violet"
+                      size="sm"
+                      onClick={() => onViewHistory(client)}
+                    >
+                      <IconClock size={16} />
+                    </ActionIcon>
+                  </Tooltip>
                   <Tooltip label="Editar">
                     <ActionIcon
                       variant="subtle"

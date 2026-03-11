@@ -28,6 +28,7 @@ import {
 import { StatCard } from "../../../components/ui/StatCard";
 import { UserTable } from "../components/UserTable";
 import { UserForm } from "../components/UserForm";
+import { ResetPasswordModal } from "../components/ResetPasswordModal";
 import type { Usuario } from "../../../types";
 import type { UserFormValues } from "../types/users.types";
 import {
@@ -35,13 +36,17 @@ import {
   useCreateUser,
   useUpdateUser,
   useDeleteUser,
+  useResetPassword,
 } from "../../../services";
 
 export function UsersPage() {
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState<string | null>(null);
   const [editUser, setEditUser] = useState<Usuario | null>(null);
+  const [resetUser, setResetUser] = useState<Usuario | null>(null);
   const [formOpened, { open: openForm, close: closeForm }] =
+    useDisclosure(false);
+  const [resetOpened, { open: openReset, close: closeReset }] =
     useDisclosure(false);
 
   // -- API hooks --
@@ -49,6 +54,7 @@ export function UsersPage() {
   const createUser = useCreateUser();
   const updateUser = useUpdateUser();
   const deleteUser = useDeleteUser();
+  const resetPassword = useResetPassword();
 
   const filtered = users.filter(
     (u) =>
@@ -69,6 +75,29 @@ export function UsersPage() {
   const handleNew = () => {
     setEditUser(null);
     openForm();
+  };
+
+  const handleOpenReset = (user: Usuario) => {
+    setResetUser(user);
+    openReset();
+  };
+
+  const handleResetSubmit = async (newPassword: string) => {
+    if (!resetUser) return;
+    try {
+      await resetPassword.mutateAsync({ id: resetUser.id, newPassword });
+      notifications.show({
+        title: "Contraseña actualizada",
+        message: `La contraseña de ${resetUser.nombre} ha sido reseteada`,
+        color: "green",
+      });
+    } catch {
+      notifications.show({
+        title: "Error",
+        message: "No se pudo resetear la contraseña",
+        color: "red",
+      });
+    }
   };
 
   const handleSubmit = async (values: UserFormValues) => {
@@ -252,6 +281,7 @@ export function UsersPage() {
           users={filtered}
           onEdit={handleEdit}
           onDelete={handleDelete}
+          onResetPassword={handleOpenReset}
         />
 
         {filtered.length === 0 && !isLoading && (
@@ -277,6 +307,13 @@ export function UsersPage() {
         onClose={closeForm}
         onSubmit={handleSubmit}
         initialData={editUser}
+      />
+
+      <ResetPasswordModal
+        opened={resetOpened}
+        onClose={closeReset}
+        onSubmit={handleResetSubmit}
+        user={resetUser}
       />
     </Stack>
   );
