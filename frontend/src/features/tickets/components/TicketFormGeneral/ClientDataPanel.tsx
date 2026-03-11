@@ -109,7 +109,8 @@ export function ClientDataPanel({
                 setClienteTelefono("");
                 setClienteCorreo("");
               }}
-              leftSection={<IconSearch size={16} />}
+              aria-label="Cédula del Cliente o Documento de Identidad"
+              leftSection={<IconSearch size={16} aria-hidden="true" />}
               rightSection={
                 searchingClient ? (
                   <Loader size={14} />
@@ -170,8 +171,8 @@ export function ClientDataPanel({
                 }}
               >
                 <Group gap="xs" mb="sm">
-                  <IconUserPlus size={16} color="var(--mantine-color-blue-6)" />
-                  <Text size="sm" fw={600}>
+                  <IconUserPlus size={16} color="var(--brand)" aria-hidden="true" />
+                  <Text size="sm" fw={600} c="var(--brand)">
                     Nuevo Cliente
                   </Text>
                 </Group>

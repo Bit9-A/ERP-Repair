@@ -1,4 +1,4 @@
-import { Drawer, Timeline, Text, Badge, Group, Stack, Card, Title, Loader } from "@mantine/core";
+import { Drawer, Timeline, Text, Badge, Group, Stack, Card, Loader } from "@mantine/core";
 import { IconTool, IconCheck, IconX, IconClock, IconDeviceMobile } from "@tabler/icons-react";
 import { useClientRepairs } from "../../../services/hooks/useRepairs";
 import type { Cliente } from "../../../services/clients.service";
@@ -39,7 +39,7 @@ export function ClientHistoryDrawer({ opened, onClose, cliente }: ClientHistoryD
       onClose={onClose}
       position="right"
       size="md"
-      title={<Title order={3}>Historial de {cliente?.nombre}</Title>}
+      title={cliente ? `Historial de ${cliente.nombre}` : "Historial del Cliente"}
       overlayProps={{ opacity: 0.5, blur: 4 }}
     >
       <Stack gap="lg" mt="md">

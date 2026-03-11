@@ -84,6 +84,7 @@ export function CostosDataPanel({
             )}
             <Select
               label="Técnico"
+              aria-label="Asignar técnico responsable"
               placeholder="Asignar"
               description="Según tecnico a reparar"
               data={tecnicoOptions}
@@ -115,6 +116,7 @@ export function CostosDataPanel({
                 onChange={(val) =>
                   form.setFieldValue("porcentaje_tecnico", val / 100)
                 }
+                aria-label="Porcentaje de comisión para el técnico"
                 marks={[
                   { value: 20, label: "20%" },
                   { value: 40, label: "40%" },

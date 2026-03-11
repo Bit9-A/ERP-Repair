@@ -106,12 +106,30 @@ export function TicketForm({
     <Modal
       opened={opened}
       onClose={onClose}
-      title={modalTitle}
+      title={<Text fw={700} size="lg" aria-level={1}>{modalTitle}</Text>}
       size="xl"
       fullScreen={isMobile}
       radius={isMobile ? 0 : "md"}
       closeOnClickOutside={false}
       closeOnEscape={false}
+      overlayProps={{
+        backgroundOpacity: 0.55,
+        blur: 3,
+      }}
+      shadow="xl"
+      transitionProps={{ transition: 'pop' }}
+      styles={{
+        header: {
+          borderBottom: '1px solid var(--border-subtle)',
+          paddingBottom: '1rem',
+          marginBottom: '1rem'
+        },
+        body: {
+          paddingTop: 0
+        }
+      }}
+      aria-labelledby="ticket-form-modal-title"
+      aria-describedby="ticket-form-modal-description"
     >
       {initialData ? (
         <Tabs defaultValue="general" mb="md">
