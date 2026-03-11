@@ -61,18 +61,19 @@ const NAV_ITEMS: NavItem[] = [
     moduleKey: "finanzas",
   },
   {
+    label: "Sucursales",
+    icon: IconBuildingStore,
+    path: "/sucursales",
+    adminOnly: true,
+  },
+  {
     label: "Usuarios",
     icon: IconUsers,
     path: "/usuarios",
     adminOnly: true,
     moduleKey: "usuarios",
   },
-  {
-    label: "Sucursales",
-    icon: IconBuildingStore,
-    path: "/sucursales",
-    adminOnly: true,
-  },
+
 ];
 
 interface SidebarProps {

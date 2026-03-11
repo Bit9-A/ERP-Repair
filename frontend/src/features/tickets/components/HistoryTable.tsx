@@ -65,7 +65,7 @@ export function HistoryTable({ onTicketClick }: HistoryTableProps) {
           >
             <Table.Thead>
               <Table.Tr>
-                <Table.Th>Ticket</Table.Th>
+                <Table.Th>Orden</Table.Th>
                 <Table.Th>Cliente</Table.Th>
                 <Table.Th>Dispositivo</Table.Th>
                 <Table.Th>Ingreso</Table.Th>

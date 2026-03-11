@@ -3,7 +3,7 @@
 // ============================================
 
 export const APP_NAME = "TecnoPro Cell";
-export const APP_SUBTITLE = "Sistema de Gestión";
+export const APP_SUBTITLE = "Sistema de Gestión de Reparación";
 
 // -- Ticket status labels & colors --
 export const TICKET_STATUS = {

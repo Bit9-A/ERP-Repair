@@ -211,7 +211,7 @@ export function KanbanPage() {
             value="activos"
             leftSection={<IconLayoutKanban size={16} />}
           >
-            Tickets Activos
+            Ordenes Activas
           </Tabs.Tab>
           <Tabs.Tab value="historial" leftSection={<IconArchive size={16} />}>
             Historial (Entregados)

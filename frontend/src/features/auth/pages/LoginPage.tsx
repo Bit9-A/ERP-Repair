@@ -3,22 +3,22 @@ import {
   Box,
   Button,
   Card,
-  Center,
+  Flex,
   PasswordInput,
   Stack,
   Text,
   TextInput,
   Title,
-  Group,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { notifications } from "@mantine/notifications";
-import { modals } from "@mantine/modals";
 import { IconLock, IconUser } from "@tabler/icons-react";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../store/auth.store";
 import { authService } from "../services/auth.service";
 import { APP_NAME, APP_SUBTITLE } from "../../../lib/constants";
+
+const FONT_IMPORT = "@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@800&family=Plus+Jakarta+Sans:wght@800&display=swap');";
 
 export function LoginPage() {
   const [loading, setLoading] = useState(false);
@@ -53,108 +53,140 @@ export function LoginPage() {
     }
   };
 
-  const handleForgotPassword = () => {
-    modals.open({
-      title: "Recuperación de Contraseña",
-      children: (
-        <Stack>
-          <Text size="sm">
-            Por motivos de seguridad, si has olvidado tu contraseña debes comunicárselo 
-            al <Text span fw={600}>Administrador o Gerente</Text> de forma directa para 
-            que te la restablezca en el sistema.
-          </Text>
-          <Button fullWidth onClick={() => modals.closeAll()} mt="md">
-            Entendido
-          </Button>
-        </Stack>
-      ),
-      centered: true,
-      overlayProps: { blur: 3, opacity: 0.55 },
-    });
-  };
-
   return (
-    <Box
+    <Flex
+      mih="100vh"
+      align="center"
+      justify={{ base: "center", md: "flex-end" }}
+      px={{ base: "1rem", md: "11%" }}
       style={{
-        minHeight: "100vh",
-        background:
-          "linear-gradient(135deg, var(--brand-900) 0%, var(--bg-main) 100%)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
+        backgroundImage: 'url("/reballing-bg.jpg")',
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        position: "relative",
+        backgroundAttachment: "fixed",
+        overflow: "hidden"
       }}
     >
-      <Center>
-        <Card
-          w={420}
-          shadow="xl"
-          padding="xl"
-          radius="lg"
-          style={{
-            background: "rgba(30, 41, 59, 0.85)",
-            backdropFilter: "blur(12px)",
-            border: "1px solid var(--border-subtle)",
-          }}
-        >
-          <form onSubmit={form.onSubmit(handleSubmit)}>
-            <Stack gap="lg" align="center">
-              {/* Logo / Title */}
-              <Title
-                order={2}
-                ff="monospace"
-                style={{
-                  textShadow: "0 0 10px rgba(35, 124, 213, 0.3)",
-                  color: "var(--text-primary)",
-                }}
-              >
+      <style dangerouslySetInnerHTML={{ __html: FONT_IMPORT }} />
+
+      <Box
+        style={{
+          position: "absolute",
+          inset: 0,
+          background: "linear-gradient(135deg, rgba(10, 25, 47, 0.7) 0%, rgba(10, 25, 47, 0.9) 100%)",
+          backdropFilter: "blur(4px)",
+          zIndex: 1,
+        }}
+      />
+
+      <Card
+        w="95%"
+        maw={420}
+        padding="xl"
+        radius={24}
+        style={{
+          background: "rgba(10, 25, 47, 0.2)",
+          backdropFilter: "blur(15px)",
+          border: "1px solid rgba(255, 255, 255, 0.15)",
+          boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.5)",
+          zIndex: 10,
+          position: "relative",
+        }}
+      >
+        <form onSubmit={form.onSubmit(handleSubmit)}>
+          <Stack gap="xl">
+            <Stack gap={4} align="center">
+              <Title order={1} style={{
+                fontSize: "2.6rem",
+                fontWeight: 800,
+                color: "#ffffff",
+                fontFamily: "'Outfit', sans-serif",
+                letterSpacing: "-1.5px",
+                lineHeight: 1,
+                marginBottom: 4
+              }}>
                 {APP_NAME}
               </Title>
-
-              <Text size="sm" c="dimmed" ta="center">
+              <Text size="xs" fw={400} style={{ color: "rgba(255, 255, 255, 0.5)", letterSpacing: "2px", textTransform: "uppercase" }}>
                 {APP_SUBTITLE}
               </Text>
+            </Stack>
 
-              {/* Fields */}
+            <Box>
+              <Title order={3} fw={700} style={{ fontSize: "1.2rem", color: "#ffffff" }}>
+                Iniciar Sesión
+              </Title>
+              <Text size="xs" style={{ color: "rgba(255, 255, 255, 0.6)" }}>
+                Ingresa al panel administrativo
+              </Text>
+            </Box>
+
+            <Stack gap="md">
               <TextInput
-                w="100%"
                 label="Usuario"
-                placeholder="Tu nombre de usuario"
-                leftSection={<IconUser size={16} />}
+                placeholder="Nombre de usuario"
+                size="md"
+                radius="md"
+                leftSection={<IconUser size={18} stroke={1.5} color="rgba(255,255,255,0.7)" />}
+                styles={{
+                  input: {
+                    background: "rgba(255, 255, 255, 0.03)",
+                    border: "1px solid rgba(255, 255, 255, 0.1)",
+                    color: "#ffffff",
+                  },
+                  label: { color: "rgba(255, 255, 255, 0.8)", marginBottom: 8, fontSize: "0.85rem" }
+                }}
                 {...form.getInputProps("nombre")}
               />
 
               <PasswordInput
-                w="100%"
                 label="Contraseña"
-                placeholder="Tu contraseña"
-                leftSection={<IconLock size={16} />}
+                placeholder="••••••••"
+                size="md"
+                radius="md"
+                leftSection={<IconLock size={18} stroke={1.5} color="rgba(255,255,255,0.7)" />}
+                styles={{
+                  input: {
+                    background: "rgba(255, 255, 255, 0.03)",
+                    border: "1px solid rgba(255, 255, 255, 0.1)",
+                    color: "#ffffff",
+                  },
+                  label: { color: "rgba(255, 255, 255, 0.8)", marginBottom: 8, fontSize: "0.85rem" }
+                }}
                 {...form.getInputProps("password")}
               />
 
-              <Group justify="flex-end" w="100%" mt="-sm">
-                <Button variant="transparent" size="xs" color="dimmed" onClick={handleForgotPassword}>
-                  ¿Olvidaste tu contraseña?
-                </Button>
-              </Group>
-
-              {/* Submit */}
               <Button
                 type="submit"
                 fullWidth
                 loading={loading}
-                size="md"
-                mt="sm"
+                size="lg"
+                radius="lg"
+                mt="md"
+                style={{
+                  height: 52,
+                  backgroundColor: "#2563eb",
+                  fontSize: "0.9rem",
+                  fontWeight: 600,
+                  boxShadow: "0 10px 20px -5px rgba(37, 99, 235, 0.4)",
+                }}
               >
-                Iniciar Sesión
+                INICIAR SESIÓN
               </Button>
+            </Stack>
 
-              <Text size="xs" c="dimmed" ta="center">
-                Versión Local • Solo acceso autorizado
+            <Stack gap={4} align="center">
+              <Text style={{ fontSize: "10px", color: "rgba(255, 255, 255, 0.5)", fontWeight: 500, letterSpacing: "0.5px" }}>
+                ERP-REPAIR v1.0 • ACCESO PROTEGIDO
+              </Text>
+              <Text size="xs" style={{ color: "rgba(255, 255, 255, 0.2)" }}>
+                © {new Date().getFullYear()} {APP_NAME}
               </Text>
             </Stack>
-          </form>
-        </Card>
-      </Center>
-    </Box>
+          </Stack>
+        </form>
+      </Card>
+    </Flex>
   );
 }
