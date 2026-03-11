@@ -74,8 +74,8 @@ export async function registrarPago(data: {
         monto_usd: parseFloat(equivalente_usd.toFixed(2)),
         concepto,
         categoria,
-        ticketId: data.ticketId,
-        ventaId: data.ventaId,
+        ticket: data.ticketId ? { connect: { id: data.ticketId } } : undefined,
+        venta: data.ventaId ? { connect: { id: data.ventaId } } : undefined,
       },
     });
 
@@ -265,6 +265,13 @@ export async function getEgresos(periodo?: Periodo) {
           id: true,
           marca: true,
           modelo: true,
+        },
+      },
+      producto: {
+        select: {
+          id: true,
+          marca_comp: true,
+          modelo_comp: true,
         },
       },
     },

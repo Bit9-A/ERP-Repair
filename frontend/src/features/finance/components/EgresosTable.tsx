@@ -187,6 +187,12 @@ export function EgresosTable({ periodo }: EgresosTableProps) {
                           {egreso.ticket.marca} {egreso.ticket.modelo}
                         </Text>
                       )}
+                      {egreso.producto && (
+                        <Text size="xs" c="dimmed">
+                          {egreso.producto.marca_comp}{" "}
+                          {egreso.producto.modelo_comp}
+                        </Text>
+                      )}
                     </Stack>
                   </Table.Td>
                   <Table.Td>

@@ -466,7 +466,7 @@ export async function entregar(
         monto_usd: parseFloat(totalUsdPaid.toFixed(2)),
         concepto: `Cobro Ticket #${ticketId.slice(0, 8)}`,
         categoria: "REPARACION",
-        ticketId,
+        ticket: { connect: { id: ticketId } },
       },
     });
 

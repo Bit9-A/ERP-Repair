@@ -39,6 +39,8 @@ interface ProductFormProps {
       id?: string;
       isQuickAdd?: boolean;
       qtyAdded?: number;
+      costo_unitario_usd?: number;
+      sucursalId?: string;
     },
   ) => void;
   initialData?: Producto | null;
@@ -54,6 +56,8 @@ export function ProductForm({
 }: ProductFormProps) {
   const [scannerOpen, setScannerOpen] = useState(false);
   const [stockToAdd, setStockToAdd] = useState<number | string>("");
+  const [stockCost, setStockCost] = useState<number | string>("");
+  const [stockSucursalId, setStockSucursalId] = useState<string>("");
 
   // -- Brand and Model State & Queries --
   const [selectedMarcaId, setSelectedMarcaId] = useState<string | null>(null);
@@ -153,6 +157,13 @@ export function ProductForm({
         )
       : null;
 
+  // Sync default cost when existing product matches
+  useEffect(() => {
+    if (existingProductMatch && stockCost === "") {
+      setStockCost(existingProductMatch.costo_usd);
+    }
+  }, [existingProductMatch]);
+
   const handleSubmit = (values: ProductFormValues) => {
     if (existingProductMatch) {
       const qtyToAdd = Number(stockToAdd);
@@ -176,8 +187,12 @@ export function ProductForm({
         stock_actual: existingProductMatch.stock_actual + qtyToAdd,
         isQuickAdd: true,
         qtyAdded: qtyToAdd,
+        costo_unitario_usd: Number(stockCost) || existingProductMatch.costo_usd,
+        sucursalId: stockSucursalId,
       });
       setStockToAdd("");
+      setStockCost("");
+      setStockSucursalId("");
     } else {
       onSubmit(values);
     }
@@ -344,23 +359,69 @@ export function ProductForm({
                   unidades?
                 </Text>
 
-                <NumberInput
-                  label="Cantidad a añadir"
-                  placeholder="Ej: 10"
-                  min={1}
-                  value={stockToAdd}
-                  onChange={setStockToAdd}
-                  required
-                  autoFocus
-                  styles={{
-                    label: { color: "rgba(255, 255, 255, 0.9)" },
-                    input: {
-                      background: "rgba(255,255,255,0.1)",
-                      color: "white",
-                      border: "none",
-                    },
-                  }}
-                />
+                <Stack gap="xs">
+                  <SimpleGrid cols={2}>
+                    <NumberInput
+                      label="Cantidad a añadir"
+                      placeholder="Ej: 10"
+                      min={1}
+                      value={stockToAdd}
+                      onChange={setStockToAdd}
+                      required
+                      autoFocus
+                      styles={{
+                        label: { color: "rgba(255, 255, 255, 0.9)" },
+                        input: {
+                          background: "rgba(255,255,255,0.1)",
+                          color: "white",
+                          border: "none",
+                        },
+                      }}
+                    />
+                    <NumberInput
+                      label="Costo Proveedor ($)"
+                      placeholder="Ej: 5.50"
+                      min={0}
+                      decimalScale={2}
+                      fixedDecimalScale
+                      prefix="$"
+                      value={stockCost}
+                      onChange={setStockCost}
+                      required
+                      styles={{
+                        label: { color: "rgba(255, 255, 255, 0.9)" },
+                        input: {
+                          background: "rgba(255,255,255,0.1)",
+                          color: "white",
+                          border: "none",
+                        },
+                      }}
+                    />
+                  </SimpleGrid>
+
+                  <Select
+                    label="Sucursal de destino"
+                    placeholder="Selecciona sucursal"
+                    required
+                    data={sucursales.map((s) => ({
+                      value: s.id,
+                      label: s.nombre,
+                    }))}
+                    value={stockSucursalId}
+                    onChange={(v) => setStockSucursalId(v || "")}
+                    styles={{
+                      label: { color: "rgba(255, 255, 255, 0.9)" },
+                      input: {
+                        background: "rgba(255,255,255,0.1)",
+                        color: "white",
+                        border: "none",
+                      },
+                      option: {
+                        color: "var(--mantine-color-black)",
+                      },
+                    }}
+                  />
+                </Stack>
               </Paper>
             ) : (
               <>

@@ -48,19 +48,22 @@ export function TicketForm({
   const isMobile = useMediaQuery("(max-width: 768px)");
   const user = useAuthStore((state) => state.user);
   const isLocked = initialData?.estado === "ENTREGADO" && user?.rol !== "ADMIN";
+  // Non-admin users with a branch assigned cannot change the sucursal
+  const canEditSucursal = user?.rol === "ADMIN" || !user?.sucursalId;
 
   const renderGeneralForm = (isEdit: boolean) => (
     <form onSubmit={form.onSubmit(handleSubmit)}>
       <Stack gap="md">
         <Accordion
           multiple
-          defaultValue={["cliente", "equipo", "estado", "costos"]}
+          defaultValue={["sucursal", "cliente", "equipo", "estado", "costos"]}
         >
           <ClientDataPanel
             form={form}
             state={state}
             queries={queries}
             actions={actions}
+            canEditSucursal={canEditSucursal}
           />
           <EquipmentDataPanel
             form={form}
