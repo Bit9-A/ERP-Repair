@@ -8,7 +8,7 @@ import {
   Stack,
   Loader,
 } from "@mantine/core";
-import { IconSearch, IconUserPlus } from "@tabler/icons-react";
+import { IconSearch, IconUserPlus, IconDownload } from "@tabler/icons-react";
 import { useState, useMemo } from "react";
 import { useDisclosure } from "@mantine/hooks";
 import { notifications } from "@mantine/notifications";
@@ -23,11 +23,13 @@ import type { Cliente } from "../../../services/clients.service";
 import { ClientTable } from "../components/ClientTable";
 import { ClientForm, type ClientFormValues } from "../components/ClientForm";
 import { ClientHistoryDrawer } from "../components/ClientHistoryDrawer";
+import { exportClientsExcel } from "../../../services/excel/exportClientsExcel";
 
 export function ClientsPage() {
   const [search, setSearch] = useState("");
   const [opened, { open, close }] = useDisclosure(false);
   const [historyOpened, { open: openHistory, close: closeHistory }] = useDisclosure(false);
+  const [isExporting, setIsExporting] = useState(false);
   const [editingClient, setEditingClient] = useState<Cliente | null>(null);
   const [historyClient, setHistoryClient] = useState<Cliente | null>(null);
 
@@ -71,6 +73,36 @@ export function ClientsPage() {
         message: e.response?.data?.error || "Error desconocido",
         color: "red",
       });
+    }
+  };
+
+  const handleExport = async () => {
+    if (filteredClients.length === 0) {
+      notifications.show({
+        title: "Sin datos",
+        message: "No hay clientes para exportar.",
+        color: "orange",
+      });
+      return;
+    }
+
+    try {
+      setIsExporting(true);
+      await exportClientsExcel(filteredClients);
+      notifications.show({
+        title: "Exportación exitosa",
+        message: "El directorio se ha exportado correctamente.",
+        color: "green",
+      });
+    } catch (e) {
+      console.error(e);
+      notifications.show({
+        title: "Error de Exportación",
+        message: "Hubo un problema al generar el archivo Excel.",
+        color: "red",
+      });
+    } finally {
+      setIsExporting(false);
     }
   };
 
@@ -125,6 +157,15 @@ export function ClientsPage() {
               onChange={(e) => setSearch(e.currentTarget.value)}
               style={{ width: 300 }}
             />
+            <Button
+              variant="light"
+              color="green"
+              leftSection={<IconDownload size={16} />}
+              onClick={handleExport}
+              loading={isExporting}
+            >
+              Exportar
+            </Button>
             <Button
               leftSection={<IconUserPlus size={16} />}
               onClick={handleNew}
