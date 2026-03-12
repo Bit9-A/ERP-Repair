@@ -65,11 +65,7 @@ export async function findPagos(
   next: NextFunction,
 ) {
   try {
-    const periodo = req.query["periodo"] as
-      | "dia"
-      | "semana"
-      | "mes"
-      | undefined;
+    const periodo = req.query["periodo"] as string | undefined;
     const data = await service.findPagosByDate(periodo);
     res.json({ success: true, data });
   } catch (err) {
@@ -99,11 +95,7 @@ export async function getStats(
   next: NextFunction,
 ) {
   try {
-    const periodo = req.query["periodo"] as
-      | "dia"
-      | "semana"
-      | "mes"
-      | undefined;
+    const periodo = req.query["periodo"] as string | undefined;
     const data = await service.getStats(periodo);
     res.json({ success: true, data });
   } catch (err) {
@@ -131,11 +123,7 @@ export async function getEgresos(
   next: NextFunction,
 ) {
   try {
-    const periodo = req.query["periodo"] as
-      | "dia"
-      | "semana"
-      | "mes"
-      | undefined;
+    const periodo = req.query["periodo"] as string | undefined;
     const data = await service.getEgresos(periodo);
     res.json({ success: true, data });
   } catch (err) {

@@ -43,6 +43,7 @@ import {
 } from "../../../services";
 import { useAuthStore } from "../../auth/store/auth.store";
 import { usePermissions } from "../../../hooks/usePermissions";
+import { exportInventoryExcel } from "../../../services/excel/exportInventoryExcel";
 
 export function InventoryPage() {
   const [searchParams] = useSearchParams();
@@ -76,6 +77,8 @@ export function InventoryPage() {
   const updateProduct = useUpdateProduct();
   const addStock = useAddStock();
   const deleteProduct = useDeleteProduct();
+
+  const [isExporting, setIsExporting] = useState(false);
 
   const filtered = products.filter((p) => {
     const matchesSearch =
@@ -183,6 +186,31 @@ export function InventoryPage() {
     }
   };
 
+  const handleExport = async () => {
+    setIsExporting(true);
+    try {
+      const activeSucursalName = isAdmin
+        ? (adminSucursalId ? sucursales.find(s => s.id === adminSucursalId)?.nombre : "Global")
+        : currentUser?.sucursal?.nombre;
+      
+      // Always pass the fully available matching array to excel so they have all info
+      await exportInventoryExcel(products, activeSucursalName || undefined, currentUser?.nombre);
+      notifications.show({
+        title: "Exportación exitosa",
+        message: "El archivo de inventario ha sido generado",
+        color: "green",
+      });
+    } catch {
+      notifications.show({
+        title: "Error al exportar",
+        message: "No se pudo generar el documento Excel.",
+        color: "red",
+      });
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   return (
     <Stack gap="xl" pos="relative">
       <LoadingOverlay visible={isLoading} />
@@ -196,6 +224,8 @@ export function InventoryPage() {
             color="gray"
             leftSection={<IconDownload size={16} />}
             size="sm"
+            onClick={handleExport}
+            loading={isExporting}
           >
             Exportar
           </Button>

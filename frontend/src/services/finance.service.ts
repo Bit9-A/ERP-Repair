@@ -79,7 +79,7 @@ export async function updateTasa(
 
 /** GET /finance/pagos */
 export async function getPagos(
-  periodo?: "dia" | "semana" | "mes",
+  periodo?: string,
 ): Promise<Pago[]> {
   const { data } = await api.get<ApiResponse<Pago[]>>("/finance/pagos", {
     params: periodo ? { periodo } : undefined,
@@ -109,7 +109,7 @@ export async function getCierre(fecha?: string): Promise<CierreDeCaja> {
 
 /** GET /finance/stats */
 export async function getStats(
-  periodo?: "dia" | "semana" | "mes",
+  periodo?: string,
 ): Promise<FinanceStats> {
   const { data } = await api.get<ApiResponse<FinanceStats>>("/finance/stats", {
     params: periodo ? { periodo } : undefined,
@@ -130,7 +130,7 @@ export interface CreateEgresoPayload {
 
 /** GET /finance/egresos */
 export async function getEgresos(
-  periodo?: "dia" | "semana" | "mes",
+  periodo?: string,
 ): Promise<import("../types").TransaccionFinanciera[]> {
   const { data } = await api.get<
     ApiResponse<import("../types").TransaccionFinanciera[]>

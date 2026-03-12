@@ -31,8 +31,10 @@ import {
   IconEye,
   IconBan,
   IconCheck,
+  IconDownload,
 } from "@tabler/icons-react";
 import { StatCard } from "../../../components/ui/StatCard";
+import { exportSalesExcel } from "../../../services/excel/exportSalesExcel";
 import { SaleForm } from "../components/SaleForm";
 import type { SaleFormValues } from "../components/SaleForm";
 import { SALE_STATUS } from "../../../lib/constants";
@@ -54,6 +56,37 @@ export function SalesPage() {
     useDisclosure(false);
   const [saleFormOpened, { open: openSaleForm, close: closeSaleForm }] =
     useDisclosure(false);
+  const [isExporting, setIsExporting] = useState(false);
+
+  const handleExport = async () => {
+    if (filtered.length === 0) {
+      notifications.show({
+        title: "Sin datos",
+        message: "No hay ventas que coincidan con la búsqueda actual para exportar.",
+        color: "orange",
+      });
+      return;
+    }
+
+    try {
+      setIsExporting(true);
+      await exportSalesExcel(filtered);
+      notifications.show({
+        title: "Exportación Exitosa",
+        message: "El archivo Excel se generó correctamente.",
+        color: "green",
+      });
+    } catch (error) {
+      console.error(error);
+      notifications.show({
+        title: "Error",
+        message: "Hubo un problema al generar el Excel.",
+        color: "red",
+      });
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   // -- Context hooks --
   const { user } = useAuthStore();
@@ -161,13 +194,24 @@ export function SalesPage() {
         <Group gap="xs">
           <Title order={2}>Ventas</Title>
         </Group>
-        <Button
-          leftSection={<IconPlus size={16} />}
-          size="sm"
-          onClick={openSaleForm}
-        >
-          Nueva Venta
-        </Button>
+        <Group gap="sm">
+          <Button
+            variant="light"
+            color="green"
+            leftSection={<IconDownload size={16} />}
+            onClick={handleExport}
+            loading={isExporting}
+          >
+            Exportar
+          </Button>
+          <Button
+            leftSection={<IconPlus size={16} />}
+            size="sm"
+            onClick={openSaleForm}
+          >
+            Nueva Venta
+          </Button>
+        </Group>
       </Group>
 
       {/* KPI Cards */}
@@ -280,6 +324,7 @@ export function SalesPage() {
               <Table.Tr>
                 <Table.Th>Código</Table.Th>
                 <Table.Th>Cliente</Table.Th>
+                <Table.Th>Cédula/ID</Table.Th>
                 <Table.Th>Vendedor</Table.Th>
                 <Table.Th style={{ textAlign: "right" }}>Total</Table.Th>
                 <Table.Th>Estado</Table.Th>
@@ -303,6 +348,11 @@ export function SalesPage() {
                     <Table.Td>
                       <Text size="sm">
                         {sale.cliente?.nombre || "Sin cliente"}
+                      </Text>
+                    </Table.Td>
+                    <Table.Td>
+                      <Text size="sm" c="dimmed" ff="monospace">
+                        {sale.cliente?.cedula || "—"}
                       </Text>
                     </Table.Td>
                     <Table.Td>
@@ -413,6 +463,11 @@ export function SalesPage() {
                 <Text size="sm" fw={600}>
                   {detailSale.cliente?.nombre || "Sin cliente"}
                 </Text>
+                {detailSale.cliente?.cedula && (
+                  <Text size="xs" c="dimmed" ff="monospace">
+                    ID: {detailSale.cliente.cedula}
+                  </Text>
+                )}
               </div>
               <div>
                 <Text size="xs" c="dimmed">

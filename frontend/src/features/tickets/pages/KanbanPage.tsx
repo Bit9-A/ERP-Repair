@@ -25,6 +25,7 @@ import {
   IconFilter,
   IconSortAscending,
   IconArchive,
+  IconDownload,
 } from "@tabler/icons-react";
 import { KanbanBoard } from "../components/KanbanBoard";
 import { TicketListView } from "../components/TicketListView";
@@ -39,6 +40,9 @@ import {
   useCreateRepair,
   useUpdateRepair,
 } from "../../../services";
+import * as repairsService from "../../../services/repairs.service";
+import { useAuthStore } from "../../auth/store/auth.store";
+import { exportTicketsExcel } from "../../../services/excel/exportTicketsExcel";
 
 export function KanbanPage() {
   const [searchParams] = useSearchParams();
@@ -55,6 +59,10 @@ export function KanbanPage() {
   // -- List Filters state --
   const [filterEstado, setFilterEstado] = useState<string>("ALL");
   const [sortBy, setSortBy] = useState<string>("NEWEST");
+  const [isExporting, setIsExporting] = useState(false);
+
+  // User details for Excel export
+  const currentUser = useAuthStore((s) => s.user);
 
   const [deliveryTicket, setDeliveryTicket] = useState<TicketReparacion | null>(
     null,
@@ -182,6 +190,36 @@ export function KanbanPage() {
     }
   };
 
+  const handleExport = async () => {
+    setIsExporting(true);
+    try {
+      // Get all history (paginated theoretically, but 9999 ensures almost all for export)
+      // and combine with active tickets so nothing is missed.
+      const historyRes = await repairsService.getHistory(1, 9999, "");
+      const allTicketsMap = new Map<string, TicketReparacion>();
+      
+      tickets.forEach(t => allTicketsMap.set(t.id, t));
+      historyRes.data.forEach(t => allTicketsMap.set(t.id, t));
+      
+      const combinedTickets = Array.from(allTicketsMap.values());
+
+      await exportTicketsExcel(combinedTickets, currentUser?.nombre);
+      notifications.show({
+        title: "Exportación exitosa",
+        message: "El archivo de reparaciones ha sido generado con totales e historial",
+        color: "green",
+      });
+    } catch (err) {
+      notifications.show({
+        title: "Error",
+        message: "Hubo un problema al generar el archivo Excel",
+        color: "red",
+      });
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   return (
     <Stack gap="xl" pos="relative">
       <LoadingOverlay visible={isLoading} />
@@ -194,15 +232,28 @@ export function KanbanPage() {
           </Badge>
         </Group>
 
-        <Button
-          leftSection={<IconPlus size={16} />}
-          onClick={() => {
-            setSelectedTicket(null);
-            openForm();
-          }}
-        >
-          Nueva Orden
-        </Button>
+        <Group gap="sm">
+          <Button
+            variant="subtle"
+            color="gray"
+            size="sm"
+            leftSection={<IconDownload size={16} />}
+            loading={isExporting}
+            onClick={handleExport}
+          >
+            Exportar
+          </Button>
+
+          <Button
+            leftSection={<IconPlus size={16} />}
+            onClick={() => {
+              setSelectedTicket(null);
+              openForm();
+            }}
+          >
+            Nueva Orden
+          </Button>
+        </Group>
       </Group>
 
       <Tabs defaultValue="activos" keepMounted={false} radius="md">

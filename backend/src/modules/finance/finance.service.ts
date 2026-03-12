@@ -83,9 +83,17 @@ export async function registrarPago(data: {
   });
 }
 
-type Periodo = "dia" | "semana" | "mes";
+type Periodo = "dia" | "semana" | "mes" | string;
 
 function getDateRange(periodo: Periodo = "dia"): { start: Date; end: Date } {
+  if (typeof periodo === "string" && /^\d{4}-\d{2}$/.test(periodo)) {
+    const [year, month] = periodo.split("-").map(Number);
+    const start = new Date(year, month - 1, 1);
+    start.setHours(0, 0, 0, 0);
+    const end = new Date(year, month, 0, 23, 59, 59, 999);
+    return { start, end };
+  }
+
   const now = new Date();
   const start = new Date(now);
   const end = new Date(now);

@@ -43,7 +43,7 @@ export function useUpdateTasa() {
 
 // -- Pagos --
 
-export function usePagos(periodo?: "dia" | "semana" | "mes") {
+export function usePagos(periodo?: string) {
   return useQuery({
     queryKey: queryKeys.finance.pagos(periodo),
     queryFn: () => financeService.getPagos(periodo),
@@ -74,7 +74,7 @@ export function useCierre(fecha?: string) {
 
 // -- Stats --
 
-export function useFinanceStats(periodo?: "dia" | "semana" | "mes") {
+export function useFinanceStats(periodo?: string) {
   return useQuery({
     queryKey: [...queryKeys.finance.stats, periodo ?? "dia"],
     queryFn: () => financeService.getStats(periodo),
@@ -86,7 +86,7 @@ export function useFinanceStats(periodo?: "dia" | "semana" | "mes") {
 
 // -- Egresos (Gastos) --
 
-export function useEgresos(periodo?: "dia" | "semana" | "mes") {
+export function useEgresos(periodo?: string) {
   return useQuery({
     queryKey: queryKeys.finance.egresos(periodo),
     queryFn: () => financeService.getEgresos(periodo),

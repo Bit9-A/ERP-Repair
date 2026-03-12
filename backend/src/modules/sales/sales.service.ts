@@ -15,7 +15,7 @@ export async function findAll(filters?: {
       ...(filters?.sucursalId && { sucursalId: filters.sucursalId }),
     },
     include: {
-      cliente: { select: { id: true, nombre: true, telefono: true } },
+      cliente: { select: { id: true, nombre: true, telefono: true, cedula: true } },
       vendedor: { select: { id: true, nombre: true } },
       sucursal: { select: { id: true, nombre: true } },
       items: {

@@ -17,29 +17,32 @@ import {
   LoadingOverlay,
   SegmentedControl,
   Tabs,
+  Modal,
 } from "@mantine/core";
+import { MonthPickerInput } from "@mantine/dates";
 import { notifications } from "@mantine/notifications";
-import {
-  IconCurrencyDollar,
+import { IconCurrencyDollar,
   IconReceipt,
   IconTrendingUp,
   IconTrendingDown,
   IconArrowsExchange,
   IconCash,
   IconReportMoney,
-  IconWallet,
   IconCheck,
   IconDeviceFloppy,
   IconRefresh,
   IconSun,
   IconCalendarStats,
   IconCalendar,
+  IconFileSpreadsheet,
+  IconAlertCircle,
 } from "@tabler/icons-react";
 import { StatCard } from "../../../components/ui/StatCard";
 import { PaymentsTable } from "../components/PaymentsTable";
 import { EgresosTable } from "../components/EgresosTable";
 import { RecurringExpensesPanel } from "../components/RecurringExpensesPanel";
-import { useMonedas, useUpdateTasa, useFinanceStats } from "../../../services";
+import { useMonedas, useUpdateTasa, useFinanceStats, financeService } from "../../../services";
+import { exportFinanceExcel } from "../../../services/excel/exportFinanceExcel";
 
 type Periodo = "dia" | "semana" | "mes";
 
@@ -85,6 +88,11 @@ export function FinancePage() {
   const { data: monedas = [], isLoading } = useMonedas();
   const updateTasa = useUpdateTasa();
   const { data: stats } = useFinanceStats(periodo);
+
+  const [isExporting, setIsExporting] = useState(false);
+  const [exportModalOpen, setExportModalOpen] = useState(false);
+  const [exportPeriodo, setExportPeriodo] = useState<string>("dia");
+  const [exportMonthDate, setExportMonthDate] = useState<Date | null>(new Date());
 
   // Build a map: code -> { id, tasa_cambio }
   const monedaMap = Object.fromEntries(
@@ -138,6 +146,46 @@ export function FinancePage() {
         message: "No se pudieron guardar las tasas",
         color: "red",
       });
+    }
+  };
+
+  const handleExport = async () => {
+    setIsExporting(true);
+    try {
+      let finalPeriodo = exportPeriodo;
+      if (exportPeriodo === "custom") {
+        if (!exportMonthDate) {
+          notifications.show({
+            title: "Error",
+            message: "Por favor seleccione un mes válido.",
+            color: "red",
+            icon: <IconAlertCircle size={16} />,
+          });
+          setIsExporting(false);
+          return;
+        }
+        const y = exportMonthDate.getFullYear();
+        const m = String(exportMonthDate.getMonth() + 1).padStart(2, "0");
+        finalPeriodo = `${y}-${m}`;
+      }
+
+      // 1. Obtener la data fresca del backend para el periodo seleccionado
+      const [pagosData, egresosData] = await Promise.all([
+        financeService.getPagos(finalPeriodo),
+        financeService.getEgresos(finalPeriodo)
+      ]);
+      // 2. Exportar el excel con esa data
+      await exportFinanceExcel(pagosData, egresosData, finalPeriodo);
+      setExportModalOpen(false);
+    } catch (err) {
+      notifications.show({
+        title: "Error al exportar",
+        message: "Ocurrió un error al obtener la información financiera cruzada",
+        color: "red",
+        icon: <IconAlertCircle size={16} />
+      });
+    } finally {
+      setIsExporting(false);
     }
   };
 
@@ -453,14 +501,15 @@ export function FinancePage() {
               Arqueo de Caja &amp; Conciliación
             </Text>
           </Group>
-          <Button
-            variant="light"
-            color="violet"
-            size="xs"
-            leftSection={<IconReportMoney size={14} />}
-          >
-            Generar Reporte
-          </Button>
+            <Button
+              variant="light"
+              color="green"
+              size="xs"
+              leftSection={<IconFileSpreadsheet size={14} />}
+              onClick={() => setExportModalOpen(true)}
+            >
+              Exportar Excel
+            </Button>
         </Group>
 
         <Text size="xs" c="dimmed" mb="md">
@@ -498,6 +547,74 @@ export function FinancePage() {
           </Box>
         </SimpleGrid>
       </Paper>
+
+      {/* Export Options Modal */}
+      <Modal
+        opened={exportModalOpen}
+        onClose={() => !isExporting && setExportModalOpen(false)}
+        title={
+          <Group gap="sm">
+            <IconFileSpreadsheet size={20} color="var(--mantine-color-green-6)" />
+            <Text fw={700}>Exportar a Excel</Text>
+          </Group>
+        }
+        centered
+      >
+        <Stack gap="md">
+          <Text size="sm">
+            Seleccione el período de la información financiera que desea incluir en el reporte de ingresos y egresos separables.
+          </Text>
+
+          <div>
+            <Text size="sm" fw={500} mb={4}>
+              Periodo a Exportar
+            </Text>
+            <SegmentedControl
+              fullWidth
+              value={exportPeriodo}
+              onChange={(v) => setExportPeriodo(v)}
+              data={[
+                { label: "Día", value: "dia" },
+                { label: "Semana", value: "semana" },
+                { label: "Mes", value: "mes" },
+                { label: "Otro Mes", value: "custom" },
+              ]}
+              disabled={isExporting}
+            />
+
+            {exportPeriodo === "custom" && (
+              <MonthPickerInput
+                label="Seleccione el mes"
+                placeholder="Escoja el mes y año"
+                value={exportMonthDate}
+                onChange={(val: any) => setExportMonthDate(val ? new Date(val) : null)}
+                maxDate={new Date()}
+                disabled={isExporting}
+                mt="sm"
+              />
+            )}
+          </div>
+
+          <Group justify="flex-end" mt="sm">
+            <Button
+              variant="subtle"
+              color="gray"
+              onClick={() => setExportModalOpen(false)}
+              disabled={isExporting}
+            >
+              Cancelar
+            </Button>
+            <Button
+              color="green"
+              leftSection={<IconFileSpreadsheet size={16} />}
+              onClick={handleExport}
+              loading={isExporting}
+            >
+              Descargar Excel
+            </Button>
+          </Group>
+        </Stack>
+      </Modal>
     </Stack>
   );
 }
