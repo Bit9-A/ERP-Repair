@@ -52,6 +52,13 @@ export function useMovimientos(id: string) {
   });
 }
 
+export function useAllMovimientos(filters?: { sucursalId?: string; startDate?: string; endDate?: string; userId?: string }) {
+  return useQuery({
+    queryKey: ["inventory", "movimientos", "all", filters],
+    queryFn: () => inventoryService.getAllMovimientos(filters),
+  });
+}
+
 export function useCreateProduct() {
   const qc = useQueryClient();
   return useMutation({

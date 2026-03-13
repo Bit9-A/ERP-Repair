@@ -60,9 +60,10 @@ interface CreateVentaDTO {
     monedaId: string;
     monto_moneda_local: number;
     equivalente_usd: number;
-    metodo: "EFECTIVO" | "PAGO_MOVIL" | "ZELLE" | "TRANSFERENCIA" | "BINANCE";
+    metodo: "EFECTIVO" | "PAGO_MOVIL" | "ZELLE" | "TRANSFERENCIA" | "BINANCE" | "PUNTO_DE_VENTA";
     referencia?: string;
   };
+  usuarioId?: string;
 }
 
 export async function create(data: CreateVentaDTO) {
@@ -178,6 +179,7 @@ export async function create(data: CreateVentaDTO) {
           cantidad: -item.cantidad,
           referencia: `Venta ${newVenta.id}`,
           sucursalId: data.sucursalId, // Feature 3
+          usuarioId: data.usuarioId,
         },
       });
 
@@ -246,7 +248,7 @@ export async function marcarPagada(id: string) {
 
 // ── Cancel sale (return stock) ──
 
-export async function anular(id: string) {
+export async function anular(id: string, usuarioId?: string) {
   const venta = await prisma.venta.findUnique({
     where: { id },
     include: { items: true },
@@ -267,6 +269,7 @@ export async function anular(id: string) {
           cantidad: item.cantidad,
           referencia: `Anulación Venta ${venta.id}`,
           sucursalId: venta.sucursalId,
+          usuarioId,
         },
       });
 

@@ -112,7 +112,8 @@ export type TipoMovimiento =
   | "SALIDA_REPARACION"
   | "SALIDA_VENTA"
   | "AJUSTE"
-  | "DEVOLUCION";
+  | "DEVOLUCION"
+  | "TRASLADO";
 
 export interface MovimientoStock {
   id: string;
@@ -127,6 +128,12 @@ export interface MovimientoStock {
   // Feature 3: branch
   sucursalId?: string;
   sucursal?: { id: string; nombre: string };
+  sucursalDestinoId?: string;
+  sucursalDestino?: { id: string; nombre: string };
+  // Feature Auditable Inventory
+  usuarioId?: string;
+  usuario?: { id: string; nombre: string };
+  producto?: { id: string; nombre: string; sku: string; categoria: string };
   createdAt: string;
 }
 
@@ -237,7 +244,8 @@ export type MetodoPago =
   | "TRANSFERENCIA"
   | "PAGO_MOVIL"
   | "ZELLE"
-  | "BINANCE";
+  | "BINANCE"
+  | "PUNTO_DE_VENTA";
 
 export interface Pago {
   id: string;

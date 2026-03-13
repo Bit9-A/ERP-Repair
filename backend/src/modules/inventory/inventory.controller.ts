@@ -31,7 +31,10 @@ export async function findById(
 
 export async function create(req: Request, res: Response, next: NextFunction) {
   try {
-    const product = await service.create(req.body);
+    const product = await service.create({
+      ...req.body,
+      usuarioId: (req as any).user?.id,
+    });
     res.status(201).json({ success: true, data: product });
   } catch (err) {
     next(err);
@@ -54,7 +57,10 @@ export async function addStock(
   next: NextFunction,
 ) {
   try {
-    const result = await service.addStock(req.params["id"] as string, req.body);
+    const result = await service.addStock(req.params["id"] as string, {
+      ...req.body,
+      usuarioId: (req as any).user?.id,
+    });
     res.json({ success: true, data: result });
   } catch (err) {
     next(err);
@@ -71,6 +77,7 @@ export async function adjustStock(
       req.params["id"] as string,
       req.body.cantidad,
       req.body.nota,
+      (req as any).user?.id,
     );
     res.json({ success: true, data: result });
   } catch (err) {
@@ -120,6 +127,25 @@ export async function getMovimientos(
 ) {
   try {
     const data = await service.getMovimientos(req.params["id"] as string);
+    res.json({ success: true, data });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function getAllMovimientos(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const filters = {
+      sucursalId: req.query["sucursalId"] as string | undefined,
+      userId: req.query["userId"] as string | undefined,
+      startDate: req.query["startDate"] ? new Date(req.query["startDate"] as string) : undefined,
+      endDate: req.query["endDate"] ? new Date(req.query["endDate"] as string) : undefined,
+    };
+    const data = await service.getAllMovimientos(filters);
     res.json({ success: true, data });
   } catch (err) {
     next(err);

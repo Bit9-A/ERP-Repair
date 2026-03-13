@@ -151,3 +151,12 @@ export async function getMovimientos(id: string): Promise<MovimientoStock[]> {
   );
   return data.data;
 }
+
+/** GET /inventory/movimientos/all */
+export async function getAllMovimientos(filters?: { sucursalId?: string; startDate?: string; endDate?: string; userId?: string }): Promise<MovimientoStock[]> {
+  const { data } = await api.get<ApiResponse<MovimientoStock[]>>(
+    `/inventory/movimientos/all`,
+    { params: filters }
+  );
+  return data.data;
+}

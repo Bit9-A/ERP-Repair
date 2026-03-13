@@ -8,8 +8,6 @@ import {
   SegmentedControl,
   Badge,
   TextInput,
-  Modal,
-  Text,
   Select,
   Tabs,
 } from "@mantine/core";
@@ -21,7 +19,6 @@ import {
   IconLayoutKanban,
   IconList,
   IconSearch,
-  IconBrandWhatsapp,
   IconFilter,
   IconSortAscending,
   IconArchive,
@@ -32,6 +29,7 @@ import { TicketListView } from "../components/TicketListView";
 import { HistoryTable } from "../components/HistoryTable";
 import { TicketForm } from "../components/TicketForm";
 import { DeliveryModal } from "../components/DeliveryModal";
+import { RepairClosureModal } from "../components/RepairClosureModal";
 import { TICKET_STATUS } from "../../../lib/constants";
 import type { TicketFormValues } from "../types/tickets.types";
 import type { TicketReparacion, EstadoTicket } from "../../../types";
@@ -70,9 +68,9 @@ export function KanbanPage() {
   const [deliveryOpened, { open: openDelivery, close: closeDelivery }] =
     useDisclosure(false);
 
-  // -- WhatsApp Modal state --
-  const [waTicket, setWaTicket] = useState<TicketReparacion | null>(null);
-  const [waOpened, { open: openWa, close: closeWa }] = useDisclosure(false);
+  // -- WhatsApp / Closure Modal state --
+  const [closureTicket, setClosureTicket] = useState<TicketReparacion | null>(null);
+  const [closureOpened, { open: openClosure, close: closeClosure }] = useDisclosure(false);
 
   // -- API hooks --
   const { data: tickets = [], isLoading } = useRepairs();
@@ -154,12 +152,22 @@ export function KanbanPage() {
     ticketId: string,
     newEstado: EstadoTicket,
   ) => {
+    const ticket = tickets.find((t) => t.id === ticketId);
+    
     // If moving to ENTREGADO, intercept and open payment modal
     if (newEstado === "ENTREGADO") {
-      const ticket = tickets.find((t) => t.id === ticketId);
       if (ticket) {
         setDeliveryTicket(ticket);
         openDelivery();
+      }
+      return;
+    }
+
+    // Interceptar también REPARADO para generar acta PDF
+    if (newEstado === "REPARADO") {
+      if (ticket) {
+        setClosureTicket(ticket);
+        openClosure();
       }
       return;
     }
@@ -172,21 +180,29 @@ export function KanbanPage() {
         color: "green",
         autoClose: 2000,
       });
-
-      // If moving to REPARADO, intercept and prompt to notify client via WhatsApp
-      if (newEstado === "REPARADO") {
-        const ticket = tickets.find((t) => t.id === ticketId);
-        if (ticket && ticket.cliente?.telefono) {
-          setWaTicket(ticket);
-          openWa();
-        }
-      }
     } catch {
       notifications.show({
         title: "Error",
         message: "No se pudo actualizar el estado",
         color: "red",
       });
+    }
+  };
+
+  // Callback exitoso del PDF Cierre Modal
+  const handleConfirmClosure = async (ticketId: string, _: string[]) => {
+    try {
+      await updateRepair.mutateAsync({ id: ticketId, estado: "REPARADO" });
+      notifications.show({
+        title: "Equipo Reparado",
+        message: "Se movió al Kanban como exitoso y generaste el acta digital.",
+        color: "green",
+      });
+      // Importante cerrar modal
+      closeClosure();
+      setClosureTicket(null);
+    } catch (e) {
+      notifications.show({title: "Error", message: "Error configurando estado.", color: "red"});
     }
   };
 
@@ -388,50 +404,15 @@ export function KanbanPage() {
         }}
       />
 
-      <Modal
-        opened={waOpened}
-        onClose={closeWa}
-        title="Equipo Reparado"
-        centered
-      >
-        <Stack>
-          <Text size="sm">
-            El ticket de reparación para el equipo{" "}
-            <b>
-              {waTicket?.marca} {waTicket?.modelo}
-            </b>{" "}
-            del cliente <b>{waTicket?.cliente?.nombre}</b> ha sido marcado como
-            Completado exitosamente en el sistema.
-          </Text>
-          <Text size="sm">
-            ¿Deseas enviar un mensaje automático por WhatsApp al{" "}
-            <b>{waTicket?.cliente?.telefono}</b> para notificarle que puede
-            pasar a retirar su equipo solucionado?
-          </Text>
-
-          <Group justify="flex-end" mt="md">
-            <Button variant="default" onClick={closeWa}>
-              Cerrar
-            </Button>
-            <Button
-              color="green"
-              leftSection={<IconBrandWhatsapp size={18} />}
-              onClick={() => {
-                if (!waTicket?.cliente?.telefono) return;
-                const phone = waTicket.cliente.telefono.replace(/\D/g, ""); // Remove non-numeric chars
-                const message = `¡Hola ${waTicket.cliente.nombre}! Le contactamos de nuestro servicio técnico para informarle que su equipo *${waTicket.marca} ${waTicket.modelo}* ya se encuentra revisado y *REPARADO*. Ya puede pasar a retirar su equipo en nuestro local, ¡Le esperamos!`;
-                window.open(
-                  `https://wa.me/${phone}?text=${encodeURIComponent(message)}`,
-                  "_blank",
-                );
-                closeWa();
-              }}
-            >
-              Avisar por WhatsApp
-            </Button>
-          </Group>
-        </Stack>
-      </Modal>
+      <RepairClosureModal
+        opened={closureOpened}
+        onClose={() => {
+          closeClosure();
+          setClosureTicket(null);
+        }}
+        ticket={closureTicket}
+        onConfirm={handleConfirmClosure}
+      />
     </Stack>
   );
 }

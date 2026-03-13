@@ -96,6 +96,7 @@ export async function create(data: {
   precio_usd: number;
   sucursalId?: string; // Feature 3: asignar a sucursal inicial
   costo_unitario_usd?: number; // Feature 2: costo del proveedor
+  usuarioId?: string;
 }) {
   const initialStock = data.stock_actual ?? 0;
 
@@ -126,6 +127,7 @@ export async function create(data: {
         costo_unitario_usd: data.costo_unitario_usd ?? data.costo_usd,
         actualizar_costo: false,
         sucursalId: data.sucursalId,
+        usuarioId: data.usuarioId,
       },
     });
 
@@ -185,6 +187,7 @@ export async function addStock(
     costo_unitario_usd?: number; // Feature 2: precio de esta entrada
     actualizar_costo?: boolean; // Feature 2: ¿actualizar el costo del producto?
     sucursalId?: string; // Feature 3: en qué sucursal entra el stock
+    usuarioId?: string;
   },
 ) {
   const product = await prisma.producto.findUnique({ where: { id } });
@@ -204,6 +207,7 @@ export async function addStock(
         costo_unitario_usd: data.costo_unitario_usd,
         actualizar_costo: data.actualizar_costo ?? false,
         sucursalId: data.sucursalId,
+        usuarioId: data.usuarioId,
       },
     });
 
@@ -260,7 +264,7 @@ export async function addStock(
 
 // ── Stock adjustment (manual) ──
 
-export async function adjustStock(id: string, cantidad: number, nota?: string) {
+export async function adjustStock(id: string, cantidad: number, nota?: string, usuarioId?: string) {
   const product = await prisma.producto.findUnique({ where: { id } });
   if (!product)
     throw Object.assign(new Error("Producto no encontrado"), {
@@ -282,6 +286,7 @@ export async function adjustStock(id: string, cantidad: number, nota?: string) {
         tipo: "AJUSTE",
         cantidad,
         nota: nota || "Ajuste manual",
+        usuarioId,
       },
     });
 
@@ -366,6 +371,29 @@ export async function getMovimientos(productoId: string) {
     where: { productoId },
     include: {
       sucursal: { select: { id: true, nombre: true } },
+      usuario: { select: { id: true, nombre: true } },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+}
+
+// ── All Movement history ──
+
+export async function getAllMovimientos(params?: { sucursalId?: string; startDate?: Date; endDate?: Date; userId?: string }) {
+  const where: any = {};
+  if (params?.sucursalId) where.sucursalId = params.sucursalId;
+  if (params?.userId) where.usuarioId = params.userId;
+  if (params?.startDate && params?.endDate) {
+    where.createdAt = { gte: params.startDate, lte: params.endDate };
+  }
+
+  return prisma.movimientoStock.findMany({
+    where,
+    include: {
+      sucursal: { select: { id: true, nombre: true } },
+      sucursalDestino: { select: { id: true, nombre: true } },
+      usuario: { select: { id: true, nombre: true } },
+      producto: { select: { id: true, nombre: true, sku: true, categoria: true } },
     },
     orderBy: { createdAt: "desc" },
   });

@@ -8,7 +8,9 @@ import {
   Text,
   Alert,
   Loader,
+  Badge,
 } from "@mantine/core";
+import type { SelectProps } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { notifications } from "@mantine/notifications";
 import { IconArrowsTransferDown, IconInfoCircle } from "@tabler/icons-react";
@@ -63,7 +65,12 @@ export function TransferModal({ opened, onClose }: TransferModalProps) {
     .filter((sp) => sp.stock > 0)
     .map((sp) => ({
       value: sp.productoId,
-      label: `${sp.producto?.nombre ?? sp.productoId} (${sp.stock} u.)`,
+      label: sp.producto
+        ? `${sp.producto.nombre} ${sp.producto.marca_comp ? `(${sp.producto.marca_comp} ${sp.producto.modelo_comp || ""})` : ""} - ${sp.producto.sku}`
+        : sp.productoId,
+      // Pass the whole extra payload for custom rendering
+      producto: sp.producto,
+      stock: sp.stock,
     }));
 
   const sucursalOptions = sucursales.map((s) => ({
@@ -91,6 +98,33 @@ export function TransferModal({ opened, onClose }: TransferModalProps) {
         err instanceof Error ? err.message : "No se pudo realizar el traslado";
       notifications.show({ title: "Error", message: msg, color: "red" });
     }
+  };
+
+  const renderSelectOption: SelectProps["renderOption"] = ({ option }) => {
+    // Because we passed extra data in the mapped object
+    const opt = option as any;
+    const prod = opt.producto;
+    const isReady = !!prod;
+
+    return (
+      <Group justify="space-between" w="100%" wrap="nowrap">
+        <Stack gap={0} maw="70%">
+          <Text size="sm" fw={500} truncate="end">
+            {isReady ? prod.nombre : option.label}
+          </Text>
+          {isReady && (
+            <Text size="xs" c="dimmed" truncate="end">
+              {prod.sku} • {prod.marca_comp || ""} {prod.modelo_comp || ""}
+            </Text>
+          )}
+        </Stack>
+        {isReady && (
+          <Badge size="sm" variant="light" color="blue" miw={50}>
+            {opt.stock} u.
+          </Badge>
+        )}
+      </Group>
+    );
   };
 
   return (
@@ -157,13 +191,14 @@ export function TransferModal({ opened, onClose }: TransferModalProps) {
                     : loadingInventario
                       ? "Cargando productos..."
                       : productoOptions.length === 0
-                        ? "Sin productos con stock en esta sucursal"
-                        : "Selecciona producto"
+                        ? "Sin productos con stock"
+                        : "Busca por nombre, SKU o marca..."
                 }
                 data={productoOptions}
                 required
                 disabled={!form.values.origenId || loadingInventario}
                 searchable
+                renderOption={renderSelectOption}
                 {...form.getInputProps("productoId")}
               />
 

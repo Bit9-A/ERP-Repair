@@ -30,6 +30,7 @@ export const PAYMENT_METHODS = [
   { value: "EFECTIVO", label: "Efectivo" },
   { value: "TRANSFERENCIA", label: "Transferencia" },
   { value: "PAGO_MOVIL", label: "Pago Móvil" },
+  { value: "PUNTO_DE_VENTA", label: "Punto de Venta" },
   { value: "ZELLE", label: "Zelle" },
   { value: "BINANCE", label: "Binance" },
 ] as const;

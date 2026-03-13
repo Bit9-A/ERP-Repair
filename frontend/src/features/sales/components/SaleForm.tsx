@@ -178,7 +178,7 @@ export function SaleForm({ opened, onClose, onSubmit }: SaleFormProps) {
 
   // Calculate payment data
   const selectedMonedaObj = monedas.find((m) => m.id === selectedMonedaId);
-  const paymentRate = selectedMonedaObj?.tasa_cambio ?? 1;
+  const paymentRate = editableRates[selectedMonedaObj?.codigo ?? ""] ?? selectedMonedaObj?.tasa_cambio ?? 1;
   void paymentRate; // kept for the payment description text below
 
   const addProduct = (product: Producto) => {
@@ -1039,7 +1039,7 @@ export function SaleForm({ opened, onClose, onSubmit }: SaleFormProps) {
                   {PAYMENT_METHODS.filter(
                     (m) =>
                       selectedMonedaObj?.codigo !== "USD" ||
-                      (m.value !== "PAGO_MOVIL" && m.value !== "TRANSFERENCIA"),
+                      (m.value !== "PAGO_MOVIL" && m.value !== "TRANSFERENCIA" && m.value !== "PUNTO_DE_VENTA"),
                   ).map((method) => (
                     <Button
                       key={method.value}

@@ -32,6 +32,7 @@ export async function create(req: Request, res: Response, next: NextFunction) {
     const payload = {
       ...req.body,
       vendedorId: req.user?.userId,
+      usuarioId: req.user?.userId,
     };
     const data = await service.create(payload);
     res.status(201).json({ success: true, data });
@@ -55,7 +56,7 @@ export async function marcarPagada(
 
 export async function anular(req: Request, res: Response, next: NextFunction) {
   try {
-    const data = await service.anular(req.params["id"] as string);
+    const data = await service.anular(req.params["id"] as string, req.user?.userId);
     res.json({ success: true, data });
   } catch (err) {
     next(err);

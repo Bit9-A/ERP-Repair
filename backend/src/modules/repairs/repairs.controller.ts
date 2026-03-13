@@ -119,6 +119,7 @@ export async function addRepuesto(
       req.params["id"] as string,
       productoId,
       cantidad,
+      (req as any).user?.userId,
     );
     res.status(201).json({ success: true, data: result });
   } catch (err) {
@@ -155,6 +156,7 @@ export async function removeRepuesto(
     const result = await service.removeRepuesto(
       req.params["id"] as string,
       req.params["repuestoId"] as string,
+      (req as any).user?.userId,
     );
     res.json({ success: true, data: result });
   } catch (err) {

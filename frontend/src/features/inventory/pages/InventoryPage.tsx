@@ -26,11 +26,13 @@ import {
   IconCurrencyDollar,
   IconDownload,
   IconFilter,
+  IconArrowsExchange,
 } from "@tabler/icons-react";
 import { StatCard } from "../../../components/ui/StatCard";
 import { ProductTable } from "../components/ProductTable";
 import { ProductForm } from "../components/ProductForm";
 import { AddStockModal } from "../components/AddStockModal";
+import { TransferModal } from "../../sucursales/components/TransferModal";
 import type { Producto } from "../../../types";
 import type { ProductFormValues } from "../types/inventory.types";
 import {
@@ -44,6 +46,8 @@ import {
 import { useAuthStore } from "../../auth/store/auth.store";
 import { usePermissions } from "../../../hooks/usePermissions";
 import { exportInventoryExcel } from "../../../services/excel/exportInventoryExcel";
+import { exportInventoryMovementsExcel } from "../../../services/excel/exportInventoryMovementsExcel";
+import * as inventoryService from "../../../services/inventory.service";
 
 export function InventoryPage() {
   const [searchParams] = useSearchParams();
@@ -55,6 +59,8 @@ export function InventoryPage() {
   const [formOpened, { open: openForm, close: closeForm }] =
     useDisclosure(false);
   const [stockOpened, { open: openStock, close: closeStock }] =
+    useDisclosure(false);
+  const [transferOpened, { open: openTransfer, close: closeTransfer }] =
     useDisclosure(false);
 
   // -- Auth: derive branch filter from logged-in user --
@@ -79,6 +85,7 @@ export function InventoryPage() {
   const deleteProduct = useDeleteProduct();
 
   const [isExporting, setIsExporting] = useState(false);
+  const [isExportingMovs, setIsExportingMovs] = useState(false);
 
   const filtered = products.filter((p) => {
     const matchesSearch =
@@ -211,6 +218,35 @@ export function InventoryPage() {
     }
   };
 
+  const handleExportMovimientos = async () => {
+    setIsExportingMovs(true);
+    try {
+      const activeSucursalName = isAdmin
+        ? (adminSucursalId ? sucursales.find(s => s.id === adminSucursalId)?.nombre : "Global")
+        : currentUser?.sucursal?.nombre;
+      
+      const movimientos = await inventoryService.getAllMovimientos(
+        activeSucursalId ? { sucursalId: activeSucursalId } : undefined
+      );
+
+      await exportInventoryMovementsExcel(movimientos, activeSucursalName || undefined, currentUser?.nombre);
+      
+      notifications.show({
+        title: "Exportación exitosa",
+        message: "El historial de movimientos ha sido generado.",
+        color: "green",
+      });
+    } catch {
+      notifications.show({
+        title: "Error al exportar",
+        message: "No se pudo generar el documento Excel de movimientos.",
+        color: "red",
+      });
+    } finally {
+      setIsExportingMovs(false);
+    }
+  };
+
   return (
     <Stack gap="xl" pos="relative">
       <LoadingOverlay visible={isLoading} />
@@ -227,7 +263,26 @@ export function InventoryPage() {
             onClick={handleExport}
             loading={isExporting}
           >
-            Exportar
+            Exportar Inventario
+          </Button>
+          <Button
+            variant="subtle"
+            color="gray"
+            leftSection={<IconDownload size={16} />}
+            size="sm"
+            onClick={handleExportMovimientos}
+            loading={isExportingMovs}
+          >
+            Exportar Movimientos
+          </Button>
+          <Button
+            variant="light"
+            color="blue"
+            leftSection={<IconArrowsExchange size={16} />}
+            onClick={openTransfer}
+            size="sm"
+          >
+            Trasladar Mercancía
           </Button>
           {permisos.inventario.crearProducto && (
             <Button
@@ -406,12 +461,13 @@ export function InventoryPage() {
         allProducts={products}
       />
 
-      {/* Feature 2 & 3: Add stock with supplier price + branch */}
       <AddStockModal
         opened={stockOpened}
         onClose={closeStock}
         producto={stockProduct}
       />
+
+      <TransferModal opened={transferOpened} onClose={closeTransfer} />
     </Stack>
   );
 }

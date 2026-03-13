@@ -215,6 +215,7 @@ export async function addRepuesto(
   ticketId: string,
   productoId: string,
   cantidad: number,
+  usuarioId?: string,
 ) {
   const ticket = await prisma.ticketReparacion.findUnique({
     where: { id: ticketId },
@@ -259,6 +260,7 @@ export async function addRepuesto(
         cantidad: -cantidad,
         referencia: `Ticket ${ticketId}`,
         sucursalId: ticket.sucursalId,
+        usuarioId,
       },
     }),
     // Update global stock
@@ -290,7 +292,7 @@ export async function addRepuesto(
   ]);
 }
 
-export async function removeRepuesto(ticketId: string, repuestoId: string) {
+export async function removeRepuesto(ticketId: string, repuestoId: string, usuarioId?: string) {
   const ticketRepuesto = await prisma.ticket_Producto.findUnique({
     where: { id: repuestoId },
     include: { ticket: true },
@@ -328,6 +330,7 @@ export async function removeRepuesto(ticketId: string, repuestoId: string) {
         cantidad: cantidad,
         referencia: `Devolución Ticket ${ticketId}`,
         sucursalId: ticket.sucursalId,
+        usuarioId,
       },
     }),
     prisma.producto.update({

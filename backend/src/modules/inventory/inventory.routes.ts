@@ -8,6 +8,7 @@ router.use(authMiddleware);
 
 router.get("/stats", ctrl.getStats);
 router.get("/low-stock", ctrl.getLowStock);
+router.get("/movimientos/all", ctrl.getAllMovimientos);
 router.get("/", ctrl.findAll);
 router.get("/:id", ctrl.findById);
 router.get("/:id/movimientos", ctrl.getMovimientos);

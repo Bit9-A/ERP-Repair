@@ -114,6 +114,7 @@ export async function transferirStock(data: {
   destinoId: string;
   productoId: string;
   cantidad: number;
+  usuarioId: string;
 }) {
   if (data.origenId === data.destinoId) {
     throw Object.assign(
@@ -173,25 +174,35 @@ export async function transferirStock(data: {
       },
     });
 
-    // 3. Movement log — origin (negative adjustment)
+    // 3. Get branch names for logs
+    const [origen, destino] = await Promise.all([
+      tx.sucursal.findUnique({ where: { id: data.origenId } }),
+      tx.sucursal.findUnique({ where: { id: data.destinoId } }),
+    ]);
+
+    // 4. Movement log — origin (outgoing transfer)
     await tx.movimientoStock.create({
       data: {
         productoId: data.productoId,
-        tipo: "AJUSTE",
+        tipo: "TRASLADO",
         cantidad: -data.cantidad,
-        nota: `Traslado saliente hacia sucursal destino`,
         sucursalId: data.origenId,
+        sucursalDestinoId: data.destinoId,
+        usuarioId: data.usuarioId,
+        nota: `Traslado a: ${destino?.nombre || 'Destino'}`,
       },
     });
 
-    // 4. Movement log — destination (entry)
+    // 5. Movement log — destination (incoming transfer)
     await tx.movimientoStock.create({
       data: {
         productoId: data.productoId,
-        tipo: "ENTRADA",
+        tipo: "TRASLADO",
         cantidad: data.cantidad,
-        nota: `Traslado entrante desde sucursal origen`,
         sucursalId: data.destinoId,
+        sucursalDestinoId: data.origenId,
+        usuarioId: data.usuarioId,
+        nota: `Traslado desde: ${origen?.nombre || 'Origen'}`,
       },
     });
 

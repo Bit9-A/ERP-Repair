@@ -60,7 +60,10 @@ export async function transferirStock(
   next: NextFunction,
 ) {
   try {
-    const data = await service.transferirStock(req.body);
+    const data = await service.transferirStock({
+      ...req.body,
+      usuarioId: (req as any).user?.id,
+    });
     res.json({ success: true, data });
   } catch (err) {
     next(err);

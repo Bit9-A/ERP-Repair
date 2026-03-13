@@ -15,7 +15,8 @@ model Sucursal {
   createdAt        DateTime           @default(now())
   updatedAt        DateTime           @updatedAt
   principal        Boolean            @default(false)
-  movimientosStock MovimientoStock[]
+  movimientosStock         MovimientoStock[] @relation("MovimientoOrigen")
+  movimientosStockDestino MovimientoStock[] @relation("MovimientoDestino")
   inventario       SucursalProducto[]
   tickets          TicketReparacion[]
   usuarios         Usuario[]
@@ -52,6 +53,7 @@ model Usuario {
   tickets_asignados        TicketReparacion[]
   sucursal                 Sucursal?          @relation(fields: [sucursalId], references: [id])
   ventas_realizadas        Venta[]
+  movimientos_stock        MovimientoStock[]
 
   @@index([sucursalId])
 }
@@ -105,13 +107,18 @@ model MovimientoStock {
   actualizar_costo   Boolean        @default(false)
   costo_unitario_usd Float?
   sucursalId         String?
+  sucursalDestinoId  String?
+  usuarioId          String?
   producto           Producto       @relation(fields: [productoId], references: [id])
-  sucursal           Sucursal?      @relation(fields: [sucursalId], references: [id])
+  sucursal           Sucursal?      @relation("MovimientoOrigen", fields: [sucursalId], references: [id])
+  sucursalDestino    Sucursal?      @relation("MovimientoDestino", fields: [sucursalDestinoId], references: [id])
+  usuario            Usuario?       @relation(fields: [usuarioId], references: [id])
 
   @@index([productoId])
   @@index([tipo])
   @@index([createdAt])
   @@index([sucursalId])
+  @@index([usuarioId])
 }
 
 model Servicio {
@@ -338,6 +345,7 @@ enum TipoMovimiento {
   SALIDA_VENTA
   AJUSTE
   DEVOLUCION
+  TRASLADO
 }
 
 enum TipoTransaccion {
@@ -351,6 +359,7 @@ enum MetodoPago {
   ZELLE
   TRANSFERENCIA
   BINANCE
+  PUNTO_DE_VENTA
 }
 
 enum FrecuenciaGasto {
