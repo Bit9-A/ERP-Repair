@@ -67,7 +67,7 @@ export function CostosDataPanel({
         <Stack gap="sm">
           <SimpleGrid cols={{ base: 1, sm: isEdit ? 3 : 2 }} mb="sm">
             <NumberInput
-              label="Mano de Obra ($)"
+              label="Precio Cliente($)"
               description="Lo que cobras por reparar"
               prefix="$"
               min={0}
