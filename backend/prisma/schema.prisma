@@ -307,6 +307,16 @@ model Configuracion {
   updatedAt          DateTime @updatedAt
 }
 
+model SyncLog {
+  id          String   @id @default(uuid())
+  sucursalId  String
+  lastSync    DateTime
+  status      String   // "SUCCESS", "FAILED"
+  createdAt   DateTime @default(now())
+
+  @@index([sucursalId])
+}
+
 enum RolUsuario {
   ADMIN
   TECNICO
