@@ -2,7 +2,7 @@ import { Router } from "express";
 import { authMiddleware, requireRole } from "../../core/middlewares/auth";
 import * as ctrl from "./sucursales.controller";
 
-export const sucursalesRouter = Router();
+export const sucursalesRouter: Router = Router();
 
 sucursalesRouter.use(authMiddleware);
 

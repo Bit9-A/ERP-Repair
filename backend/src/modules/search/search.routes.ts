@@ -2,7 +2,7 @@ import { Router } from "express";
 import { SearchController } from "./search.controller";
 import { authMiddleware } from "../../core/middlewares/auth";
 
-const router = Router();
+const router: Router = Router();
 const searchController = new SearchController();
 
 // All search operations require authentication

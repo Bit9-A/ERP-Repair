@@ -2,7 +2,7 @@ import { Router } from "express";
 import * as ctrl from "./users.controller";
 import { authMiddleware, requireRole } from "../../core/middlewares/auth";
 
-const router = Router();
+const router: Router = Router();
 
 // Auth (public)
 router.post("/login", ctrl.login);
