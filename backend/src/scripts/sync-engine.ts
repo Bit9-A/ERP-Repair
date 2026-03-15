@@ -1,15 +1,16 @@
 import "dotenv/config";
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from "../generated/prisma";
 import cron from 'node-cron';
 
 // Configuración de clientes
 const localPrisma = new PrismaClient({
-    datasources: { db: { url: process.env.DATABASE_URL } }
-});
+    datasourceUrl: process.env.DATABASE_URL
+} as any);
 
 const cloudPrisma = new PrismaClient({
-    datasources: { db: { url: process.env.DATABASE_CLOUD } }
-});
+    datasourceUrl: process.env.DATABASE_CLOUD
+} as any);
+
 
 /**
  * Motor de Sincronización
