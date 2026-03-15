@@ -1,12 +1,10 @@
 import jsPDF from "jspdf";
 import dayjs from "dayjs";
-// import type { TicketReparacion } from "../../../types";
 
 export async function generateRepairPDF(
   ticket: any,
   fotos: string[]
 ): Promise<void> {
-  // Inicializa documento en A4 vertical
   const doc = new jsPDF({
     orientation: "portrait",
     unit: "mm",
@@ -15,167 +13,152 @@ export async function generateRepairPDF(
 
   const margin = 15;
   const pageWidth = doc.internal.pageSize.getWidth();
-  
+  const col2 = pageWidth / 2;
+  let y = 32;
+
   // ==========================================
-  // HEADER CORPORATIVO
+  // HEADER PROFESIONAL (ALTO IMPACTO)
   // ==========================================
-  doc.setFillColor(30, 64, 175); // Azul Tailwind (brand/blue-800)
-  doc.rect(0, 0, pageWidth, 25, "F");
+  doc.setFillColor(17, 24, 39);
+  doc.rect(0, 0, pageWidth, 22, "F");
 
   doc.setTextColor(255, 255, 255);
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(16);
-  doc.text("ACTA DIGITAL DE REPARACIÓN", margin, 16);
-
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(10);
-  doc.text(`TICKET ID: ${ticket.id.split("-")[0].toUpperCase()}`, pageWidth - margin - 40, 16);
-
-  // ==========================================
-  // INFORMACIÓN GENERAL
-  // ==========================================
-  doc.setTextColor(50, 50, 50);
-  let y = 35;
-
-  doc.setFont("helvetica", "bold");
   doc.setFontSize(14);
-  doc.text("Resumen de Servicio Técnico", margin, y);
-  
-  y += 10;
+  doc.text("ACTA DIGITAL DE REPARACIÓN - TECNOPRO CELL", margin, 14);
+
+  doc.setFontSize(9);
+  doc.setFont("helvetica", "normal");
+  const ordenId = ticket.id.split("-")[0].toUpperCase();
+  doc.text(`N° DE ORDEN: #${ordenId}`, pageWidth - margin - 40, 14);
+
+  // ==========================================
+  // BLOQUE DE INFORMACIÓN (COLUMNAS COMPACTAS)
+  // ==========================================
+  doc.setTextColor(31, 41, 55);
+
+  // --- Fila 1: Cliente y Fecha ---
   doc.setFont("helvetica", "bold");
   doc.setFontSize(10);
-  doc.text("Estado Actual:", margin, y);
-  doc.setFont("helvetica", "normal");
-  doc.setTextColor(4, 120, 87); // Verde Exito
-  doc.text("REPARADO / LISTO PARA ENTREGA", margin + 30, y);
+  doc.text("INFORMACIÓN DEL CLIENTE", margin, y);
+  doc.text("FECHA Y HORA DE EMISIÓN", col2, y);
 
-  doc.setTextColor(80, 80, 80);
+  y += 5;
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(9);
+  doc.text(`Nombre: ${ticket.cliente?.nombre || "N/A"}`, margin, y);
+  doc.text(`${dayjs().format("DD/MM/YYYY - hh:mm A")}`, col2, y);
+
+  y += 5;
+  doc.text(`Teléfono: ${ticket.cliente?.telefono || "N/A"}`, margin, y);
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(4, 120, 87); // Verde para el estado
+  doc.text("ESTADO: REPARADO", col2, y);
+
+  // Separador fino
   y += 6;
-  doc.setFont("helvetica", "bold");
-  doc.text("Fecha Emisión:", margin, y);
-  doc.setFont("helvetica", "normal");
-  doc.text(dayjs().format("DD/MM/YYYY hh:mm A"), margin + 30, y);
+  doc.setDrawColor(229, 231, 235);
+  doc.line(margin, y, pageWidth - margin, y);
 
-  y += 6;
-  doc.setFont("helvetica", "bold");
-  doc.text("Cliente:", margin, y);
-  doc.setFont("helvetica", "normal");
-  doc.text(ticket.cliente?.nombre || "N/A", margin + 30, y);
-
-  y += 6;
-  doc.setFont("helvetica", "bold");
-  doc.text("Teléfono:", margin, y);
-  doc.setFont("helvetica", "normal");
-  doc.text(ticket.cliente?.telefono || "N/A", margin + 30, y);
-
-  // ==========================================
-  // DETALLES DEL EQUIPO Y DIAGNÓSTICO
-  // ==========================================
-  y += 15;
-  doc.setDrawColor(200, 200, 200);
-  doc.line(margin, y, pageWidth - margin, y); // Separador
-  y += 10;
-  
-  doc.setTextColor(50, 50, 50);
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(12);
-  doc.text("Especificaciones Técnicas", margin, y);
-
+  // --- Fila 2: Detalles del Equipo y Diagnóstico ---
   y += 8;
+  doc.setTextColor(31, 41, 55);
+  doc.setFont("helvetica", "bold");
+  doc.text("ESPECIFICACIONES DEL EQUIPO", margin, y);
+  doc.text("DIAGNÓSTICO Y FALLA", col2, y);
+
+  y += 5;
   doc.setFont("helvetica", "normal");
-  doc.setFontSize(10);
-  const infoEquipo = `${ticket.marca} ${ticket.modelo} (${ticket.equipo || ticket.tipo_equipo})`;
-  doc.text(`Equipo: ${infoEquipo}`, margin, y);
-  
-  y += 6;
-  doc.text(`Diagnóstico/Falla Original: ${ticket.falla || "No especificada"}`, margin, y);
+  const infoEquipo = `${ticket.marca} ${ticket.modelo}`;
+  const tipoEquipo = ticket.equipo || ticket.tipo_equipo || "Smartphone";
+  doc.text(`Modelo: ${infoEquipo}`, margin, y);
+
+  // Diagnóstico con split para que no se desborde
+  const diagTexto = ticket.falla || "No especificada";
+  const splitDiag = doc.splitTextToSize(diagTexto, (pageWidth / 2) - 20);
+  doc.text(splitDiag, col2, y);
+
+  y += 5;
+  doc.text(`Tipo: ${tipoEquipo}`, margin, y);
 
   y += 6;
   doc.setFont("helvetica", "bold");
-  doc.text(`Total Acordado: $${ticket.precio_total_usd.toFixed(2)} USD`, margin, y);
+  doc.text(`TOTAL ACORDADO: $ ${(ticket.precio_total_usd).toLocaleString("es-CO", { minimumFractionDigits: 0, maximumFractionDigits: 0 })} COP`, margin, y);
+
+  // Ajuste de Y dinámico según el largo del diagnóstico
+  y = Math.max(y + 12, y + (splitDiag.length * 4) + 5);
 
   // ==========================================
-  // REGISTRO FOTOGRÁFICO TEMPORAL
+  // REGISTRO FOTOGRÁFICO
   // ==========================================
-  y += 15;
-  doc.setDrawColor(200, 200, 200);
-  doc.line(margin, y, pageWidth - margin, y); // Separador
-  y += 10;
+  doc.setDrawColor(30, 64, 175);
+  doc.setLineWidth(0.8);
+  doc.line(margin, y, margin + 10, y); // Acento visual azul
 
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(12);
-  doc.text("Evidencia Fotográfica de Calidad", margin, y);
+  y += 6;
+  doc.setTextColor(17, 24, 39);
+  doc.setFontSize(11);
+  doc.text("EVIDENCIA FOTOGRÁFICA DE CALIDAD", margin, y);
 
-  y += 10;
+  y += 6;
 
   if (fotos && fotos.length > 0) {
-    const spaceBetween = 5;
-    const imgWidth = (pageWidth - (margin * 2) - spaceBetween) / 2;
-    const imgHeight = 60; // Fijo 6cm aprox
-    
+    const gap = 4;
+    const imgWidth = (pageWidth - (margin * 2) - gap) / 2;
+
     let currentX = margin;
     let currentY = y;
-    
+    let rowMaxH = 0;
+
     fotos.forEach((fotoBase64, index) => {
-      // Salto de línea cada 2 fotos
-      if (index > 0 && index % 2 === 0) {
-        currentX = margin;
-        currentY += imgHeight + spaceBetween;
-        
-        // Salto de página preventivo si y excede
-        if (currentY + imgHeight > 280) {
-          doc.addPage();
-          currentY = margin;
-        }
-      }
-
-      // Add image expecting standard Base64 web form 
       try {
-        // Formato tipico "data:image/jpeg;base64,....."
-        const extension = fotoBase64.substring(
-          fotoBase64.indexOf("data:image/") + 11,
-          fotoBase64.indexOf(";base64")
-        ).toUpperCase();
-        
-        // Ajustar soporte de jsPDF, suele tragar JPEG y PNG directo
-        const format = (extension === "JPG" || extension === "JPEG") ? "JPEG" : "PNG";
-        
-        doc.addImage(fotoBase64, format, currentX, currentY, imgWidth, imgHeight);
-        
-        // Bordecito estetico a la foto
-        doc.setDrawColor(200,200,200);
-        doc.rect(currentX, currentY, imgWidth, imgHeight, "S");
+        const props = doc.getImageProperties(fotoBase64);
+        const ratio = props.height / props.width;
+        const imgH = imgWidth * ratio;
 
-      } catch (err) {
-        console.warn("Error al intentar procesar imagen local", err);
+        if (index > 0 && index % 2 === 0) {
+          currentX = margin;
+          currentY += rowMaxH + gap;
+          rowMaxH = 0;
+        }
+
+        if (currentY + imgH > 275) {
+          doc.addPage();
+          currentY = 20;
+          currentX = margin;
+        }
+
+        const format = fotoBase64.toLowerCase().includes("png") ? "PNG" : "JPEG";
+        doc.addImage(fotoBase64, format, currentX, currentY, imgWidth, imgH, undefined, 'MEDIUM');
+
+        doc.setDrawColor(209, 213, 219);
+        doc.setLineWidth(0.1);
+        doc.rect(currentX, currentY, imgWidth, imgH, "S");
+
+        if (imgH > rowMaxH) rowMaxH = imgH;
+        currentX += imgWidth + gap;
+      } catch (e) {
+        console.error("Error en imagen", e);
       }
-      
-      currentX += imgWidth + spaceBetween;
     });
-  } else {
-    doc.setFont("helvetica", "italic");
-    doc.setFontSize(10);
-    doc.setTextColor(100, 100, 100);
-    doc.text("El técnico no adjuntó reportes fotográficos en esta sesión.", margin, y);
   }
 
   // ==========================================
-  // PIE DE PÁGINA
+  // FOOTER CON LÍNEA DE MARCA
   // ==========================================
   const totalPages = doc.getNumberOfPages();
   for (let i = 1; i <= totalPages; i++) {
     doc.setPage(i);
-    doc.setFontSize(8);
-    doc.setTextColor(150, 150, 150);
-    doc.text(
-      `Página ${i} de ${totalPages} - ERP Repair Documento Generado Automáticamente.`,
-      pageWidth / 2,
-      290,
-      { align: "center" }
-    );
+    doc.setDrawColor(30, 64, 175);
+    doc.setLineWidth(0.5);
+    doc.line(margin, 285, pageWidth - margin, 285);
+
+    doc.setFontSize(7);
+    doc.setTextColor(107, 114, 128);
+    doc.text("Documento oficial generado por TECNOPRO CELL - Garantía sujeta a términos y condiciones.", margin, 290);
+    doc.text(`PÁGINA ${i} / ${totalPages} - TECNOPRO CELL`, pageWidth - margin, 290, { align: "right" });
   }
 
-  // Auto-descargar usando save 
-  const safeClientName = ticket.cliente?.nombre?.replace(/\s+/g, '_') || "Cliente";
-  doc.save(`Acta_Reparacion_${ticket.id.split("-")[0]}_${safeClientName}.pdf`);
+  const safeName = ticket.cliente?.nombre?.split(" ")[0] || "Cliente";
+  doc.save(`Acta_${ordenId}_${safeName}.pdf`);
 }

@@ -232,7 +232,7 @@ export function SucursalesPage() {
                   <IconUsers size={12} />
                 </ThemeIcon>
                 <Text size="xs" c="dimmed">
-                  Usuarios
+                  Personal
                 </Text>
                 <Text fw={700} size="sm">
                   {s._count?.usuarios ?? "—"}

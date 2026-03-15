@@ -105,6 +105,13 @@ export const theme = createTheme({
         radius: "md",
       },
     },
+    NumberInput: {
+      defaultProps: {
+        radius: "md",
+        thousandSeparator: ".",
+        decimalSeparator: ",",
+      },
+    },
     PasswordInput: {
       defaultProps: {
         radius: "md",

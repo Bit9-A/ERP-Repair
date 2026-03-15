@@ -107,7 +107,7 @@ export function ClientTable({ clients, onEdit, onDelete, onViewHistory }: Client
               {/* Acciones */}
               <Table.Td>
                 <Group gap="xs" justify="center">
-                  <Tooltip label="Ver Historial">
+                  <Tooltip label="Ver Historial de Reparaciones">
                     <ActionIcon
                       variant="subtle"
                       color="violet"

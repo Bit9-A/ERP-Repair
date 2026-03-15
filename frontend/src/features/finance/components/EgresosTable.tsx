@@ -224,7 +224,7 @@ export function EgresosTable({ periodo }: EgresosTableProps) {
                   </Table.Td>
                   <Table.Td style={{ textAlign: "right" }}>
                     <Text ff="monospace" size="sm" fw={800} c="red.6">
-                      -${egreso.monto_usd.toFixed(2)}
+                    -$ {egreso.monto_usd.toLocaleString("es-CO", { minimumFractionDigits: 0, maximumFractionDigits: 0 })} COP
                     </Text>
                   </Table.Td>
                   <Table.Td style={{ textAlign: "center" }}>
@@ -280,12 +280,11 @@ export function EgresosTable({ periodo }: EgresosTableProps) {
             />
 
             <NumberInput
-              label="Monto en USD ($)"
-              placeholder="0.00"
+              label="Monto en COP ($)"
+              placeholder="0"
               required
               min={0}
-              decimalScale={2}
-              fixedDecimalScale
+              decimalScale={0}
               {...form.getInputProps("monto_usd")}
             />
 
