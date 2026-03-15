@@ -1,5 +1,5 @@
 import { api } from "../lib/api";
-import type { ApiResponse, Venta, EstadoVenta } from "../types";
+import type { ApiResponse, Venta, EstadoVenta, MetodoPago } from "../types";
 
 // ============================================
 // Sales service — /api/sales
@@ -23,7 +23,7 @@ export interface CreateSalePayload {
     monedaId: string;
     monto_moneda_local: number;
     equivalente_usd: number;
-    metodo: "EFECTIVO" | "PAGO_MOVIL" | "ZELLE" | "TRANSFERENCIA" | "BINANCE";
+    metodo: MetodoPago;
     referencia?: string;
   };
 }
