@@ -108,7 +108,7 @@ export function AddStockModal({
             </Text>
             <Text size="xs" c="dimmed">
               SKU: {producto.sku} · Stock actual: {producto.stock_actual} u. ·
-              Precio proveedor base: $ {producto.costo_usd.toLocaleString("es-CO", { minimumFractionDigits: 0, maximumFractionDigits: 0 })} COP
+              Precio proveedor base: ${producto.costo_usd.toFixed(2)}
             </Text>
           </Alert>
 
@@ -136,10 +136,11 @@ export function AddStockModal({
 
           {/* Feature 2: supplier price */}
           <NumberInput
-            label="Precio de Proveedor (COP)"
-            placeholder="Ej: 45000"
+            label="Precio de Proveedor (USD)"
+            placeholder="Ej: 45.00"
             min={0}
-            decimalScale={0}
+            decimalScale={2}
+            fixedDecimalScale
             prefix="$"
             description="Precio al que compraste este lote. Se registra en el historial sin afectar el costo base del producto."
             {...form.getInputProps("costo_unitario_usd")}
@@ -149,7 +150,7 @@ export function AddStockModal({
             Number(form.values.costo_unitario_usd) > 0 && (
               <Checkbox
                 label="Actualizar precio de proveedor base del producto"
-                description={`El precio de proveedor base cambiará de $ ${producto.costo_usd.toLocaleString("es-CO", { minimumFractionDigits: 0, maximumFractionDigits: 0 })} a $ ${Number(form.values.costo_unitario_usd).toLocaleString("es-CO", { minimumFractionDigits: 0, maximumFractionDigits: 0 })} COP`}
+                description={`El precio de proveedor base cambiará de $${producto.costo_usd.toFixed(2)} a $${Number(form.values.costo_unitario_usd).toFixed(2)}`}
                 {...form.getInputProps("actualizar_costo", {
                   type: "checkbox",
                 })}

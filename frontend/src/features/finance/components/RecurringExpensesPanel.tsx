@@ -158,7 +158,7 @@ export function RecurringExpensesPanel() {
           <Table.Thead>
             <Table.Tr>
               <Table.Th>Concepto</Table.Th>
-              <Table.Th>Monto (COP)</Table.Th>
+              <Table.Th>Monto (USD)</Table.Th>
               <Table.Th>Frecuencia</Table.Th>
               <Table.Th>Próximo Cobro</Table.Th>
               <Table.Th align="right">Acciones</Table.Th>
@@ -182,7 +182,7 @@ export function RecurringExpensesPanel() {
                 </Table.Td>
                 <Table.Td>
                   <Text size="sm" fw={700} c="red">
-                   $ {item.monto_usd.toLocaleString("es-CO", { minimumFractionDigits: 0, maximumFractionDigits: 0 })} COP
+                    ${item.monto_usd.toFixed(2)}
                   </Text>
                 </Table.Td>
                 <Table.Td>
@@ -260,9 +260,9 @@ export function RecurringExpensesPanel() {
           />
           <Group grow>
             <NumberInput
-              label="Monto (COP)"
-              placeholder="0"
-              decimalScale={0}
+              label="Monto (USD)"
+              placeholder="0.00"
+              decimalScale={2}
               min={0}
               required
               value={formData.monto_usd}

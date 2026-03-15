@@ -1,23 +1,19 @@
 /**
- * Formatea un monto en pesos colombianos.
+ * Formatea un monto en dólares.
  */
-export function formatCOP(amount: number): string {
-  return `$ ${Math.round(amount).toLocaleString("es-CO")}`;
+export function formatUSD(amount: number): string {
+  return `$${amount.toFixed(2)}`;
 }
 
 /**
- * Convierte un monto de una moneda a COP usando la tasa de cambio.
- * @param montoLocal — Monto en moneda alterna (USD, VES)
- * @param tasaCambio — Cuántas unidades de moneda local equivalen a 1 COP
+ * Convierte un monto de una moneda a USD usando la tasa de cambio.
+ * @param montoLocal — Monto en moneda local
+ * @param tasaCambio — Cuántas unidades de moneda local equivalen a 1 USD
  */
-export function convertToCOP(montoLocal: number, tasaCambio: number): number {
+export function convertToUSD(montoLocal: number, tasaCambio: number): number {
   if (tasaCambio <= 0) throw new Error("Tasa de cambio debe ser mayor a 0");
   return parseFloat((montoLocal / tasaCambio).toFixed(2));
 }
-
-// Alias for backward compatibility with existing callers
-export const convertToUSD = convertToCOP;
-export const formatUSD = formatCOP;
 
 /**
  * Calcula la comisión de un técnico sobre un servicio.

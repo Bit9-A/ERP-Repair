@@ -193,7 +193,7 @@ export async function exportFinanceExcel(
     { header: "Referencia", key: "referencia", width: 18 },
     { header: "Moneda", key: "moneda", width: 10 },
     { header: "Monto Local", key: "montoLocal", width: 16 },
-    { header: "Equivalente COP", key: "montoUSD", width: 18 },
+    { header: "Equivalente USD", key: "montoUSD", width: 18 },
   ];
 
   addTitleRow(wsIngresos, `Reporte de Ingresos — ${periodoLabel}`, ingresosColumns.length);
@@ -268,7 +268,7 @@ export async function exportFinanceExcel(
     { header: "Concepto", key: "concepto", width: 32 },
     { header: "Categoría", key: "categoria", width: 20 },
     { header: "Es Fijo", key: "esFijo", width: 12 },
-    { header: "Monto COP", key: "montoUSD", width: 16 },
+    { header: "Monto USD", key: "montoUSD", width: 16 },
   ];
 
   addTitleRow(wsEgresos, `Reporte de Egresos — ${periodoLabel}`, egresosColumns.length);

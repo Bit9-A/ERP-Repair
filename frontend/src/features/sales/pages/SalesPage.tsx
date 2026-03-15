@@ -224,7 +224,7 @@ export function SalesPage() {
         />
         <StatCard
           title="Ingresos Hoy"
-          value={`$ ${ingresosHoy.toLocaleString("es-CO", { minimumFractionDigits: 0, maximumFractionDigits: 0 })} COP`}
+          value={`$${ingresosHoy.toFixed(2)}`}
           icon={<IconCurrencyDollar size={20} />}
           accentColor="#22C55E"
         />
@@ -360,7 +360,7 @@ export function SalesPage() {
                     </Table.Td>
                     <Table.Td style={{ textAlign: "right" }}>
                       <Text ff="monospace" size="sm" fw={700}>
-                        $ {sale.total_usd.toLocaleString("es-CO", { minimumFractionDigits: 0, maximumFractionDigits: 0 })} COP
+                        ${sale.total_usd.toFixed(2)}
                       </Text>
                     </Table.Td>
                     <Table.Td>
@@ -521,12 +521,13 @@ export function SalesPage() {
                     </Table.Td>
                     <Table.Td style={{ textAlign: "right" }}>
                       <Text size="sm" ff="monospace">
-                        $ {item.precio_congelado_usd.toLocaleString("es-CO", { minimumFractionDigits: 0, maximumFractionDigits: 0 })} COP
+                        ${item.precio_congelado_usd.toFixed(2)}
                       </Text>
                     </Table.Td>
                     <Table.Td style={{ textAlign: "right" }}>
                       <Text size="sm" ff="monospace" fw={600}>
-                        $ {(item.precio_congelado_usd * item.cantidad).toLocaleString("es-CO", { minimumFractionDigits: 0, maximumFractionDigits: 0 })} COP
+                        $
+                        {(item.precio_congelado_usd * item.cantidad).toFixed(2)}
                       </Text>
                     </Table.Td>
                   </Table.Tr>
@@ -542,7 +543,7 @@ export function SalesPage() {
                   Subtotal
                 </Text>
                 <Text ff="monospace" fw={600}>
-                  $ {detailSale.subtotal_usd.toLocaleString("es-CO", { minimumFractionDigits: 0, maximumFractionDigits: 0 })} COP
+                  ${detailSale.subtotal_usd.toFixed(2)}
                 </Text>
               </div>
               {detailSale.descuento_usd > 0 && (
@@ -551,7 +552,7 @@ export function SalesPage() {
                     Descuento
                   </Text>
                   <Text ff="monospace" fw={600} c="red">
-                    -$ {detailSale.descuento_usd.toLocaleString("es-CO", { minimumFractionDigits: 0, maximumFractionDigits: 0 })} COP
+                    -${detailSale.descuento_usd.toFixed(2)}
                   </Text>
                 </div>
               )}
@@ -560,7 +561,7 @@ export function SalesPage() {
                   Total
                 </Text>
                 <Text ff="monospace" fw={700} size="lg" c="brand">
-                  $ {detailSale.total_usd.toLocaleString("es-CO", { minimumFractionDigits: 0, maximumFractionDigits: 0 })} COP
+                  ${detailSale.total_usd.toFixed(2)}
                 </Text>
               </div>
             </Group>
@@ -581,7 +582,7 @@ export function SalesPage() {
                         Monto local
                       </Table.Th>
                       <Table.Th style={{ textAlign: "right" }}>
-                        Equivalente COP
+                        Equivalente USD
                       </Table.Th>
                       <Table.Th>Referencia</Table.Th>
                     </Table.Tr>
@@ -619,7 +620,7 @@ export function SalesPage() {
                         </Table.Td>
                         <Table.Td style={{ textAlign: "right" }}>
                           <Text ff="monospace" size="sm" fw={700} c="brand">
-                            $ {pago.equivalente_usd.toLocaleString("es-CO", { minimumFractionDigits: 0, maximumFractionDigits: 0 })} COP
+                            ${pago.equivalente_usd.toFixed(2)}
                           </Text>
                         </Table.Td>
                         <Table.Td>
@@ -650,7 +651,7 @@ export function SalesPage() {
                             Tasa {codigo}
                           </Text>
                           <Text ff="monospace" fw={600} c="blue">
-                            {tasa.toFixed(2)} {codigo}/COP
+                            {tasa.toFixed(2)} {codigo}/USD
                           </Text>
                           <Text size="xs" c="dimmed">
                             Total ≈{" "}

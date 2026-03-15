@@ -77,7 +77,7 @@ export function PaymentsTable({ periodo }: PaymentsTableProps) {
               <Table.Th>Ref.</Table.Th>
               <Table.Th>Origen</Table.Th>
               <Table.Th>Cliente</Table.Th>
-              <Table.Th style={{ textAlign: "right" }}>Equiv. COP</Table.Th>
+              <Table.Th style={{ textAlign: "right" }}>Equiv. USD</Table.Th>
               <Table.Th>Moneda</Table.Th>
               <Table.Th style={{ textAlign: "right" }}>Monto Local</Table.Th>
               <Table.Th>Método</Table.Th>
@@ -137,7 +137,7 @@ export function PaymentsTable({ periodo }: PaymentsTableProps) {
                 </Table.Td>
                 <Table.Td style={{ textAlign: "right" }}>
                   <Text ff="monospace" size="sm" fw={800} c="brand.6">
-                    $ {pay.equivalente_usd.toLocaleString("es-CO", { minimumFractionDigits: 0, maximumFractionDigits: 0 })} COP
+                    ${pay.equivalente_usd.toFixed(2)}
                   </Text>
                 </Table.Td>
                 <Table.Td>

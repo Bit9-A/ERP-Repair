@@ -40,7 +40,6 @@ import {
 } from "../../../services";
 import { useAuthStore } from "../../auth/store/auth.store";
 import { BarcodeScanner } from "./BarcodeScanner";
-import { formatCurrency } from "../../../utils/currency";
 
 interface CartItem {
   productoId: string;
@@ -92,7 +91,7 @@ export function SaleForm({ opened, onClose, onSubmit }: SaleFormProps) {
   const [selectedMetodo, setSelectedMetodo] = useState<MetodoPago>("EFECTIVO");
   const [referencia, setReferencia] = useState("");
 
-  const monedaCOP = monedas.find((m) => m.codigo === "COP");
+  const monedaUSD = monedas.find((m) => m.codigo === "USD");
 
   // Feature 1: editable rates (default from DB, user can override)
   const [editableRates, setEditableRates] = useState<Record<string, number>>(
@@ -104,7 +103,7 @@ export function SaleForm({ opened, onClose, onSubmit }: SaleFormProps) {
     if (monedas.length > 0) {
       const rates: Record<string, number> = {};
       monedas.forEach((m) => {
-        if (m.codigo !== "COP") rates[m.codigo] = m.tasa_cambio;
+        if (m.codigo !== "USD") rates[m.codigo] = m.tasa_cambio;
       });
       setEditableRates(rates);
     }
@@ -116,9 +115,9 @@ export function SaleForm({ opened, onClose, onSubmit }: SaleFormProps) {
   // Default USD
   useEffect(() => {
     if (monedas.length > 0 && !selectedMonedaId) {
-      if (monedaCOP) setSelectedMonedaId(monedaCOP.id);
+      if (monedaUSD) setSelectedMonedaId(monedaUSD.id);
     }
-  }, [monedas, selectedMonedaId, monedaCOP]);
+  }, [monedas, selectedMonedaId, monedaUSD]);
 
   // Auto-set clienteId when found
   useEffect(() => {
@@ -331,7 +330,7 @@ export function SaleForm({ opened, onClose, onSubmit }: SaleFormProps) {
       ]);
       notifications.show({
         title: "Producto agregado",
-        message: `${pendingScanProduct.nombre} x${qtyToAdd} — $${formatCurrency(pendingScanProduct.precio_usd * qtyToAdd)}`,
+        message: `${pendingScanProduct.nombre} x${qtyToAdd} — $${(pendingScanProduct.precio_usd * qtyToAdd).toFixed(2)}`,
         color: "green",
       });
     }
@@ -435,13 +434,13 @@ export function SaleForm({ opened, onClose, onSubmit }: SaleFormProps) {
     setCart([]);
     setDescuento(0);
     setProductSearch("");
-    if (monedaCOP) setSelectedMonedaId(monedaCOP.id);
+    if (monedaUSD) setSelectedMonedaId(monedaUSD.id);
     setSelectedMetodo("EFECTIVO");
     setReferencia("");
     // Reset editable rates to DB values
     const rates: Record<string, number> = {};
     monedas.forEach((m) => {
-      if (m.codigo !== "COP") rates[m.codigo] = m.tasa_cambio;
+      if (m.codigo !== "USD") rates[m.codigo] = m.tasa_cambio;
     });
     setEditableRates(rates);
   };
@@ -762,7 +761,7 @@ export function SaleForm({ opened, onClose, onSubmit }: SaleFormProps) {
                               )}
                             </Stack>
                             <Text size="sm" fw={700} ff="monospace" c="brand">
-                              ${formatCurrency(product.precio_usd)}
+                              ${product.precio_usd.toFixed(2)}
                             </Text>
                             <ActionIcon
                               variant="light"

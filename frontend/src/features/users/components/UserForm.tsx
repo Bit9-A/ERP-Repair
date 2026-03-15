@@ -259,12 +259,13 @@ export function UserForm({
             )}
             {form.values.gana_salario ? (
               <NumberInput
-                label="Salario Mensual (COP)"
+                label="Salario Mensual (USD)"
                 min={0}
-                step={10000}
-                decimalScale={0}
+                step={10}
+                decimalScale={2}
+                fixedDecimalScale
                 hideControls
-                placeholder="Ej: 1200000"
+                placeholder="Ej: 200.00"
                 {...form.getInputProps("salario_base_usd")}
               />
             ) : (
