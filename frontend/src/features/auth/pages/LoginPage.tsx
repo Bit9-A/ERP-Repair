@@ -125,7 +125,7 @@ export function LoginPage() {
             <Stack gap="md">
               <TextInput
                 label="Usuario"
-                placeholder="Nombre de usuario"
+                placeholder="Ingresa tu usuario"
                 size="md"
                 radius="md"
                 leftSection={<IconUser size={18} stroke={1.5} color="rgba(255,255,255,0.7)" />}
@@ -142,7 +142,7 @@ export function LoginPage() {
 
               <PasswordInput
                 label="Contraseña"
-                placeholder="••••••••"
+                placeholder="Ingresa tu contraseña"
                 size="md"
                 radius="md"
                 leftSection={<IconLock size={18} stroke={1.5} color="rgba(255,255,255,0.7)" />}

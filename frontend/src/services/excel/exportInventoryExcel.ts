@@ -133,6 +133,8 @@ export async function exportInventoryExcel(
   let catEquipos = 0;
   let catRepuestos = 0;
   let catAccesorios = 0;
+  let propPropia = 0;
+  let propConsignada = 0;
 
   products.forEach(p => {
     totalInversion += p.stock_actual * (p.costo_usd ?? 0);
@@ -142,6 +144,9 @@ export async function exportInventoryExcel(
     if (p.categoria === "EQUIPO") catEquipos++;
     if (p.categoria === "REPUESTO") catRepuestos++;
     if (p.categoria === "ACCESORIO") catAccesorios++;
+
+    if (p.propiedad === "PROPIA") propPropia++;
+    else propConsignada++;
   });
 
   const margenTotal = totalInversion > 0 
@@ -173,6 +178,9 @@ export async function exportInventoryExcel(
   ws0.addRow(["", "📱 Equipos:", catEquipos]);
   ws0.addRow(["", "🎧 Accesorios:", catAccesorios]);
   ws0.addRow(["", "🔧 Repuestos:", catRepuestos]);
+  ws0.addRow([]);
+  ws0.addRow(["", "🏷️ Propia:", propPropia]);
+  ws0.addRow(["", "🤝 Consignación:", propConsignada]);
   
   // Bordes sutiles en las tablas del dashboard
   ws0.eachRow((row, index) => {
@@ -199,6 +207,7 @@ export async function exportInventoryExcel(
     { header: "SKU", key: "sku", width: 16 },
     { header: "Costo Proveedor", key: "costo", width: 16 },
     { header: "Precio Cliente", key: "precio", width: 16 },
+    { header: "Propiedad", key: "propiedad", width: 14 },
     { header: "Stock Actual", key: "stock_actual", width: 14 },
     { header: "Stock Mínimo", key: "stock_minimo", width: 14 },
   ];
@@ -206,7 +215,7 @@ export async function exportInventoryExcel(
   addTitleRow(ws1, `Catálogo y Existencias${branchTitle}`, catColumns.length);
   const catHeaderRow = ws1.addRow(catColumns.map(c => c.header));
   styleHeaderRow(catHeaderRow, catColumns.length);
-  ws1.autoFilter = 'A2:I2';
+  ws1.autoFilter = 'A2:J2';
 
   products.forEach((p, idx) => {
     const row = ws1.addRow([
@@ -217,6 +226,7 @@ export async function exportInventoryExcel(
       p.sku ?? "—",
       p.costo_usd,
       p.precio_usd,
+      p.propiedad === "PROPIA" ? "PROPIA" : "CONSIGNADA",
       p.stock_actual,
       p.stock_minimo,
     ]);
@@ -228,11 +238,12 @@ export async function exportInventoryExcel(
     row.getCell(7).alignment = { horizontal: "right" };
     row.getCell(8).alignment = { horizontal: "center" };
     row.getCell(9).alignment = { horizontal: "center" };
+    row.getCell(10).alignment = { horizontal: "center" };
 
     // Format low stock
     if (p.stock_actual <= p.stock_minimo) {
-      row.getCell(8).font = { color: { argb: "FFDC2626" }, bold: true };
-      row.getCell(8).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFFEE2E2" } };
+      row.getCell(9).font = { color: { argb: "FFDC2626" }, bold: true };
+      row.getCell(9).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFFEE2E2" } };
     }
 
     styleDataRow(row, catColumns.length, idx % 2 === 1);

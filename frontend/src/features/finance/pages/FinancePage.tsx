@@ -21,7 +21,8 @@ import {
 } from "@mantine/core";
 import { MonthPickerInput } from "@mantine/dates";
 import { notifications } from "@mantine/notifications";
-import { IconCurrencyDollar,
+import {
+  IconCurrencyDollar,
   IconReceipt,
   IconTrendingUp,
   IconTrendingDown,
@@ -274,7 +275,7 @@ export function FinancePage() {
             </Group>
 
             <Stack gap="md">
-              {/* USD – base */}
+              {/* COP – base */}
               <Paper
                 p="sm"
                 radius="md"
@@ -286,10 +287,10 @@ export function FinancePage() {
                 <Group justify="space-between">
                   <div>
                     <Badge variant="filled" color="brand" size="sm" mb={4}>
-                      USD
+                      COP
                     </Badge>
                     <Text size="sm" fw={500}>
-                      Dólar Americano
+                      Peso Colombiano
                     </Text>
                   </div>
                   <Text ff="monospace" fw={700} size="lg" c="brand.6">
@@ -330,7 +331,7 @@ export function FinancePage() {
                         {r.name}
                       </Text>
                       <Text size="sm" fw={500} c="dimmed" mt={2}>
-                        1 USD = {r.symbol}{" "}
+                        1 COP = {r.symbol}{" "}
                         {editRates[r.code]?.toLocaleString("es-VE", {
                           minimumFractionDigits: 2,
                         })}
@@ -399,20 +400,20 @@ export function FinancePage() {
           <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
             <StatCard
               title={`Ingresos ${periodoLabel}`}
-              value={`$${(stats?.ingresosHoy ?? 0).toFixed(2)}`}
+              value={`$ ${(stats?.ingresosHoy ?? 0).toLocaleString("es-CO", { minimumFractionDigits: 0, maximumFractionDigits: 0 })} COP`}
               icon={<IconCurrencyDollar size={20} />}
               accentColor="#22C55E"
             />
             <StatCard
               title={`Egresos ${periodoLabel}`}
-              value={`-$${(stats?.egresosHoy ?? 0).toFixed(2)}`}
+              value={`-$ ${(stats?.egresosHoy ?? 0).toLocaleString("es-CO", { minimumFractionDigits: 0, maximumFractionDigits: 0 })} COP`}
               icon={<IconTrendingDown size={20} />}
               accentColor="#EF4444"
               subtitle="Compras de inventario y gastos"
             />
             <StatCard
               title={`Balance ${periodoLabel}`}
-              value={`$${(stats?.balanceHoy ?? 0).toFixed(2)}`}
+              value={`$ ${(stats?.balanceHoy ?? 0).toLocaleString("es-CO", { minimumFractionDigits: 0, maximumFractionDigits: 0 })} COP`}
               icon={<IconTrendingUp size={20} />}
               accentColor="#3B82F6"
             />
@@ -459,7 +460,7 @@ export function FinancePage() {
             leftSection={<IconTrendingDown size={16} />}
             color="red"
           >
-            Gastos & Egresos
+            Egresos
           </Tabs.Tab>
 
           <Tabs.Tab
@@ -501,15 +502,15 @@ export function FinancePage() {
               Arqueo de Caja &amp; Conciliación
             </Text>
           </Group>
-            <Button
-              variant="light"
-              color="green"
-              size="xs"
-              leftSection={<IconFileSpreadsheet size={14} />}
-              onClick={() => setExportModalOpen(true)}
-            >
-              Exportar Excel
-            </Button>
+          <Button
+            variant="light"
+            color="green"
+            size="xs"
+            leftSection={<IconFileSpreadsheet size={14} />}
+            onClick={() => setExportModalOpen(true)}
+          >
+            Exportar Excel
+          </Button>
         </Group>
 
         <Text size="xs" c="dimmed" mb="md">
@@ -523,10 +524,10 @@ export function FinancePage() {
         <SimpleGrid cols={{ base: 1, sm: 3 }} spacing="md">
           <Box>
             <Text size="xs" c="dimmed" tt="uppercase" mb={4}>
-              Fondo USD
+              Fondo COP
             </Text>
             <Text ff="monospace" fw={700} size="xl" c="brand.6">
-              ${(stats?.ingresosHoy ?? 0).toFixed(2)}
+              $ {(stats?.ingresosHoy ?? 0).toLocaleString("es-CO", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
             </Text>
           </Box>
           <Box>

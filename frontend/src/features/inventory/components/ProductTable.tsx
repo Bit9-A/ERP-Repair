@@ -13,6 +13,7 @@ import { StockStatusBadge } from "../../../components/ui/StatusBadge";
 import { PRODUCT_CATEGORIES, PRODUCT_OWNERSHIP } from "../../../lib/constants";
 import type { Producto } from "../../../types";
 import { usePermissions } from "../../../hooks/usePermissions";
+import { formatCurrency } from "../../../utils/currency";
 
 interface ProductTableProps {
   products: Producto[];
@@ -197,14 +198,14 @@ export function ProductTable({
               {/* Precio Proveedor */}
               <Table.Td style={{ textAlign: "right" }}>
                 <Text ff="monospace" size="sm" c="dimmed">
-                  ${product.costo_usd.toFixed(2)}
+                  ${formatCurrency(product.costo_usd)}
                 </Text>
               </Table.Td>
 
               {/* Precio Cliente */}
               <Table.Td style={{ textAlign: "right" }}>
                 <Text ff="monospace" size="sm" fw={600}>
-                  ${product.precio_usd.toFixed(2)}
+                  ${formatCurrency(product.precio_usd)}
                 </Text>
               </Table.Td>
 

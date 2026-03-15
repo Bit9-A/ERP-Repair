@@ -220,6 +220,17 @@
 }
 
 /* ============================================
+   UI Fixes (Light Mode)
+   ============================================ */
+/* Forzar texto oscuro en Checklist y otros componentes dentro de modales en modo claro */
+[data-mantine-color-scheme="light"] .mantine-Modal-content .mantine-Checkbox-label,
+[data-mantine-color-scheme="light"] .mantine-Modal-content .mantine-Radio-label,
+[data-mantine-color-scheme="light"] .mantine-Modal-content .mantine-Accordion-label,
+[data-mantine-color-scheme="light"] .mantine-Modal-content .mantine-Accordion-control {
+  color: #0f172a !important;
+}
+
+/* ============================================
    Mobile Responsive
    ============================================ */
 

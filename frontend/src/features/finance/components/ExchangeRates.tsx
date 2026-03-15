@@ -9,9 +9,9 @@ interface ExchangeRate {
 }
 
 const DEMO_RATES: ExchangeRate[] = [
-  { code: "USD", name: "Dólar Americano", rate: 1.0, symbol: "$" },
-  { code: "VES", name: "Bolívar Venezolano", rate: 40.5, symbol: "Bs." },
-  { code: "COP", name: "Peso Colombiano", rate: 4150.0, symbol: "$" },
+  { code: "COP", name: "Peso Colombiano", rate: 1.0, symbol: "COP" },
+  { code: "USD", name: "Dólar Americano", rate: 0.00024, symbol: "$" },
+  { code: "VES", name: "Bolívar Venezolano", rate: 0.0095, symbol: "Bs." },
 ];
 
 export function ExchangeRates() {
@@ -33,16 +33,16 @@ export function ExchangeRates() {
             style={{
               background: "var(--bg-card)",
               border: "1px solid var(--border-subtle)",
-              borderTop: `3px solid ${rate.code === "USD" ? "#22C55E" : rate.code === "VES" ? "#3B82F6" : "#F59E0B"}`,
+              borderTop: `3px solid ${rate.code === "COP" ? "#22C55E" : rate.code === "USD" ? "#3B82F6" : "#F59E0B"}`,
             }}
           >
             <Group justify="space-between" mb="xs">
               <Badge
                 variant="light"
                 color={
-                  rate.code === "USD"
+                  rate.code === "COP"
                     ? "brand"
-                    : rate.code === "VES"
+                    : rate.code === "USD"
                       ? "blue"
                       : "yellow"
                 }
@@ -55,7 +55,7 @@ export function ExchangeRates() {
             <Text size="xs" c="dimmed" mb={4}>
               {rate.name}
             </Text>
-            {rate.code === "USD" ? (
+            {rate.code === "COP" ? (
               <Text ff="monospace" size="lg" fw={700}>
                 Moneda Base
               </Text>

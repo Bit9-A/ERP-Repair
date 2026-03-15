@@ -53,6 +53,7 @@ export function InventoryPage() {
   const [searchParams] = useSearchParams();
   const [search, setSearch] = useState(searchParams.get("search") || "");
   const [stockFilter, setStockFilter] = useState<string | null>(null);
+  const [ownershipFilter, setOwnershipFilter] = useState<string | null>(null);
   const [categoryTab, setCategoryTab] = useState("all");
   const [editProduct, setEditProduct] = useState<Producto | null>(null);
   const [stockProduct, setStockProduct] = useState<Producto | null>(null);
@@ -101,7 +102,11 @@ export function InventoryPage() {
         p.stock_actual <= p.stock_minimo) ||
       (stockFilter === "out" && p.stock_actual <= 0) ||
       (stockFilter === "ok" && p.stock_actual > p.stock_minimo);
-    return matchesSearch && matchesCategory && matchesStock;
+    const matchesOwnership =
+      !ownershipFilter ||
+      ownershipFilter === "all" ||
+      p.propiedad === ownershipFilter;
+    return matchesSearch && matchesCategory && matchesStock && matchesOwnership;
   });
 
   const totalProducts = products.length;
@@ -410,6 +415,25 @@ export function InventoryPage() {
               onChange={setStockFilter}
               clearable
               w={160}
+              size="sm"
+              styles={{
+                input: {
+                  background: "var(--bg-elevated)",
+                  borderColor: "var(--border-subtle)",
+                },
+              }}
+            />
+            <Select
+              placeholder="Propiedad"
+              data={[
+                { value: "all", label: "Todas" },
+                { value: "PROPIA", label: "Propia" },
+                { value: "PRESTADA", label: "Consignada/Prestada" },
+              ]}
+              value={ownershipFilter}
+              onChange={setOwnershipFilter}
+              clearable
+              w={180}
               size="sm"
               styles={{
                 input: {
