@@ -36,16 +36,13 @@ import {
 import { StatCard } from "../../../components/ui/StatCard";
 import { exportSalesExcel } from "../../../services/excel/exportSalesExcel";
 import { SaleForm } from "../components/SaleForm";
-import type { SaleFormValues } from "../components/SaleForm";
 import { SALE_STATUS } from "../../../lib/constants";
 import type { Venta } from "../../../types";
 import {
   useSales,
-  useCreateSale,
   useMarcarPagada,
   useAnularVenta,
 } from "../../../services";
-import { useAuthStore } from "../../../features/auth/store/auth.store";
 
 export function SalesPage() {
   const [searchParams] = useSearchParams();
@@ -88,12 +85,8 @@ export function SalesPage() {
     }
   };
 
-  // -- Context hooks --
-  const { user } = useAuthStore();
-
   // -- API hooks --
   const { data: sales = [], isLoading } = useSales();
-  const createSale = useCreateSale();
   const marcarPagada = useMarcarPagada();
   const anularVenta = useAnularVenta();
 
@@ -122,33 +115,7 @@ export function SalesPage() {
     openDetail();
   };
 
-  const handleCreateSale = async (values: SaleFormValues) => {
-    try {
-      await createSale.mutateAsync({
-        clienteId: values.clienteId,
-        sucursalId: user?.sucursalId,
-        items: values.items.map((i) => ({
-          productoId: i.productoId,
-          cantidad: i.cantidad,
-        })),
-        descuento_usd: values.descuento_usd,
-        // ✅ Pasar los datos de pago para que el backend registre el INGRESO
-        pago: values.pago,
-      });
-      notifications.show({
-        title: "Venta registrada",
-        message: "La venta fue creada correctamente",
-        color: "green",
-      });
-      closeSaleForm();
-    } catch {
-      notifications.show({
-        title: "Error",
-        message: "No se pudo registrar la venta",
-        color: "red",
-      });
-    }
-  };
+
 
   const handleMarcarPagada = async (id: string) => {
     try {
@@ -224,7 +191,7 @@ export function SalesPage() {
         />
         <StatCard
           title="Ingresos Hoy"
-          value={`$ ${ingresosHoy.toLocaleString("es-CO", { minimumFractionDigits: 0, maximumFractionDigits: 0 })} COP`}
+          value={`$ ${ingresosHoy.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
           icon={<IconCurrencyDollar size={20} />}
           accentColor="#22C55E"
         />
@@ -360,7 +327,7 @@ export function SalesPage() {
                     </Table.Td>
                     <Table.Td style={{ textAlign: "right" }}>
                       <Text ff="monospace" size="sm" fw={700}>
-                        $ {sale.total_usd.toLocaleString("es-CO", { minimumFractionDigits: 0, maximumFractionDigits: 0 })} COP
+                        $ {sale.total_usd.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </Text>
                     </Table.Td>
                     <Table.Td>
@@ -521,12 +488,12 @@ export function SalesPage() {
                     </Table.Td>
                     <Table.Td style={{ textAlign: "right" }}>
                       <Text size="sm" ff="monospace">
-                        $ {item.precio_congelado_usd.toLocaleString("es-CO", { minimumFractionDigits: 0, maximumFractionDigits: 0 })} COP
+                        $ {item.precio_congelado_usd.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </Text>
                     </Table.Td>
                     <Table.Td style={{ textAlign: "right" }}>
                       <Text size="sm" ff="monospace" fw={600}>
-                        $ {(item.precio_congelado_usd * item.cantidad).toLocaleString("es-CO", { minimumFractionDigits: 0, maximumFractionDigits: 0 })} COP
+                        $ {(item.precio_congelado_usd * item.cantidad).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </Text>
                     </Table.Td>
                   </Table.Tr>
@@ -542,7 +509,7 @@ export function SalesPage() {
                   Subtotal
                 </Text>
                 <Text ff="monospace" fw={600}>
-                  $ {detailSale.subtotal_usd.toLocaleString("es-CO", { minimumFractionDigits: 0, maximumFractionDigits: 0 })} COP
+                  $ {detailSale.subtotal_usd.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </Text>
               </div>
               {detailSale.descuento_usd > 0 && (
@@ -551,7 +518,7 @@ export function SalesPage() {
                     Descuento
                   </Text>
                   <Text ff="monospace" fw={600} c="red">
-                    -$ {detailSale.descuento_usd.toLocaleString("es-CO", { minimumFractionDigits: 0, maximumFractionDigits: 0 })} COP
+                    -$ {detailSale.descuento_usd.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </Text>
                 </div>
               )}
@@ -560,7 +527,7 @@ export function SalesPage() {
                   Total
                 </Text>
                 <Text ff="monospace" fw={700} size="lg" c="brand">
-                  $ {detailSale.total_usd.toLocaleString("es-CO", { minimumFractionDigits: 0, maximumFractionDigits: 0 })} COP
+                  $ {detailSale.total_usd.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </Text>
               </div>
             </Group>
@@ -581,7 +548,7 @@ export function SalesPage() {
                         Monto local
                       </Table.Th>
                       <Table.Th style={{ textAlign: "right" }}>
-                        Equivalente COP
+                        Equivalente USD
                       </Table.Th>
                       <Table.Th>Referencia</Table.Th>
                     </Table.Tr>
@@ -619,7 +586,7 @@ export function SalesPage() {
                         </Table.Td>
                         <Table.Td style={{ textAlign: "right" }}>
                           <Text ff="monospace" size="sm" fw={700} c="brand">
-                            $ {pago.equivalente_usd.toLocaleString("es-CO", { minimumFractionDigits: 0, maximumFractionDigits: 0 })} COP
+                            $ {pago.equivalente_usd.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                           </Text>
                         </Table.Td>
                         <Table.Td>
@@ -650,7 +617,7 @@ export function SalesPage() {
                             Tasa {codigo}
                           </Text>
                           <Text ff="monospace" fw={600} c="blue">
-                            {tasa.toFixed(2)} {codigo}/COP
+                            {tasa.toFixed(2)} {codigo}/USD
                           </Text>
                           <Text size="xs" c="dimmed">
                             Total ≈{" "}
@@ -678,7 +645,6 @@ export function SalesPage() {
       <SaleForm
         opened={saleFormOpened}
         onClose={closeSaleForm}
-        onSubmit={handleCreateSale}
       />
     </Stack>
   );

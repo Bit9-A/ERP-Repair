@@ -83,7 +83,7 @@ export async function generateRepairPDF(
 
   y += 6;
   doc.setFont("helvetica", "bold");
-  doc.text(`TOTAL ACORDADO: $ ${(ticket.precio_total_usd).toLocaleString("es-CO", { minimumFractionDigits: 0, maximumFractionDigits: 0 })} COP`, margin, y);
+  doc.text(`TOTAL ACORDADO: $ ${(ticket.precio_total_usd).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, margin, y);
 
   // Ajuste de Y dinámico según el largo del diagnóstico
   y = Math.max(y + 12, y + (splitDiag.length * 4) + 5);

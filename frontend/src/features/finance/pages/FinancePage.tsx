@@ -287,10 +287,10 @@ export function FinancePage() {
                 <Group justify="space-between">
                   <div>
                     <Badge variant="filled" color="brand" size="sm" mb={4}>
-                      COP
+                      USD
                     </Badge>
                     <Text size="sm" fw={500}>
-                      Peso Colombiano
+                      Dólar Estadounidense
                     </Text>
                   </div>
                   <Text ff="monospace" fw={700} size="lg" c="brand.6">
@@ -331,10 +331,10 @@ export function FinancePage() {
                         {r.name}
                       </Text>
                       <Text size="sm" fw={500} c="dimmed" mt={2}>
-                        1 COP = {r.symbol}{" "}
-                        {editRates[r.code]?.toLocaleString("es-VE", {
-                          minimumFractionDigits: 2,
-                        })}
+                        1 USD = {r.symbol}{" "}
+                      {editRates[r.code]?.toLocaleString("en-US", {
+                        minimumFractionDigits: 2,
+                      })}
                       </Text>
                     </div>
                     <NumberInput
@@ -400,20 +400,20 @@ export function FinancePage() {
           <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
             <StatCard
               title={`Ingresos ${periodoLabel}`}
-              value={`$ ${(stats?.ingresosHoy ?? 0).toLocaleString("es-CO", { minimumFractionDigits: 0, maximumFractionDigits: 0 })} COP`}
+              value={`$ ${(stats?.ingresosHoy ?? 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
               icon={<IconCurrencyDollar size={20} />}
               accentColor="#22C55E"
             />
             <StatCard
               title={`Egresos ${periodoLabel}`}
-              value={`-$ ${(stats?.egresosHoy ?? 0).toLocaleString("es-CO", { minimumFractionDigits: 0, maximumFractionDigits: 0 })} COP`}
+              value={`-$ ${(stats?.egresosHoy ?? 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
               icon={<IconTrendingDown size={20} />}
               accentColor="#EF4444"
               subtitle="Compras de inventario y gastos"
             />
             <StatCard
               title={`Balance ${periodoLabel}`}
-              value={`$ ${(stats?.balanceHoy ?? 0).toLocaleString("es-CO", { minimumFractionDigits: 0, maximumFractionDigits: 0 })} COP`}
+              value={`$ ${(stats?.balanceHoy ?? 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
               icon={<IconTrendingUp size={20} />}
               accentColor="#3B82F6"
             />
@@ -524,10 +524,10 @@ export function FinancePage() {
         <SimpleGrid cols={{ base: 1, sm: 3 }} spacing="md">
           <Box>
             <Text size="xs" c="dimmed" tt="uppercase" mb={4}>
-              Fondo COP
+              Fondo USD
             </Text>
             <Text ff="monospace" fw={700} size="xl" c="brand.6">
-              $ {(stats?.ingresosHoy ?? 0).toLocaleString("es-CO", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+              $ {(stats?.ingresosHoy ?? 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </Text>
           </Box>
           <Box>

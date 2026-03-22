@@ -4,9 +4,9 @@ export function formatCurrency(amount: number | string | undefined | null): stri
   const num = typeof amount === "string" ? parseFloat(amount) : amount;
   if (isNaN(num)) return "0";
 
-  // Using es-CO applies dot for thousand separator and comma for decimals if needed
-  return num.toLocaleString("es-CO", {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0, // En COP generalmente no se usan los centavos
+  // Using en-US applies comma for thousand separator and dot for decimals
+  return num.toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
   });
 }

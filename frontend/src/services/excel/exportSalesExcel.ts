@@ -192,7 +192,7 @@ export async function exportSalesExcel(
       const rates = new Set<string>();
       sale.pagos.forEach((p: any) => {
         if (p.moneda?.codigo && p.moneda.codigo !== "USD" && p.tasa_cambio_usada) {
-          rates.add(`${p.tasa_cambio_usada.toFixed(2)} ${p.moneda.codigo}/COP`);
+          rates.add(`${p.tasa_cambio_usada.toFixed(2)} ${p.moneda.codigo}/USD`);
         }
       });
       if (rates.size > 0) {

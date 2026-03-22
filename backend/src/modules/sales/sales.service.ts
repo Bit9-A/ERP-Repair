@@ -122,7 +122,7 @@ export async function create(data: CreateVentaDTO) {
 
   // 2. Feature 1: Snapshot de tasas de cambio actuales
   const monedas = await prisma.moneda.findMany({
-    where: { codigo: { not: "COP" } },
+    where: { codigo: { not: "USD" } },
   });
   const tasas_cambio_snapshot: Record<string, number> = {};
   for (const m of monedas) {

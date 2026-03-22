@@ -12,6 +12,7 @@ import {
 } from "@mantine/core";
 import type { UseFormReturnType } from "@mantine/form";
 import type { TicketFormValues } from "../../types/tickets.types";
+import { useMonedas } from "../../../../services";
 
 interface CostosDataPanelProps {
   form: UseFormReturnType<TicketFormValues>;
@@ -58,21 +59,65 @@ export function CostosDataPanel({
     gananciaLocalEdit,
   } = computed;
 
+  const { data: monedas } = useMonedas();
+  const tasaCop = monedas?.find((m) => m.codigo === "COP")?.tasa_cambio || 1;
+
+  const currentUsdPrice = Number(form.values.mano_de_obra_usd) || 0;
+  const currentCopPrice = currentUsdPrice * tasaCop;
+
+  const handleCopChange = (val: string | number) => {
+    const copVal = Number(val) || 0;
+    // Convierte el valor COP de vuelta a USD y actualiza el formulario
+    form.setFieldValue("mano_de_obra_usd", copVal / tasaCop);
+  };
+
   return (
     <Accordion.Item value="costos">
       <Accordion.Control>
-        <Text fw={600}>5. Costos y Split Dinámico</Text>
+        <Text fw={600}>5. Costos</Text>
       </Accordion.Control>
       <Accordion.Panel>
         <Stack gap="sm">
           <SimpleGrid cols={{ base: 1, sm: isEdit ? 3 : 2 }} mb="sm">
-            <NumberInput
-              label="Precio Cliente($)"
-              description="Lo que cobras por reparar"
-              prefix="$"
-              min={0}
-              {...form.getInputProps("mano_de_obra_usd")}
-            />
+            <Stack gap={4}>
+              <Text size="sm" fw={500}>Precio Cliente</Text>
+              <Text size="xs" c="dimmed">Lo que cobras por reparar</Text>
+              
+              <Stack gap="sm">
+                <Group gap={6} wrap="nowrap" align="center">
+                  <Text size="sm" fw={700} c="dimmed" w={35}>USD</Text>
+                  <NumberInput
+                    prefix="$"
+                    min={0}
+                    decimalScale={2}
+                    fixedDecimalScale
+                    placeholder="Monto"
+                    size="md"
+                    styles={{ input: { fontSize: "16px", fontWeight: "normal" } }}
+                    {...form.getInputProps("mano_de_obra_usd")}
+                    w="100%"
+                    style={{ flex: 1 }}
+                  />
+                </Group>
+               
+                <Group gap={6} wrap="nowrap" align="center">
+                  <Text size="sm" fw={700} c="dimmed" w={35}>COP</Text>
+                  <NumberInput
+                    min={0}
+                    decimalScale={0}
+                    value={currentCopPrice}
+                    onChange={handleCopChange}
+                    placeholder="Monto"
+                    thousandSeparator="."
+                    decimalSeparator=","
+                    size="md"
+                    styles={{ input: { fontSize: "16px", fontWeight: "normal" } }}
+                    w="100%"
+                    style={{ flex: 1 }}
+                  />
+                </Group>
+              </Stack>
+            </Stack>
             {isEdit && (
               <NumberInput
                 label="Repuestos en Ticket ($)"
@@ -129,12 +174,17 @@ export function CostosDataPanel({
           <Paper withBorder p="sm" mt="md">
             <Group justify="space-between" mb="sm">
               <Text fw={700}>Total a Cobrar al Cliente:</Text>
-              <Badge size="lg" color="blue" variant="filled">
-                $
-                {isEdit
-                  ? precioTotalEdit.toFixed(2)
-                  : precioTotalCreate.toFixed(2)}
-              </Badge>
+              <Stack gap={0} align="flex-end">
+                <Badge size="lg" color="blue" variant="filled">
+                  $
+                  {isEdit
+                    ? precioTotalEdit.toFixed(2)
+                    : precioTotalCreate.toFixed(2)}
+                </Badge>
+                <Text size="xs" c="dimmed" fw={600} mt={4}>
+                  COP {(isEdit ? precioTotalEdit : precioTotalCreate * tasaCop).toLocaleString('es-CO', { maximumFractionDigits: 0 })}
+                </Text>
+              </Stack>
             </Group>
             <SimpleGrid cols={{ base: 1, sm: canEditarComision ? 3 : 2 }}>
               <Stack align="center" gap={0}>
@@ -142,6 +192,9 @@ export function CostosDataPanel({
                   Mano de Obra Neta
                 </Text>
                 <Text fw={700}>${manoDeObra.toFixed(2)}</Text>
+                <Text size="xs" c="dimmed" lh={1}>
+                  COP {(manoDeObra * tasaCop).toLocaleString('es-CO', { maximumFractionDigits: 0 })}
+                </Text>
               </Stack>
 
               {canEditarComision && (
@@ -154,6 +207,9 @@ export function CostosDataPanel({
                     {isEdit
                       ? pagoTecnicoEdit.toFixed(2)
                       : pagoTecnicoCreate.toFixed(2)}
+                  </Text>
+                  <Text size="xs" c="dimmed" lh={1}>
+                    COP {((isEdit ? pagoTecnicoEdit : pagoTecnicoCreate) * tasaCop).toLocaleString('es-CO', { maximumFractionDigits: 0 })}
                   </Text>
                 </Stack>
               )}
@@ -170,6 +226,14 @@ export function CostosDataPanel({
                       : gananciaLocalCreate
                     ).toFixed(2)
                     : (isEdit ? precioTotalEdit : precioTotalCreate).toFixed(2)}
+                </Text>
+                <Text size="xs" c="dimmed" lh={1}>
+                  COP {(
+                    (canEditarComision 
+                      ? (isEdit ? gananciaLocalEdit : gananciaLocalCreate) 
+                      : (isEdit ? precioTotalEdit : precioTotalCreate))
+                    * tasaCop
+                  ).toLocaleString('es-CO', { maximumFractionDigits: 0 })}
                 </Text>
               </Stack>
             </SimpleGrid>

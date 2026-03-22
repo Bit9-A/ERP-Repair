@@ -106,7 +106,7 @@ export function RepairClosureModal({
     }
     
     // Texto formateado pre-llenado (URL Encode)
-    const text = `¡Hola ${ticket.cliente.nombre}! Le escribimos desde *TecnoPro Cell*.\n\nLe informamos que su *${ticket.marca} ${ticket.modelo}* ha pasado las pruebas de calidad y ya se encuentra *REPARADO*.\n\nEl precio total acordado es de *$ ${ticket.precio_total_usd.toLocaleString("es-CO", { minimumFractionDigits: 0, maximumFractionDigits: 0 })} COP*. Adjunto a este mensaje le enviamos el acta digital con detalles fotográficos de la intervención técnica.\n\nQuedamos a la espera de su visita para el retiro. ¡Saludos!`;
+    const text = `¡Hola ${ticket.cliente.nombre}! Le escribimos desde *TecnoPro Cell*.\n\nLe informamos que su *${ticket.marca} ${ticket.modelo}* ha pasado las pruebas de calidad y ya se encuentra *REPARADO*.\n\nEl precio total acordado es de *$ ${ticket.precio_total_usd.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}*. Adjunto a este mensaje le enviamos el acta digital con detalles fotográficos de la intervención técnica.\n\nQuedamos a la espera de su visita para el retiro. ¡Saludos!`;
     const wameUrl = `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
     window.open(wameUrl, "_blank");
   };

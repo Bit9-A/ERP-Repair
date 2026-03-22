@@ -259,7 +259,7 @@ export function UserForm({
             )}
             {form.values.gana_salario ? (
               <NumberInput
-                label="Salario Mensual (COP)"
+                label="Salario Mensual (USD)"
                 min={0}
                 step={10000}
                 decimalScale={0}
