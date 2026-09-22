@@ -1,4 +1,4 @@
-﻿import type { ComponentType } from "react";
+import type { ComponentType } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../../features/auth/store/auth.store";
 import { usePermissions } from "../../hooks/usePermissions";
@@ -18,6 +18,8 @@ import {
   Settings,
   LogOut,
   ChevronLeft,
+  Globe,
+  Receipt,
 } from "lucide-react";
 
 interface NavItem {
@@ -64,11 +66,23 @@ const NAV_ITEMS: NavItem[] = [
     moduleKey: "ventas",
   },
   {
+    label: "Pedidos Web",
+    icon: Globe,
+    path: "/pedidos-web",
+    section: "OPERACIONES",
+  },
+  {
     label: "Finanzas",
     icon: BadgeDollarSign,
     path: "/finanzas",
     section: "ADMINISTRACIÓN",
     moduleKey: "finanzas",
+  },
+  {
+    label: "Facturación a2",
+    icon: Receipt,
+    path: "/facturacion",
+    section: "ADMINISTRACIÓN",
   },
   {
     label: "Sucursales",
@@ -251,21 +265,21 @@ export function Sidebar({
         >
           {!isCollapsed ? (
             <div className="flex items-center gap-3 overflow-hidden">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 to-cyan-500 flex items-center justify-center font-black text-sm text-white shadow-lg shadow-blue-500/20 ring-2 ring-blue-400/20 flex-shrink-0 font-heading">
-                AR
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center font-black text-sm text-white shadow-lg shadow-blue-500/20 ring-2 ring-blue-400/20 flex-shrink-0 font-heading">
+                TL
               </div>
               <div className="flex flex-col min-w-0">
                 <span className="font-heading font-extrabold text-sm tracking-tight text-white uppercase truncate">
-                  ALL-REPAIR
+                  TECHLAND
                 </span>
                 <span className="text-[9px] font-black text-blue-400 uppercase tracking-widest truncate">
-                  Sistema ERP
+                  ERP & Store B2B
                 </span>
               </div>
             </div>
           ) : (
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-cyan-500 flex items-center justify-center font-black text-sm text-white shadow-lg shadow-blue-500/20 ring-2 ring-blue-400/20 font-heading">
-              AR
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center font-black text-sm text-white shadow-lg shadow-blue-500/20 ring-2 ring-blue-400/20 font-heading">
+              TL
             </div>
           )}
 

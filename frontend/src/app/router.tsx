@@ -1,4 +1,4 @@
-﻿import { lazy } from "react";
+import { lazy } from "react";
 import { createBrowserRouter, Navigate } from "react-router-dom";
 import { AppShell } from "../components/layout/AppShell";
 import { PrivateRoute } from "../components/guards/PrivateRoute";
@@ -55,6 +55,16 @@ const SettingsPage = lazy(() =>
     default: m.SettingsPage,
   })),
 );
+const OnlineOrdersPage = lazy(() =>
+  import("../features/online-orders/pages/OnlineOrdersPage").then((m) => ({
+    default: m.OnlineOrdersPage,
+  })),
+);
+const BillingPage = lazy(() =>
+  import("../features/billing/pages/BillingPage").then((m) => ({
+    default: m.BillingPage,
+  })),
+);
 
 export const router = createBrowserRouter([
   // -- Public routes --
@@ -106,12 +116,32 @@ export const router = createBrowserRouter([
             ),
           },
 
+          // ADMIN + VENDEDOR pueden ver Pedidos Web
+          {
+            path: "pedidos-web",
+            element: (
+              <RoleGuard roles={["ADMIN", "VENDEDOR"]}>
+                <OnlineOrdersPage />
+              </RoleGuard>
+            ),
+          },
+
           // ADMIN + TECNICO pueden ver Finanzas
           {
             path: "finanzas",
             element: (
               <RoleGuard roles={["ADMIN", "TECNICO"]}>
                 <FinancePage />
+              </RoleGuard>
+            ),
+          },
+
+          // ADMIN + VENDEDOR pueden ver Facturación a2
+          {
+            path: "facturacion",
+            element: (
+              <RoleGuard roles={["ADMIN", "VENDEDOR"]}>
+                <BillingPage />
               </RoleGuard>
             ),
           },
