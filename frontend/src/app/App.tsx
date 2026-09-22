@@ -1,4 +1,4 @@
-import { Suspense } from "react";
+﻿import { Suspense, useEffect } from "react";
 import { MantineProvider, type CSSVariablesResolver } from "@mantine/core";
 import { Notifications } from "@mantine/notifications";
 import { ModalsProvider } from "@mantine/modals";
@@ -10,6 +10,7 @@ import { theme } from "./theme";
 import { router } from "./router";
 import { queryClient } from "../lib/queryClient";
 import { useThemeStore } from "../stores/theme.store";
+import { useSettingsStore, FONT_OPTIONS } from "../stores/settings.store";
 
 // -- Mantine styles --
 import "@mantine/core/styles.css";
@@ -19,19 +20,14 @@ import "@mantine/spotlight/styles.css";
 
 import "./global.css";
 
-// Overrides Mantine's internal CSS tokens for light mode.
-// We only set body/text globals — NOT gray/dark palette remaps,
-// because those variables control both bg AND text color, and remapping
-// them caused unintended dark backgrounds on chips, badges etc.
-// Text colour is handled via color: !important rules in global.css.
 const cssVariablesResolver: CSSVariablesResolver = () => ({
   variables: {},
   light: {
-    "--mantine-color-body": "#f1f5f9",
+    "--mantine-color-body": "#f8fafc",
     "--mantine-color-default": "#ffffff",
-    "--mantine-color-default-hover": "#e8edf3",
-    "--mantine-color-default-color": "#1e293b",
-    "--mantine-color-text": "#1e293b",
+    "--mantine-color-default-hover": "#f1f5f9",
+    "--mantine-color-default-color": "#0f172a",
+    "--mantine-color-text": "#0f172a",
     "--mantine-color-dimmed": "#475569",
   },
   dark: {},
@@ -39,6 +35,34 @@ const cssVariablesResolver: CSSVariablesResolver = () => ({
 
 export function App() {
   const { colorScheme } = useThemeStore();
+  const { sidebarColor, animationsEnabled, fontFamily } = useSettingsStore();
+
+  useEffect(() => {
+    if (colorScheme === "dark") {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  }, [colorScheme]);
+
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", sidebarColor);
+  }, [sidebarColor]);
+
+  useEffect(() => {
+    document.documentElement.setAttribute(
+      "data-animations",
+      animationsEnabled ? "enabled" : "disabled"
+    );
+  }, [animationsEnabled]);
+
+  useEffect(() => {
+    const selected = FONT_OPTIONS.find((f) => f.id === fontFamily);
+    if (selected) {
+      document.documentElement.style.setProperty("--app-font-family", selected.fontFamilyCss);
+      document.body.style.fontFamily = selected.fontFamilyCss;
+    }
+  }, [fontFamily]);
 
   return (
     <MantineProvider

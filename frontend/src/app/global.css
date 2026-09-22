@@ -1,10 +1,322 @@
+﻿/* ==========================================================================
+   Tailwind CSS & SIGEPAT Design System Foundation
+   ========================================================================== */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 221.2 83.2% 53.3%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222.2 84% 4.9%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96%;
+    --accent-foreground: 222.2 84% 4.9%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 221.2 83.2% 53.3%;
+    --radius: 0.5rem;
+
+    /* Theme colors (Default: Blue) */
+    --theme-50: 214 100% 97%;
+    --theme-100: 214 95% 93%;
+    --theme-200: 213 97% 87%;
+    --theme-300: 212 99% 79%;
+    --theme-400: 213 99% 69%;
+    --theme-500: 217 91% 60%;
+    --theme-600: 221 83% 53%;
+    --theme-700: 224 76% 48%;
+    --theme-800: 226 71% 40%;
+    --theme-900: 224 64% 33%;
+    --theme-950: 226 55% 18%;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 217.2 91.2% 59.8%;
+    --primary-foreground: 222.2 84% 4.9%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 224.3 76.3% 94.1%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+/* Ocultar botÃ³n nativo de revelar contraseÃ±a en Edge/IE */
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear {
+  display: none;
+}
+
+/* Ocultar botÃ³n nativo de revelar contraseÃ±a en Chrome/Safari */
+input[type="password"]::-webkit-credentials-auto-fill-button {
+  display: none !important;
+  visibility: hidden;
+}
+
+/* Ocultar barra de desplazamiento en el Sidebar pero mantener funcionalidad */
+@layer utilities {
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .scrollbar-none {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+  }
+
+  /* Version opcional si se quiere ver al hacer hover */
+  .custom-sidebar-nav::-webkit-scrollbar {
+    width: 0px;
+    background: transparent;
+  }
+  
+  .custom-sidebar-nav {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .modern-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #1d70b7;
+    box-shadow: 0 0 20px rgba(29, 112, 183, 0.8);
+  }
+}
+
+/* Custom Themes for the entire site based on Sidebar Color */
+html[data-theme="slate"] {
+  --primary: 215 19% 35%;
+  --ring: 215 19% 35%;
+  --theme-50: 210 40% 98%;
+  --theme-100: 210 40% 96%;
+  --theme-200: 214 32% 91%;
+  --theme-300: 213 27% 84%;
+  --theme-400: 215 20% 65%;
+  --theme-500: 215 16% 47%;
+  --theme-600: 215 19% 35%;
+  --theme-700: 215 25% 27%;
+  --theme-800: 217 33% 17%;
+  --theme-900: 218 40% 11%;
+  --theme-950: 222 47% 11%;
+}
+
+html[data-theme="slate-light"] {
+  --primary: 210 16% 55%;
+  --ring: 210 16% 55%;
+  --theme-50: 210 20% 98%;
+  --theme-100: 210 15% 95%;
+  --theme-200: 210 12% 89%;
+  --theme-300: 210 10% 80%;
+  --theme-400: 210 8% 68%;
+  --theme-500: 210 10% 55%;
+  --theme-600: 210 12% 45%;
+  --theme-700: 210 14% 36%;
+  --theme-800: 210 16% 28%;
+  --theme-900: 210 18% 20%;
+  --theme-950: 210 20% 12%;
+}
+
+html[data-theme="blue"] {
+  --primary: 221.2 83.2% 53.3%;
+  --ring: 221.2 83.2% 53.3%;
+  --theme-50: 214 100% 97%;
+  --theme-100: 214 95% 93%;
+  --theme-200: 213 97% 87%;
+  --theme-300: 212 99% 79%;
+  --theme-400: 213 99% 69%;
+  --theme-500: 217 91% 60%;
+  --theme-600: 221 83% 53%;
+  --theme-700: 224 76% 48%;
+  --theme-800: 226 71% 40%;
+  --theme-900: 224 64% 33%;
+  --theme-950: 226 55% 18%;
+}
+
+html[data-theme="indigo"] {
+  --primary: 239 84% 63%;
+  --ring: 239 84% 63%;
+  --theme-50: 226 100% 97%;
+  --theme-100: 226 100% 94%;
+  --theme-200: 228 96% 89%;
+  --theme-300: 230 94% 82%;
+  --theme-400: 234 90% 72%;
+  --theme-500: 239 84% 63%;
+  --theme-600: 243 75% 59%;
+  --theme-700: 245 58% 51%;
+  --theme-800: 244 47% 43%;
+  --theme-900: 242 47% 34%;
+  --theme-950: 244 47% 22%;
+}
+
+html[data-theme="violet"] {
+  --primary: 262 83% 58%;
+  --ring: 262 83% 58%;
+  --theme-50: 250 100% 98%;
+  --theme-100: 251 91% 95%;
+  --theme-200: 251 95% 90%;
+  --theme-300: 253 91% 82%;
+  --theme-400: 256 84% 73%;
+  --theme-500: 258 90% 66%;
+  --theme-600: 262 83% 58%;
+  --theme-700: 263 70% 50%;
+  --theme-800: 263 60% 42%;
+  --theme-900: 263 52% 35%;
+  --theme-950: 265 49% 21%;
+}
+
+html[data-theme="zinc"] {
+  --primary: 240 6% 28%;
+  --ring: 240 6% 28%;
+  --theme-50: 240 8% 98%;
+  --theme-100: 240 6% 95%;
+  --theme-200: 240 5% 88%;
+  --theme-300: 240 4% 78%;
+  --theme-400: 240 5% 60%;
+  --theme-500: 240 4% 44%;
+  --theme-600: 240 6% 28%;
+  --theme-700: 240 5% 20%;
+  --theme-800: 240 6% 15%;
+  --theme-900: 240 8% 10%;
+  --theme-950: 240 10% 5%;
+}
+
+html[data-theme="stone"] {
+  --primary: 28 12% 42%;
+  --ring: 28 12% 42%;
+  --theme-50: 30 18% 97%;
+  --theme-100: 30 15% 94%;
+  --theme-200: 30 12% 87%;
+  --theme-300: 28 10% 77%;
+  --theme-400: 28 8% 64%;
+  --theme-500: 28 12% 42%;
+  --theme-600: 28 10% 32%;
+  --theme-700: 28 12% 24%;
+  --theme-800: 28 14% 18%;
+  --theme-900: 28 16% 12%;
+  --theme-950: 28 18% 7%;
+}
+
+html[data-theme="emerald"] {
+  --primary: 152 76% 34%;
+  --ring: 152 76% 34%;
+  --theme-50: 143 85% 96%;
+  --theme-100: 144 71% 91%;
+  --theme-200: 144 73% 81%;
+  --theme-300: 146 75% 68%;
+  --theme-400: 148 78% 53%;
+  --theme-500: 150 84% 40%;
+  --theme-600: 152 76% 34%;
+  --theme-700: 154 69% 28%;
+  --theme-800: 156 61% 23%;
+  --theme-900: 158 52% 18%;
+  --theme-950: 160 51% 10%;
+}
+
+html[data-theme="cyan"] {
+  --primary: 191 91% 37%;
+  --ring: 191 91% 37%;
+  --theme-50: 180 100% 97%;
+  --theme-100: 180 77% 93%;
+  --theme-200: 183 75% 85%;
+  --theme-300: 185 73% 73%;
+  --theme-400: 187 75% 58%;
+  --theme-500: 188 86% 45%;
+  --theme-600: 191 91% 37%;
+  --theme-700: 193 88% 30%;
+  --theme-800: 195 86% 25%;
+  --theme-900: 197 78% 21%;
+  --theme-950: 199 82% 14%;
+}
+
+html[data-theme="red"] {
+  --primary: 0 72% 51%;
+  --ring: 0 72% 51%;
+  --theme-50: 0 100% 97%;
+  --theme-100: 0 93% 93%;
+  --theme-200: 0 96% 87%;
+  --theme-300: 0 94% 78%;
+  --theme-400: 0 91% 65%;
+  --theme-500: 0 84% 60%;
+  --theme-600: 0 72% 51%;
+  --theme-700: 0 74% 42%;
+  --theme-800: 0 70% 35%;
+  --theme-900: 0 63% 31%;
+  --theme-950: 0 75% 15%;
+}
+
+html[data-theme="amber"] {
+  --primary: 31 90% 45%;
+  --ring: 31 90% 45%;
+  --theme-50: 48 100% 96%;
+  --theme-100: 48 97% 89%;
+  --theme-200: 48 97% 77%;
+  --theme-300: 48 96% 63%;
+  --theme-400: 45 93% 48%;
+  --theme-500: 38 92% 50%;
+  --theme-600: 31 90% 45%;
+  --theme-700: 25 89% 38%;
+  --theme-800: 20 88% 31%;
+  --theme-900: 17 88% 26%;
+  --theme-950: 15 88% 13%;
+}
+
+/* Disable all transitions and animations for performance */
+html[data-animations="disabled"] *,
+html[data-animations="disabled"] *::before,
+html[data-animations="disabled"] *::after {
+  animation: none !important;
+  animation-duration: 0s !important;
+  animation-delay: 0s !important;
+  transition: none !important;
+  transition-duration: 0s !important;
+  transition-delay: 0s !important;
+  scroll-behavior: auto !important;
+}
+
+
+/* ==========================================================================
+   ERP-Repair Mantine & Legacy Styles
+   ========================================================================== */
 /* ============================================
-   RepairShop ERP — Global Styles
+   RepairShop ERP â€” Global Styles
    Pro Max Design System
    ============================================ */
 
 :root {
-  /* ── Brand Palette — Blue (#237CD5) ── */
+  /* â”€â”€ Brand Palette â€” Blue (#237CD5) â”€â”€ */
   --brand-50: #edf7ff;
   --brand-100: #d6ebff;
   --brand-200: #b5dbff;
@@ -18,26 +330,26 @@
   --brand-900: #07182b;
   --brand-950: #040c16;
 
-  /* ── Semantic: Primary ── */
+  /* â”€â”€ Semantic: Primary â”€â”€ */
   --primary: var(--brand-500);
   --primary-hover: var(--brand-600);
   --primary-light: var(--brand-400);
 
-  /* ── Status Colors ── */
+  /* â”€â”€ Status Colors â”€â”€ */
   --success: #22c55e;
   --warning: #f59e0b;
   --danger: #ef4444;
   --info: var(--brand-400);
 
-  /* ── Sidebar (FIXED — never changes between modes) ── */
+  /* â”€â”€ Sidebar (FIXED â€” never changes between modes) â”€â”€ */
   --sidebar-bg: var(--brand-800);
   --sidebar-active: var(--brand-700);
 
-  /* ── Text on brand ── */
+  /* â”€â”€ Text on brand â”€â”€ */
   --text-on-brand: #ffffff;
 }
 
-/* ── Dark Mode (default) ── */
+/* â”€â”€ Dark Mode (default) â”€â”€ */
 [data-mantine-color-scheme="dark"] {
   --bg-main: #0f172a;
   --bg-card: #1e293b;
@@ -52,11 +364,11 @@
   --border-strong: rgba(255, 255, 255, 0.2);
 }
 
-/* ── Light Mode (Premium Tech / Refined Utilitarian) ── */
+/* â”€â”€ Light Mode (Premium Tech / Refined Utilitarian) â”€â”€ */
 [data-mantine-color-scheme="light"] {
   /* -- App custom vars -- */
   --bg-main: #f8fafc;
-  /* Ligeramente más cálido/cremoso que el gris frío anterior */
+  /* Ligeramente mÃ¡s cÃ¡lido/cremoso que el gris frÃ­o anterior */
   --bg-card: #ffffff;
   --bg-elevated: #f1f5f9;
   --text-primary: #0f172a;
@@ -85,14 +397,14 @@
      below that target the color property directly. */
 }
 
-/* ── Light Mode: Force dark text in main content area ──
+/* â”€â”€ Light Mode: Force dark text in main content area â”€â”€
    Excludes: svg/path, button elements, children of [data-variant="filled"] */
 [data-mantine-color-scheme="light"] .mantine-AppShell-main *:not(svg):not(path):not(button),
 [data-mantine-color-scheme="light"] .mantine-AppShell-header *:not(svg):not(path):not(button) {
   color: #0f172a !important;
 }
 
-/* ── White text on filled/colored elements ──
+/* â”€â”€ White text on filled/colored elements â”€â”€
    Specificity of this rule: [data-mantine-color-scheme] + .mantine-AppShell-{main|header} +
    [data-variant="filled"] = (0,3,0) which beats the (0,2,3) of the universal dark-text rule.
    This covers Button[variant=filled], ActionIcon[variant=filled], and ALL their children. */
@@ -116,7 +428,7 @@
   color: #94a3b8 !important;
 }
 
-/* ── Light Mode portals (Modals, Dropdowns) — dark text by default ──
+/* â”€â”€ Light Mode portals (Modals, Dropdowns) â€” dark text by default â”€â”€
    Mantine renders these outside AppShell, so we need a separate rule. */
 [data-mantine-color-scheme="light"] .mantine-Modal-content *:not(svg):not(path),
 [data-mantine-color-scheme="light"] .mantine-Popover-dropdown *:not(svg):not(path),
@@ -158,7 +470,7 @@
   border-color: var(--border-default) !important;
 }
 
-/* NavLink hover and active states — sidebar always uses dark colours */
+/* NavLink hover and active states â€” sidebar always uses dark colours */
 /* These rules target the sidebar only (sidebar bg is always dark) */
 .mantine-AppShell-navbar .mantine-NavLink-root:hover {
   background-color: rgba(255, 255, 255, 0.08);
@@ -175,7 +487,7 @@
   transform: translateY(-2px);
 }
 
-/* Table row hover — adapts to both modes */
+/* Table row hover â€” adapts to both modes */
 [data-mantine-color-scheme="dark"] .mantine-Table-tr:hover {
   background-color: rgba(255, 255, 255, 0.03) !important;
 }

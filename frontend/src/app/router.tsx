@@ -1,4 +1,4 @@
-import { lazy } from "react";
+﻿import { lazy } from "react";
 import { createBrowserRouter, Navigate } from "react-router-dom";
 import { AppShell } from "../components/layout/AppShell";
 import { PrivateRoute } from "../components/guards/PrivateRoute";
@@ -48,6 +48,11 @@ const SucursalesPage = lazy(() =>
 const ClientsPage = lazy(() =>
   import("../features/clients/pages/ClientsPage").then((m) => ({
     default: m.ClientsPage,
+  })),
+);
+const SettingsPage = lazy(() =>
+  import("../features/settings/pages/SettingsPage").then((m) => ({
+    default: m.SettingsPage,
   })),
 );
 
@@ -139,6 +144,12 @@ export const router = createBrowserRouter([
                 <ClientsPage />
               </RoleGuard>
             ),
+          },
+
+          // Todos los usuarios autenticados pueden acceder a Configuración
+          {
+            path: "configuracion",
+            element: <SettingsPage />,
           },
         ],
       },

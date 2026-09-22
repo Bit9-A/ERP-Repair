@@ -1,4 +1,4 @@
-import express from "express";
+import express, { Express } from "express";
 import cors from "cors";
 
 import { errorHandler, notFoundHandler } from "./core/middlewares/errorHandler";
@@ -17,7 +17,7 @@ import dashboardRoutes from "./modules/dashboard/dashboard.routes";
 import searchRoutes from "./modules/search/search.routes";
 import { sucursalesRouter } from "./modules/sucursales/sucursales.routes";
 
-const app = express();
+const app: Express = express();
 
 // ── Global Middleware ──
 app.use(

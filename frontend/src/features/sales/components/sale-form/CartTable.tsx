@@ -1,4 +1,4 @@
-import {
+﻿import {
   Table,
   Group,
   Stack,
@@ -10,7 +10,7 @@ import {
 import { IconMinus, IconPlus, IconTrash } from "@tabler/icons-react";
 import { notifications } from "@mantine/notifications";
 import type { CartItem } from "./hooks/useSaleCart";
-import type { Producto } from "../../../../../types";
+import type { Producto } from "../../../../types";
 
 interface CartTableProps {
   cart: CartItem[];
@@ -68,7 +68,7 @@ export function CartTable({
                   )}
                 </Text>
                 <Text size="xs" c="dimmed" ff="monospace">
-                  {item.producto.sku} • Stock: {isAdmin ? item.producto.stock_actual : getLocalStock(item.producto)}
+                  {item.producto.sku} â€¢ Stock: {isAdmin ? item.producto.stock_actual : getLocalStock(item.producto)}
                 </Text>
               </Stack>
             </Table.Td>
