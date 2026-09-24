@@ -469,7 +469,7 @@ export function InventoryPage() {
         <Divider color="dark.6" />
         <Group justify="space-between" p="md">
           <Text size="xs" c="dimmed">
-            TecnoPro Cell ERP
+            All-Repair
           </Text>
           <Badge variant="dot" color="brand" size="xs">
             {isLoading ? "Cargando..." : "Sincronizado"}
