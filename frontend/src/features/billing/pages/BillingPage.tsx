@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   FileText,
   Search,
@@ -13,11 +13,13 @@ import {
   Plus,
   ArrowRightLeft,
   FileSpreadsheet,
+  TrendingUp,
 } from "lucide-react";
 import { Badge } from "../../../components/ui/badge";
 import { Card } from "../../../components/ui/card";
 import { Button } from "../../../components/ui/button";
 import { Modal } from "@mantine/core";
+import { useCurrencyRates } from "../../../services";
 
 export interface BillingDocument {
   id: string;
@@ -181,9 +183,17 @@ export function BillingPage() {
     { codigo: "GAR322", descripcion: "Cargador 65W GaN Tech 2x C + 1x A", cantidad: 3, precio_unit_usd: 18.75, total_renglon_usd: 56.25 },
   ];
 
+  const { bcv: liveBcv, paralelo: liveParalelo } = useCurrencyRates();
   const [tasaBcv, setTasaBcv] = useState(45.50);
   const [fleteUSD, setFleteUSD] = useState(0);
   const [descuentoUSD, setDescuentoUSD] = useState(0);
+
+  // Actualizar automáticamente a la tasa oficial del BCV cuando cargue DolarAPI
+  useEffect(() => {
+    if (liveBcv > 0) {
+      setTasaBcv(liveBcv);
+    }
+  }, [liveBcv]);
 
   const subtotalNuevo = newDocItems.reduce((acc, i) => acc + i.total_renglon_usd, 0);
   const totalNuevoUSD = subtotalNuevo - descuentoUSD + fleteUSD;
@@ -674,7 +684,15 @@ export function BillingPage() {
                 />
               </div>
               <div>
-                <label className="text-slate-400 block mb-1">Tasa Oficial BCV (Bs/$):</label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-slate-400 block">Tasa Oficial BCV (Bs/$):</label>
+                  {liveBcv > 0 && (
+                    <span className="text-[11px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20 flex items-center gap-1 font-mono">
+                      <TrendingUp className="w-3 h-3" />
+                      BCV: {liveBcv.toFixed(2)}
+                    </span>
+                  )}
+                </div>
                 <input
                   type="number"
                   step="0.01"
@@ -682,6 +700,18 @@ export function BillingPage() {
                   onChange={(e) => setTasaBcv(Number(e.target.value))}
                   className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white font-mono"
                 />
+                {liveParalelo > 0 && (
+                  <p className="text-[11px] text-slate-500 mt-1 flex items-center justify-between">
+                    <span>Paralelo: <span className="text-amber-400 font-mono font-medium">{liveParalelo.toFixed(2)} Bs</span></span>
+                    <button
+                      type="button"
+                      onClick={() => setTasaBcv(liveParalelo)}
+                      className="text-cyan-400 hover:underline text-[10px]"
+                    >
+                      Usar paralelo
+                    </button>
+                  </p>
+                )}
               </div>
             </div>
 

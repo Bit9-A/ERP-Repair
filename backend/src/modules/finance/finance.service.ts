@@ -4,11 +4,55 @@ import { convertToUSD } from "../../core/utils/currency";
 // ── Monedas ──
 
 export async function findAllMonedas() {
-  return prisma.moneda.findMany({ orderBy: { codigo: "asc" } });
+  let monedas = await prisma.moneda.findMany({ orderBy: { codigo: "asc" } });
+  if (monedas.length === 0) {
+    let bcv = 854.46;
+    try {
+      const res = await fetch("https://ve.dolarapi.com/v1/dolares/oficial");
+      if (res.ok) {
+        const data = (await res.json()) as any;
+        if (data?.promedio) bcv = Number(data.promedio);
+      }
+    } catch {
+      // fallback
+    }
+
+    const defaults = [
+      { codigo: "USD", nombre: "Dólar Estadounidense", tasa_cambio: 1 },
+      { codigo: "VES", nombre: "Bolívar Digital (BCV)", tasa_cambio: bcv },
+      { codigo: "COP", nombre: "Peso Colombiano", tasa_cambio: 4150 },
+    ];
+
+    for (const d of defaults) {
+      await prisma.moneda.upsert({
+        where: { codigo: d.codigo },
+        update: {},
+        create: d,
+      });
+    }
+
+    monedas = await prisma.moneda.findMany({ orderBy: { codigo: "asc" } });
+  }
+  return monedas;
 }
 
-export async function updateTasa(id: string, tasa_cambio: number) {
-  return prisma.moneda.update({ where: { id }, data: { tasa_cambio } });
+export async function updateTasa(idOrCode: string, tasa_cambio: number) {
+  const existing = await prisma.moneda.findFirst({
+    where: { OR: [{ id: idOrCode }, { codigo: idOrCode }] },
+  });
+  if (existing) {
+    return prisma.moneda.update({
+      where: { id: existing.id },
+      data: { tasa_cambio },
+    });
+  }
+  return prisma.moneda.create({
+    data: {
+      codigo: idOrCode,
+      nombre: idOrCode === "VES" ? "Bolívar Digital" : idOrCode === "COP" ? "Peso Colombiano" : idOrCode,
+      tasa_cambio,
+    },
+  });
 }
 
 export async function createMoneda(data: {
