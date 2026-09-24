@@ -16,6 +16,7 @@ export * as financeService from "./finance.service";
 export * as transactionsService from "./transactions.service";
 export * as dashboardService from "./dashboard.service";
 export * as sucursalesService from "./sucursales.service";
+export * as currencyService from "./currency.service";
 
 // -- React Query hooks --
 export {
@@ -172,3 +173,14 @@ export type {
   TransactionStatsHoy,
   CategoriaBreakdown,
 } from "./transactions.service";
+
+// -- Currency hooks & types --
+export {
+  useCurrencyRates,
+  useDbCurrencies,
+  useSyncBcvToDb,
+} from "./hooks/useCurrency";
+export type {
+  CurrencyRatesSummary,
+  MonedaDb,
+} from "./currency.service";

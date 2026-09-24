@@ -1,0 +1,78 @@
+# =============================================================================
+# CLIENT SLOT TEMPLATE — rendered by scripts/add-client.sh
+#
+# Isolation model:
+#   - db  : only on this client's private bridge (default network) — never
+#           reachable from the host or from Caddy.
+#   - api : on the private bridge AND on the shared external `erp_proxy`
+#           network so Caddy can reach api-<slug>:3000 by DNS name.
+#   - NO host ports are published for either service.
+# =============================================================================
+
+name: ${CLIENT_SLUG}
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: db-${CLIENT_SLUG}
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    command:
+      - postgres
+      - -c
+      - shared_buffers=32MB
+      - -c
+      - effective_cache_size=96MB
+      - -c
+      - work_mem=4MB
+      - -c
+      - maintenance_work_mem=32MB
+      - -c
+      - max_connections=20
+    volumes:
+      - erp-repair-db-${CLIENT_SLUG}:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+    networks:
+      - default
+
+  api:
+    build:
+      context: ../../..
+      dockerfile: backend/Dockerfile
+    container_name: api-${CLIENT_SLUG}
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+      DATABASE_URL: postgresql://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}?schema=public&connection_limit=5
+      JWT_SECRET: ${JWT_SECRET}
+      TENANT_SLUG: ${CLIENT_SLUG}
+      CLIENT_URL: ${CLIENT_URL}
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - default
+      - erp_proxy
+
+networks:
+  default:
+  erp_proxy:
+    external: true
+
+volumes:
+  erp-repair-db-${CLIENT_SLUG}:

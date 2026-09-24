@@ -1,0 +1,38 @@
+# -----------------------------------------------------------------------------
+# Root build-context hygiene for ERP-Repair multi-tenant deployment.
+# -----------------------------------------------------------------------------
+
+# VCS
+.git
+
+# Dependencies (resolved inside the image)
+**/node_modules
+
+# Secrets and local env (keep .env.example)
+**/.env
+**/.env.*
+!.env.example
+
+# Local databases & uploads
+**/*.db
+**/*.db-*
+uploads/
+
+# Rendered per-client deploy stacks + backups (never baked in)
+deploy/clients
+deploy/backups
+
+# Docs / planning artifacts
+docs
+.agents
+
+# Extraneous local files
+*.log
+*.zip
+
+# Frontend build/deps output — a stale local build must NEVER shadow the fresh bundle
+frontend/dist
+
+# Backend local artifacts
+backend/dist
+backend/scratch

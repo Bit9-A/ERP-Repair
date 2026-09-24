@@ -42,7 +42,13 @@ import { StatCard } from "../../../components/ui/StatCard";
 import { PaymentsTable } from "../components/PaymentsTable";
 import { EgresosTable } from "../components/EgresosTable";
 import { RecurringExpensesPanel } from "../components/RecurringExpensesPanel";
-import { useMonedas, useUpdateTasa, useFinanceStats, financeService } from "../../../services";
+import {
+  useMonedas,
+  useUpdateTasa,
+  useFinanceStats,
+  financeService,
+  useCurrencyRates,
+} from "../../../services";
 import { exportFinanceExcel } from "../../../services/excel/exportFinanceExcel";
 
 type Periodo = "dia" | "semana" | "mes";
@@ -95,40 +101,62 @@ export function FinancePage() {
   const [exportPeriodo, setExportPeriodo] = useState<string>("dia");
   const [exportMonthDate, setExportMonthDate] = useState<Date | null>(new Date());
 
+  // DolarAPI live rates
+  const { bcv: liveBcv, paralelo: liveParalelo, fechaActualizacion } = useCurrencyRates();
+
   // Build a map: code -> { id, tasa_cambio }
   const monedaMap = Object.fromEntries(
     monedas.map((m) => [m.codigo, { id: m.id, tasa: m.tasa_cambio }]),
   );
 
-  // Local editing state
-  const [editRates, setEditRates] = useState<Record<string, number>>({});
+  // Local editing state with sensible fallbacks (so it never shows 0,00)
+  const [editRates, setEditRates] = useState<Record<string, number>>({
+    VES: 854.46,
+    COP: 4150,
+  });
   const [showSaved, setShowSaved] = useState(false);
+  const [hasInitialized, setHasInitialized] = useState(false);
 
-  // Sync edit state when monedas load from API
+  // Sync edit state only ONCE when monedas or live DolarAPI rates first become available
   useEffect(() => {
-    if (monedas.length > 0) {
-      const rates: Record<string, number> = {};
+    if (monedas.length > 0 && !hasInitialized) {
+      const next: Record<string, number> = {
+        VES: liveBcv > 0 ? liveBcv : 854.46,
+        COP: 4150,
+      };
       for (const m of monedas) {
-        rates[m.codigo] = m.tasa_cambio;
+        if (m.codigo === "VES") {
+          next["VES"] = m.tasa_cambio > 50 ? m.tasa_cambio : (liveBcv > 0 ? liveBcv : 854.46);
+        } else if (m.tasa_cambio > 0) {
+          next[m.codigo] = m.tasa_cambio;
+        }
       }
-      setEditRates(rates);
+      setEditRates(next);
+      setHasInitialized(true);
+    } else if (liveBcv > 0 && !hasInitialized) {
+      setEditRates((prev) => ({ ...prev, VES: liveBcv }));
+      setHasInitialized(true);
     }
-  }, [monedas]);
+  }, [monedas, liveBcv, hasInitialized]);
 
-  const hasChanges = RATE_CONFIGS.some(
-    (r) => editRates[r.code] !== monedaMap[r.code]?.tasa,
-  );
+  const hasChanges = RATE_CONFIGS.some((r) => {
+    const currentVal = editRates[r.code] ?? (r.code === "VES" ? (liveBcv || 854.46) : 4150);
+    return !monedaMap[r.code] || currentVal !== monedaMap[r.code]?.tasa;
+  });
 
-  const formattedLastUpdated = "—";
+  const formattedLastUpdated = fechaActualizacion
+    ? new Date(fechaActualizacion).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+    : "En vivo";
 
   const handleSaveRates = async () => {
     try {
       const promises = RATE_CONFIGS.map((r) => {
         const moneda = monedaMap[r.code];
-        if (moneda && editRates[r.code] !== moneda.tasa) {
+        const newRate = editRates[r.code] ?? (r.code === "VES" ? (liveBcv || 854.46) : 4150);
+        if (!moneda || newRate !== moneda.tasa) {
           return updateTasa.mutateAsync({
-            id: moneda.id,
-            tasa_cambio: editRates[r.code],
+            id: moneda ? moneda.id : r.code,
+            tasa_cambio: newRate,
           });
         }
         return Promise.resolve();
@@ -269,13 +297,20 @@ export function FinancePage() {
                   Multimoneda &amp; Tasas
                 </Text>
               </Group>
-              <Badge variant="dot" color="brand" size="xs">
-                {formattedLastUpdated}
-              </Badge>
+              <Group gap={6}>
+                {liveBcv > 0 && (
+                  <Badge variant="dot" color="teal" size="xs">
+                    BCV: {liveBcv.toFixed(2)} Bs
+                  </Badge>
+                )}
+                <Badge variant="outline" color="gray" size="xs">
+                  {formattedLastUpdated}
+                </Badge>
+              </Group>
             </Group>
 
             <Stack gap="md">
-              {/* COP – base */}
+              {/* USD – base */}
               <Paper
                 p="sm"
                 radius="md"
@@ -300,70 +335,111 @@ export function FinancePage() {
               </Paper>
 
               {/* Editable rates */}
-              {RATE_CONFIGS.map((r) => (
-                <Paper
-                  key={r.code}
-                  p="sm"
-                  radius="md"
-                  style={{
-                    background: r.bgFrom,
-                    border: `1px solid ${r.bgBorder}`,
-                    transition: "box-shadow 200ms ease",
-                    boxShadow:
-                      editRates[r.code] !== monedaMap[r.code]?.tasa
-                        ? "0 0 0 2px rgba(59,130,246,0.3)"
-                        : "none",
-                  }}
-                >
-                  <Group justify="space-between">
-                    <div>
-                      <Group gap={6} mb={4}>
-                        <Badge variant="filled" color={r.color} size="sm">
-                          {r.code}
-                        </Badge>
-                        {editRates[r.code] !== monedaMap[r.code]?.tasa && (
-                          <Badge variant="filled" color="blue" size="xs">
-                            Modificado
+              {RATE_CONFIGS.map((r) => {
+                const currentVal = (editRates[r.code] && editRates[r.code] > 0)
+                  ? editRates[r.code]
+                  : (r.code === "VES" ? (liveBcv > 0 ? liveBcv : 854.46) : 4150);
+
+                const isModified = monedaMap[r.code]
+                  ? currentVal !== monedaMap[r.code]?.tasa
+                  : true;
+
+                return (
+                  <Paper
+                    key={r.code}
+                    p="sm"
+                    radius="md"
+                    style={{
+                      background: r.bgFrom,
+                      border: `1px solid ${r.bgBorder}`,
+                      transition: "box-shadow 200ms ease",
+                      boxShadow: isModified ? "0 0 0 2px rgba(59,130,246,0.3)" : "none",
+                    }}
+                  >
+                    <Group justify="space-between">
+                      <div>
+                        <Group gap={6} mb={4}>
+                          <Badge variant="filled" color={r.color} size="sm">
+                            {r.code}
+                          </Badge>
+                          {isModified && (
+                            <Badge variant="filled" color="blue" size="xs">
+                              Modificado
+                            </Badge>
+                          )}
+                        </Group>
+                        <Text size="sm" fw={600}>
+                          {r.name}
+                        </Text>
+                        <Text size="sm" fw={500} c="dimmed" mt={2}>
+                          1 USD = {r.symbol}{" "}
+                          {currentVal.toLocaleString("es-VE", {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          })}
+                        </Text>
+                        {r.code === "VES" && (
+                          <Group gap={6} mt={6}>
+                            {liveBcv > 0 && (
+                              <Tooltip label="Clic para aplicar tasa oficial BCV">
+                                <Button
+                                  size="compact-xs"
+                                  variant="light"
+                                  color="teal"
+                                  onClick={() => setEditRates((prev) => ({ ...prev, VES: liveBcv }))}
+                                >
+                                  ⚡ BCV: {liveBcv.toFixed(2)} Bs
+                                </Button>
+                              </Tooltip>
+                            )}
+                            {liveParalelo > 0 && (
+                              <Tooltip label="Clic para aplicar tasa paralelo">
+                                <Button
+                                  size="compact-xs"
+                                  variant="light"
+                                  color="yellow"
+                                  onClick={() => setEditRates((prev) => ({ ...prev, VES: liveParalelo }))}
+                                >
+                                  ⚡ Paralelo: {liveParalelo.toFixed(2)} Bs
+                                </Button>
+                              </Tooltip>
+                            )}
+                          </Group>
+                        )}
+                        {r.code === "COP" && (
+                          <Badge variant="light" color="yellow" size="xs" mt={6}>
+                            🇨🇴 Tasa referencial Colombia
                           </Badge>
                         )}
-                      </Group>
-                      <Text size="sm" fw={600}>
-                        {r.name}
-                      </Text>
-                      <Text size="sm" fw={500} c="dimmed" mt={2}>
-                        1 USD = {r.symbol}{" "}
-                      {editRates[r.code]?.toLocaleString("en-US", {
-                        minimumFractionDigits: 2,
-                      })}
-                      </Text>
-                    </div>
-                    <NumberInput
-                      value={editRates[r.code] ?? 0}
-                      onChange={(v) =>
-                        setEditRates((prev) => ({
-                          ...prev,
-                          [r.code]: Number(v) || 0,
-                        }))
-                      }
-                      decimalScale={2}
-                      fixedDecimalScale
-                      prefix={`${r.symbol} `}
-                      size="sm"
-                      hideControls
-                      w={140}
-                      min={0}
-                      styles={{
-                        input: {
-                          fontFamily: '"Fira Code", monospace',
-                          fontWeight: 700,
-                          fontSize: "18px",
-                          textAlign: "right",
-                        },
-                      }}
-                    />
-                  </Group>
-                </Paper>
-              ))}
+                      </div>
+                      <NumberInput
+                        value={currentVal}
+                        onChange={(v) =>
+                          setEditRates((prev) => ({
+                            ...prev,
+                            [r.code]: Number(v) || 0,
+                          }))
+                        }
+                        decimalScale={2}
+                        fixedDecimalScale
+                        prefix={`${r.symbol} `}
+                        size="sm"
+                        hideControls
+                        w={140}
+                        min={0}
+                        styles={{
+                          input: {
+                            fontFamily: '"Fira Code", monospace',
+                            fontWeight: 700,
+                            fontSize: "18px",
+                            textAlign: "right",
+                          },
+                        }}
+                      />
+                    </Group>
+                  </Paper>
+                );
+              })}
 
               {/* Action buttons */}
               <Group justify="flex-end" gap="xs" mt="xs">

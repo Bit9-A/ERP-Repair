@@ -78,4 +78,10 @@ export const queryKeys = {
   dashboard: {
     data: ["dashboard", "data"] as const,
   },
+
+  // -- Currency (DolarAPI) --
+  currency: {
+    rates: ["currency", "rates"] as const,
+    db: ["currency", "db"] as const,
+  },
 } as const;

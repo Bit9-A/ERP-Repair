@@ -59,30 +59,49 @@ model Usuario {
 }
 
 model Cliente {
-  id        String             @id @default(uuid())
-  nombre    String
-  cedula    String             @unique
-  telefono  String
-  correo    String?
-  createdAt DateTime           @default(now())
-  updatedAt DateTime           @updatedAt
-  tickets   TicketReparacion[]
-  ventas    Venta[]
+  id               String             @id @default(uuid())
+  nombre           String
+  cedula           String             @unique
+  telefono         String
+  correo           String?
+  password_hash    String?
+  tipo_cliente     TipoClienteWeb     @default(DETAL)
+  estado_mayorista EstadoMayorista    @default(NINGUNO)
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  tickets          TicketReparacion[]
+  ventas           Venta[]
+  direcciones      DireccionCliente[]
+  pedidos_online   PedidoOnline[]
 }
 
 model Producto {
   id                    String             @id @default(uuid())
   sku                   String             @unique
   nombre                String
+  slug                  String?            @unique
+  descripcion           String?
+  imagenes              String[]           @default([])
   marca_comp            String?
   modelo_comp           String?
   categoria             CategoriaProducto  @default(REPUESTO)
+  categoriaId           String?
+  categoria_rel         Categoria?         @relation(fields: [categoriaId], references: [id])
+  marcaId               String?
+  marca                 Marca?             @relation(fields: [marcaId], references: [id])
   propiedad             TipoPropiedad      @default(PROPIA)
   propietario           String?
   stock_actual          Int                @default(0)
   stock_minimo          Int                @default(2)
   costo_usd             Float
-  precio_usd            Float
+  precio_usd            Float              // Detal / PVP
+  precio_mayor_usd      Float?             // Precio Mayor
+  precio_gran_mayor_usd Float?             // Precio Gran Mayor
+  min_unidades_mayor    Int?               @default(3)
+  min_unidades_gran_mayor Int?             @default(10)
+  especificaciones      Json?              // Specs dinámicas: potencia, mAh, GaN, BT, etc.
+  publicado_web         Boolean            @default(false)
+  destacado_web         Boolean            @default(false)
   createdAt             DateTime           @default(now())
   updatedAt             DateTime           @updatedAt
   activo                Boolean            @default(true)
@@ -91,9 +110,13 @@ model Producto {
   tickets               Ticket_Producto[]
   ventas                Venta_Producto[]
   egresos               TransaccionFinanciera[]
+  items_pedido_online   ItemPedidoOnline[]
 
   @@index([categoria])
+  @@index([categoriaId])
+  @@index([marcaId])
   @@index([propiedad])
+  @@index([publicado_web])
 }
 
 model MovimientoStock {
@@ -189,12 +212,20 @@ model Venta {
   id                    String                  @id @default(uuid())
   clienteId             String?
   vendedorId            String?
+  numero                Int                     @unique @default(autoincrement())
+  numero_control        String?                 // Estilo fiscal a2 (ej: "00006528")
+  tipo_documento        TipoDocumentoVenta      @default(NOTA_ENTREGA)
   subtotal_usd          Float
   descuento_usd         Float                   @default(0)
+  flete_usd             Float                   @default(0)
+  iva_usd               Float                   @default(0)
   total_usd             Float
+  tasa_bcv_snapshot     Float?                  // Tasa de cambio oficial del día
+  total_bs_snapshot     Float?                  // Total en Bolívares
   estado                EstadoVenta             @default(PENDIENTE)
   createdAt             DateTime                @default(now())
-  numero                Int                     @unique @default(autoincrement())
+  fecha_vencimiento     DateTime?               // Para ventas a crédito
+  observaciones         String?
   sucursalId            String?
   tasas_cambio_snapshot Json?
   pagos                 Pago[]
@@ -207,6 +238,7 @@ model Venta {
   @@index([estado])
   @@index([createdAt])
   @@index([sucursalId])
+  @@index([tipo_documento])
 }
 
 model Venta_Producto {
@@ -282,11 +314,25 @@ model GastoRecurrente {
   @@index([activo])
 }
 
+model Categoria {
+  id                   String     @id @default(uuid())
+  nombre               String     @unique // "AUDÍFONOS", "CARGA", "POWER BANK", "CABLES", "BATERÍAS"
+  slug                 String     @unique // "audifonos", "carga", "power-bank"
+  icono                String?    // Icono para la web o dashboard
+  categorias_sugeridas String[]   @default([]) // Para venta cruzada (cross-selling)
+  createdAt            DateTime   @default(now())
+  updatedAt            DateTime   @updatedAt
+  productos            Producto[]
+}
+
 model Marca {
-  id        String   @id @default(uuid())
-  nombre    String   @unique
-  createdAt DateTime @default(now())
+  id        String     @id @default(uuid())
+  nombre    String     @unique
+  slug      String?    @unique // "1hora", "ugreen", "movisun"
+  logo_url  String?    // Logo oficial para carrusel en la web
+  createdAt DateTime   @default(now())
   modelos   Modelo[]
+  productos Producto[]
 }
 
 model Modelo {
@@ -300,19 +346,107 @@ model Modelo {
   @@index([marcaId])
 }
 
+model DireccionCliente {
+  id          String   @id @default(uuid())
+  clienteId   String
+  alias       String   @default("Principal") // "Casa", "Oficina", "Taller"
+  nombre_dest String?  // Nombre de la persona que recibe
+  telefono    String?
+  direccion   String
+  ciudad      String
+  estado      String
+  codigo_post String?
+  es_default  Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  cliente     Cliente  @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+
+  @@index([clienteId])
+}
+
+model PedidoOnline {
+  id               String             @id @default(uuid())
+  numero           Int                @unique @default(autoincrement())
+  clienteId        String?
+  nombre_invitado  String?
+  telefono_invit   String?
+  correo_invit     String?
+  direccion_texto  String?
+  subtotal_usd     Float
+  descuento_usd    Float              @default(0)
+  total_usd        Float
+  estado           EstadoPedidoOnline @default(PENDIENTE_PAGO)
+  metodo_pago      MetodoPago?
+  referencia_pago  String?
+  comprobante_url  String?
+  tasa_bcv         Float?
+  total_bs         Float?
+  cuponCodigo      String?
+  cupon            CuponDescuento?    @relation(fields: [cuponCodigo], references: [codigo])
+  cliente          Cliente?           @relation(fields: [clienteId], references: [id])
+  items            ItemPedidoOnline[]
+  ventaId          String?
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+
+  @@index([clienteId])
+  @@index([estado])
+  @@index([createdAt])
+}
+
+model ItemPedidoOnline {
+  id              String       @id @default(uuid())
+  pedidoId        String
+  productoId      String
+  cantidad        Int          @default(1)
+  precio_unit_usd Float
+  total_usd       Float
+  pedido          PedidoOnline @relation(fields: [pedidoId], references: [id], onDelete: Cascade)
+  producto        Producto     @relation(fields: [productoId], references: [id])
+
+  @@index([pedidoId])
+  @@index([productoId])
+}
+
+model CuponDescuento {
+  id                String           @id @default(uuid())
+  codigo            String           @unique
+  descripcion       String?
+  tipo              TipoCupon        @default(PORCENTAJE)
+  valor             Float            // Ej: 10 para 10%, o 5.00 para $5
+  compra_minima_usd Float            @default(0)
+  limite_usos       Int?
+  usos_actuales     Int              @default(0)
+  roles_permitidos  TipoClienteWeb[] @default([DETAL, MAYORISTA, GRAN_MAYOR])
+  activo            Boolean          @default(true)
+  fecha_expiracion  DateTime?
+  createdAt         DateTime         @default(now())
+  pedidos           PedidoOnline[]
+}
+
 model Configuracion {
   id                 Int      @id @default(1)
-  nombre_local       String
+  nombre_local       String   @default("TechLand")
+  nombre_comercial   String?  @default("TechLand")
+  razon_social       String?  // Ej: "TECHLAND SOLUTIONS C.A."
+  rif                String?  // Ej: "J-12345678-9"
+  slogan             String?  // Ej: "Tecnología, Accesorios y Servicio Técnico Especializado"
+  logo_url           String?  // Logo transparente para facturas, PDFs y cabecera web
+  direccion_fiscal   String?
+  telefono_principal String?  // Sale en facturas
+  whatsapp_pedidos   String?  // Destino de botones WhatsApp de la tienda
+  correo_contacto    String?
+  pie_factura_legal  String?  @default("Garantía válida únicamente presentando este documento original.")
   porcentaje_defecto Float    @default(0.40)
   updatedAt          DateTime @updatedAt
 }
 
 model SyncLog {
-  id          String   @id @default(uuid())
-  sucursalId  String
-  lastSync    DateTime
-  status      String   // "SUCCESS", "FAILED"
-  createdAt   DateTime @default(now())
+  id         String   @id @default(uuid())
+  sucursalId String
+  lastSync   DateTime
+  status     String   // "SUCCESS", "FAILED"
+  createdAt  DateTime @default(now())
 
   @@index([sucursalId])
 }
@@ -336,6 +470,41 @@ enum CategoriaProducto {
   EQUIPO
   ACCESORIO
   REPUESTO
+}
+
+enum TipoClienteWeb {
+  DETAL
+  MAYORISTA
+  GRAN_MAYOR
+}
+
+enum EstadoMayorista {
+  NINGUNO
+  PENDIENTE
+  APROBADO
+  RECHAZADO
+}
+
+enum EstadoPedidoOnline {
+  PENDIENTE_PAGO
+  VERIFICANDO_PAGO
+  PAGADO
+  EN_PREPARACION
+  ENVIADO
+  ENTREGADO
+  CANCELADO
+}
+
+enum TipoDocumentoVenta {
+  FACTURA
+  NOTA_ENTREGA
+  PRESUPUESTO
+  PEDIDO_WEB
+}
+
+enum TipoCupon {
+  PORCENTAJE
+  MONTO_FIJO
 }
 
 enum TipoPropiedad {
