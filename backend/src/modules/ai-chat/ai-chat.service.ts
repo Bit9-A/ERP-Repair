@@ -20,8 +20,25 @@ function getGroq(): Groq | null {
     return new Groq({ apiKey: key.trim() });
 }
 
-// Modelo activo de Groq (Llama 3.3 70B Versatile, alta precisión y 128k contexto)
-const AI_MODEL = 'llama-3.3-70b-versatile';
+// ─── Rotación de modelos soportados por la cuenta Groq ───────────────────────
+const MODELS = [
+    'openai/gpt-oss-120b',
+    'openai/gpt-oss-20b',
+    'allam-2-7b',
+];
+
+async function callGroqWithFallback(groq: Groq, params: { messages: any[]; temperature: number; max_tokens: number }): Promise<Groq.Chat.ChatCompletion> {
+    let lastError: any = null;
+    for (const model of MODELS) {
+        try {
+            return await groq.chat.completions.create({ ...params, model });
+        } catch (err: any) {
+            lastError = err;
+            console.warn(`[ai-chat] Model ${model} failed (${err.message?.slice(0, 80)}), trying next...`);
+        }
+    }
+    throw lastError || new Error('Todos los modelos de IA fallaron.');
+}
 
 // ─── Rate limiting (30 req/min por usuario) ──────────────────────────────────
 const rateLimitMap = new Map<string, number[]>();
@@ -161,8 +178,7 @@ export const processAiQuestion = async (
 
         conversationMessages.push({ role: 'user', content: question });
 
-        const completion = await groq.chat.completions.create({
-            model: AI_MODEL,
+        const completion = await callGroqWithFallback(groq, {
             messages: conversationMessages,
             temperature: 0.2,
             max_tokens: 1024,
@@ -202,8 +218,7 @@ export const processAiQuestion = async (
             console.warn('[ai-chat] Initial SQL failed:', sql, 'Error:', dbErr.message);
             // Auto-corrección inteligente de 1 paso pasando el error de PostgreSQL a Groq
             try {
-                const fixCompletion = await groq.chat.completions.create({
-                    model: AI_MODEL,
+                const fixCompletion = await callGroqWithFallback(groq, {
                     messages: [
                         { role: 'system', content: SYSTEM_PROMPT },
                         { role: 'user', content: `La consulta SQL "${sql}" falló en PostgreSQL con el error: "${dbErr.message}". Pregunta del usuario: "${question}". Corregí la consulta respetando el esquema. Responde SOLO el bloque \`\`\`sql ... \`\`\`` }
@@ -236,8 +251,7 @@ export const processAiQuestion = async (
             : [];
 
         // ── PASO 3: Formatear respuesta natural ──────────────────────────────
-        const formatCompletion = await groq.chat.completions.create({
-            model: AI_MODEL,
+        const formatCompletion = await callGroqWithFallback(groq, {
             messages: [
                 { role: 'system', content: buildFormatPrompt(question, data) },
                 { role: 'user', content: 'Dame la respuesta ejecutiva.' },
@@ -259,7 +273,10 @@ export const processAiQuestion = async (
     } catch (error: any) {
         console.error('[ai-chat] Error:', error.message);
         if (error.message?.includes('GROQ_API_KEY')) {
-            return { answer: 'Servicio de IA no disponible temporalmente.' };
+            return { answer: 'El servicio de IA no está configurado.' };
+        }
+        if (error.message?.includes('Access denied') || error.message?.includes('403') || error.message?.includes('network settings')) {
+            return { answer: '⚠️ Conexión rechazada por el proveedor de IA (bloqueo de red/geolocalización). Activá una VPN o Cloudflare WARP en tu equipo para conectar.' };
         }
         return { answer: 'No pude encontrar esa información en este momento. Por favor probá preguntármelo con otras palabras.' };
     }
@@ -318,8 +335,7 @@ export const analyzeUploadedFile = async (fileBuffer: Buffer, filename: string, 
             ? `Archivo "${filename}" con ${data.length} filas. Pregunta: "${question}"\nColumnas: ${headers.join(', ')}\nMuestra de datos: ${JSON.stringify(data.slice(0, 15))}`
             : `Archivo "${filename}" con ${data.length} filas. Analizalo y dame un resumen ejecutivo de lo más importante.\nColumnas: ${headers.join(', ')}\nMuestra de datos: ${JSON.stringify(data.slice(0, 15))}`;
 
-        const completion = await groq.chat.completions.create({
-            model: AI_MODEL,
+        const completion = await callGroqWithFallback(groq, {
             messages: [
                 { role: 'system', content: 'Sos un analista de datos experto en talleres y retail. Analizá el archivo subido y respondé en español con datos clave, totales y hallazgos relevantes. Sé conciso.' },
                 { role: 'user', content: userPrompt },
@@ -333,45 +349,19 @@ export const analyzeUploadedFile = async (fileBuffer: Buffer, filename: string, 
     }
 };
 
-// ─── Persistencia de sesiones en memoria con fallback limpio ───────────────────
+// ─── Persistencia de sesiones en memoria ─────────────────────────────────────
 export interface ChatMessage { role: 'user' | 'assistant'; content: string; exportData?: any[] | null; timestamp: string; }
 
 const sessionMemoryCache = new Map<string, ChatMessage[]>();
 
 export const saveChatSession = async (userId: string, messages: ChatMessage[]): Promise<void> => {
     sessionMemoryCache.set(userId, messages);
-    try {
-        const key = `chat_session_${userId}`;
-        await prisma.$executeRawUnsafe(
-            `INSERT INTO "system_settings" ("id","key","value","createdAt","updatedAt") VALUES ($1,$2,$3,NOW(),NOW()) ON CONFLICT ("key") DO UPDATE SET "value"=$3,"updatedAt"=NOW()`,
-            key, key, JSON.stringify(messages)
-        );
-    } catch {
-        // En caso de que no exista la tabla, se mantiene seguro en memoria
-    }
 };
 
 export const loadChatSession = async (userId: string): Promise<ChatMessage[]> => {
-    try {
-        const rows = await prisma.$queryRawUnsafe<{ value: string }[]>(
-            `SELECT "value" FROM "system_settings" WHERE "key"=$1`,
-            `chat_session_${userId}`
-        );
-        if (rows.length > 0) return JSON.parse(rows[0].value);
-    } catch {
-        // Fallback a memoria
-    }
     return sessionMemoryCache.get(userId) || [];
 };
 
 export const clearChatSession = async (userId: string): Promise<void> => {
     sessionMemoryCache.delete(userId);
-    try {
-        await prisma.$executeRawUnsafe(
-            `DELETE FROM "system_settings" WHERE "key"=$1`,
-            `chat_session_${userId}`
-        );
-    } catch {
-        // Ignorar si no existe la tabla
-    }
 };

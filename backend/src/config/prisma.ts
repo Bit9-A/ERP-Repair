@@ -5,11 +5,20 @@ import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
 
 const dbUrl = process.env["DATABASE_URL"] || "";
-const isLocalDb = dbUrl.includes("localhost") || dbUrl.includes("127.0.0.1") || dbUrl.includes("@db:");
+const needsSsl = dbUrl.includes("sslmode=require") || dbUrl.includes("ssl=true") || dbUrl.includes("neon.tech");
 
 const pool = new Pool({
   connectionString: dbUrl,
-  ssl: isLocalDb ? false : { rejectUnauthorized: false },
+  ssl: needsSsl ? { rejectUnauthorized: false } : false,
+  max: 10,
+  idleTimeoutMillis: 10000,
+  connectionTimeoutMillis: 10000,
+  keepAlive: true,
+  keepAliveInitialDelayMillis: 10000,
+});
+
+pool.on("error", (err) => {
+  console.warn("[prisma-pg] Pool client connection dropped:", err.message);
 });
 
 const adapter = new PrismaPg(pool);
