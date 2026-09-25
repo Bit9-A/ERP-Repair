@@ -20,6 +20,9 @@ function getGroq(): Groq | null {
     return new Groq({ apiKey: key.trim() });
 }
 
+// Modelo activo de Groq (Llama 3.3 70B Versatile, alta precisión y 128k contexto)
+const AI_MODEL = 'llama-3.3-70b-versatile';
+
 // ─── Rate limiting (30 req/min por usuario) ──────────────────────────────────
 const rateLimitMap = new Map<string, number[]>();
 const RATE_LIMIT_MAX = 30;
@@ -159,7 +162,7 @@ export const processAiQuestion = async (
         conversationMessages.push({ role: 'user', content: question });
 
         const completion = await groq.chat.completions.create({
-            model: 'qwen/qwen3.8-27b',
+            model: AI_MODEL,
             messages: conversationMessages,
             temperature: 0.2,
             max_tokens: 1024,
@@ -200,7 +203,7 @@ export const processAiQuestion = async (
             // Auto-corrección inteligente de 1 paso pasando el error de PostgreSQL a Groq
             try {
                 const fixCompletion = await groq.chat.completions.create({
-                    model: 'qwen/qwen3.8-27b',
+                    model: AI_MODEL,
                     messages: [
                         { role: 'system', content: SYSTEM_PROMPT },
                         { role: 'user', content: `La consulta SQL "${sql}" falló en PostgreSQL con el error: "${dbErr.message}". Pregunta del usuario: "${question}". Corregí la consulta respetando el esquema. Responde SOLO el bloque \`\`\`sql ... \`\`\`` }
@@ -234,7 +237,7 @@ export const processAiQuestion = async (
 
         // ── PASO 3: Formatear respuesta natural ──────────────────────────────
         const formatCompletion = await groq.chat.completions.create({
-            model: 'qwen/qwen3.8-27b',
+            model: AI_MODEL,
             messages: [
                 { role: 'system', content: buildFormatPrompt(question, data) },
                 { role: 'user', content: 'Dame la respuesta ejecutiva.' },
@@ -316,7 +319,7 @@ export const analyzeUploadedFile = async (fileBuffer: Buffer, filename: string, 
             : `Archivo "${filename}" con ${data.length} filas. Analizalo y dame un resumen ejecutivo de lo más importante.\nColumnas: ${headers.join(', ')}\nMuestra de datos: ${JSON.stringify(data.slice(0, 15))}`;
 
         const completion = await groq.chat.completions.create({
-            model: 'qwen/qwen3.8-27b',
+            model: AI_MODEL,
             messages: [
                 { role: 'system', content: 'Sos un analista de datos experto en talleres y retail. Analizá el archivo subido y respondé en español con datos clave, totales y hallazgos relevantes. Sé conciso.' },
                 { role: 'user', content: userPrompt },
