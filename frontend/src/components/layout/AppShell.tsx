@@ -1,8 +1,9 @@
-﻿import { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import { Sidebar } from "./Sidebar";
 import { TopBar } from "./TopBar";
 import { GlobalSpotlight } from "./GlobalSpotlight";
+import { AiChat } from "../ai/AiChat";
 import { motion, AnimatePresence } from "framer-motion";
 
 export function AppShell() {
@@ -114,6 +115,9 @@ export function AppShell() {
             <Outlet />
           </motion.div>
         </main>
+
+        {/* Asistente IA Flotante */}
+        <AiChat />
       </div>
     </div>
   );

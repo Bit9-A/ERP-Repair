@@ -56,6 +56,7 @@ services:
       JWT_SECRET: ${JWT_SECRET}
       TENANT_SLUG: ${CLIENT_SLUG}
       CLIENT_URL: ${CLIENT_URL}
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
     depends_on:
       db:
         condition: service_healthy

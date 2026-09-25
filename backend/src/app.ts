@@ -19,6 +19,7 @@ import dashboardRoutes from "./modules/dashboard/dashboard.routes";
 import searchRoutes from "./modules/search/search.routes";
 import { sucursalesRouter } from "./modules/sucursales/sucursales.routes";
 import currencyRoutes from "./modules/currency/currency.routes";
+import aiChatRoutes from "./modules/ai-chat/ai-chat.routes";
 
 const app: Express = express();
 
@@ -87,6 +88,7 @@ app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/sucursales", sucursalesRouter);
 app.use("/api/search", searchRoutes);
 app.use("/api/currency", currencyRoutes);
+app.use("/api/ai-chat", aiChatRoutes);
 
 // ── Frontend Estático (en producción Docker) ──
 const frontendDist = path.join(__dirname, "../public");
@@ -109,9 +111,9 @@ app.use(
   })
 );
 
-// SPA fallback: cualquier ruta que no sea /api/* devuelve index.html
-app.get("*", (req, res, next) => {
-  if (req.path.startsWith("/api")) return next();
+// SPA fallback: cualquier ruta GET que no sea /api/* devuelve index.html
+app.use((req, res, next) => {
+  if (req.path.startsWith("/api") || req.method !== "GET") return next();
   res.sendFile(path.join(frontendDist, "index.html"), (err) => {
     if (err) next();
   });
