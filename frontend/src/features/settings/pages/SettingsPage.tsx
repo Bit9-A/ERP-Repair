@@ -1,4 +1,5 @@
-﻿import { motion } from "framer-motion";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   useSettingsStore,
   SIDEBAR_COLOR_OPTIONS,
@@ -7,7 +8,6 @@ import {
 import { useThemeStore } from "../../../stores/theme.store";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "../../../components/ui/card";
 import {
-  Palette,
   Sparkles,
   Keyboard,
   Moon,
@@ -15,7 +15,8 @@ import {
   Check,
   Zap,
   Info,
-  Type,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import { cn } from "../../../lib/utils";
 
@@ -34,21 +35,28 @@ export function SettingsPage() {
   const { colorScheme, toggle: toggleColorScheme } = useThemeStore();
   const isDark = colorScheme === "dark";
 
+  // Accordion states inspired by the ergonomic pattern in rifas-app
+  const [isFontsOpen, setIsFontsOpen] = useState(false);
+  const [isColorsOpen, setIsColorsOpen] = useState(false);
+
+  const activeFont = FONT_OPTIONS.find((f) => f.id === fontFamily) || FONT_OPTIONS[0];
+  const activeColor = SIDEBAR_COLOR_OPTIONS.find((c) => c.id === sidebarColor) || SIDEBAR_COLOR_OPTIONS[0];
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="space-y-8 max-w-5xl"
+      className="space-y-6 max-w-5xl"
     >
-      {/* Header Banner (SIGEPAT Style) */}
+      {/* Header Banner */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200/80 dark:border-slate-800/80">
         <div>
           <h1 className="text-2xl sm:text-3xl font-black font-heading text-slate-900 dark:text-white tracking-tight uppercase">
             Configuración & <span className="text-blue-600 dark:text-blue-400">Personalización</span>
           </h1>
           <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mt-1 font-sans">
-            Personaliza el tema visual, la tipografía del sistema, animaciones y comportamiento del ERP.
+            Personaliza el tema visual, tipografía del sistema, animaciones y comportamiento del ERP.
           </p>
         </div>
 
@@ -58,144 +66,216 @@ export function SettingsPage() {
         </div>
       </div>
 
-      {/* Grid of Settings Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-        {/* 1. FONT SELECTOR CARD (Above Color Palette) */}
-        <Card className="md:col-span-2 shadow-sm border-slate-200/80 dark:border-slate-800/80 bg-white/80 dark:bg-slate-900/60 backdrop-blur-md">
-          <CardHeader>
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold">
-                <Type size={20} />
+      {/* ── 1. ACORDEÓN ERGONÓMICO DE FUENTES (Patrón allrifle / rifas-app) ── */}
+      <div className="p-4 sm:p-5 bg-indigo-50/70 dark:bg-slate-900/80 rounded-3xl border border-indigo-200/80 dark:border-slate-800 space-y-4 shadow-xs transition-all">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <span className="w-2.5 h-2.5 rounded-full bg-indigo-500 animate-pulse shrink-0" />
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-indigo-950 dark:text-indigo-200 font-heading">
+                  Tipografía del Sistema ({FONT_OPTIONS.length} Fuentes Disponibles)
+                </h3>
+                <span className="px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-950/80 text-indigo-700 dark:text-indigo-300 text-[10px] font-black border border-indigo-200 dark:border-indigo-800">
+                  Activa: {activeFont.name}
+                </span>
               </div>
-              <div>
-                <CardTitle>Tipografía del Sistema</CardTitle>
-                <CardDescription>
-                  Selecciona la fuente tipográfica para la interfaz. El cambio se aplica dinámicamente en todo el sistema.
-                </CardDescription>
-              </div>
+              <p className="text-[11px] text-indigo-700 dark:text-indigo-300/80 font-medium mt-0.5">
+                Fuente en uso:{" "}
+                <strong
+                  className="text-slate-900 dark:text-white font-bold"
+                  style={{ fontFamily: activeFont.fontFamilyCss }}
+                >
+                  {activeFont.name}
+                </strong>{" "}
+                • {activeFont.description}
+              </p>
             </div>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 pt-2">
-              {FONT_OPTIONS.map((f) => {
-                const isSelected = fontFamily === f.id;
-                return (
-                  <button
-                    key={f.id}
-                    onClick={() => setFontFamily(f.id)}
-                    className={cn(
-                      "flex flex-col text-left p-4 rounded-2xl border transition-all relative overflow-hidden group cursor-pointer active:scale-[0.98]",
-                      isSelected
-                        ? "border-blue-500 bg-blue-50/50 dark:bg-blue-950/30 ring-2 ring-blue-500/20 shadow-sm"
-                        : "border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 bg-white dark:bg-slate-900/40"
-                    )}
-                  >
-                    {/* Header: Name + Badge + Check */}
-                    <div className="flex items-start justify-between gap-2 w-full mb-2">
-                      <div>
-                        <span
-                          style={{ fontFamily: f.fontFamilyCss }}
-                          className="font-bold text-base text-slate-900 dark:text-white block leading-tight"
-                        >
-                          {f.name}
-                        </span>
-                        <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider">
-                          {f.category}
-                        </span>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setIsFontsOpen((prev) => !prev)}
+            className="flex items-center gap-1.5 px-3.5 py-1.5 bg-white dark:bg-slate-800 hover:bg-indigo-100 dark:hover:bg-slate-700 text-indigo-950 dark:text-indigo-200 rounded-xl text-xs font-bold border border-indigo-300 dark:border-slate-700 shadow-2xs transition-all cursor-pointer"
+          >
+            <span>{isFontsOpen ? "Ocultar Fuentes" : `Ver Catálogo de Fuentes (${FONT_OPTIONS.length})`}</span>
+            {isFontsOpen ? (
+              <ChevronUp className="w-4 h-4 text-indigo-700 dark:text-indigo-400" />
+            ) : (
+              <ChevronDown className="w-4 h-4 text-indigo-700 dark:text-indigo-400" />
+            )}
+          </button>
+        </div>
+
+        {/* Collapsible Content */}
+        <AnimatePresence>
+          {isFontsOpen && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.25, ease: "easeInOut" }}
+              className="overflow-hidden"
+            >
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 pt-2">
+                {FONT_OPTIONS.map((f) => {
+                  const isSelected = fontFamily === f.id;
+                  return (
+                    <button
+                      key={f.id}
+                      onClick={() => setFontFamily(f.id)}
+                      className={cn(
+                        "flex flex-col text-left p-4 rounded-2xl border transition-all relative overflow-hidden group cursor-pointer active:scale-[0.98]",
+                        isSelected
+                          ? "border-blue-500 bg-white dark:bg-slate-900 ring-2 ring-blue-500/20 shadow-md"
+                          : "border-slate-200 dark:border-slate-800 hover:border-indigo-300 dark:hover:border-slate-700 bg-white/90 dark:bg-slate-900/60"
+                      )}
+                    >
+                      {/* Header: Name + Badge + Check */}
+                      <div className="flex items-start justify-between gap-2 w-full mb-2">
+                        <div>
+                          <span
+                            style={{ fontFamily: f.fontFamilyCss }}
+                            className="font-bold text-base text-slate-900 dark:text-white block leading-tight"
+                          >
+                            {f.name}
+                          </span>
+                          <span className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider">
+                            {f.category}
+                          </span>
+                        </div>
+
+                        {isSelected && (
+                          <div className="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <Check size={12} strokeWidth={3} />
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Live Preview Sample */}
+                      <div
+                        className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-950/60 border border-slate-100 dark:border-slate-800/80 my-2 w-full"
+                        style={{ fontFamily: f.fontFamilyCss }}
+                      >
+                        <p className="text-xs font-semibold text-slate-800 dark:text-slate-200 leading-snug">
+                          {f.previewText}
+                        </p>
+                        <p className="text-[11px] text-slate-400 mt-1">
+                          1234567890 • Tickets, Inventario y Facturas
+                        </p>
+                      </div>
+
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed mt-auto">
+                        {f.description}
+                      </p>
+                    </button>
+                  );
+                })}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
+      {/* ── 2. ACORDEÓN ERGONÓMICO DE COLORES DE BARRA LATERAL (Patrón allrifle) ── */}
+      <div className="p-4 sm:p-5 bg-sky-50/70 dark:bg-slate-900/80 rounded-3xl border border-sky-200/80 dark:border-slate-800 space-y-4 shadow-xs transition-all">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <span className="w-2.5 h-2.5 rounded-full bg-sky-500 animate-pulse shrink-0" />
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-sky-950 dark:text-sky-200 font-heading">
+                  Color de Barra Lateral ({SIDEBAR_COLOR_OPTIONS.length} Temas Disponibles)
+                </h3>
+                <span className="px-2 py-0.5 rounded-full bg-sky-100 dark:bg-sky-950/80 text-sky-700 dark:text-sky-300 text-[10px] font-black border border-sky-200 dark:border-sky-800">
+                  Activo: {activeColor.name}
+                </span>
+              </div>
+              <p className="text-[11px] text-sky-700 dark:text-sky-300/80 font-medium mt-0.5 flex items-center gap-2">
+                <span>Estilo en uso:</span>
+                <span className="inline-flex items-center gap-1.5 font-bold text-slate-900 dark:text-white">
+                  <span
+                    className="w-3.5 h-3.5 rounded-md inline-block border border-white/20 shadow-xs"
+                    style={{ backgroundColor: activeColor.primaryHex }}
+                  />
+                  {activeColor.name}
+                </span>
+              </p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setIsColorsOpen((prev) => !prev)}
+            className="flex items-center gap-1.5 px-3.5 py-1.5 bg-white dark:bg-slate-800 hover:bg-sky-100 dark:hover:bg-slate-700 text-sky-950 dark:text-sky-200 rounded-xl text-xs font-bold border border-sky-300 dark:border-slate-700 shadow-2xs transition-all cursor-pointer"
+          >
+            <span>{isColorsOpen ? "Ocultar Colores" : `Personalizar Paleta (${SIDEBAR_COLOR_OPTIONS.length})`}</span>
+            {isColorsOpen ? (
+              <ChevronUp className="w-4 h-4 text-sky-700 dark:text-sky-400" />
+            ) : (
+              <ChevronDown className="w-4 h-4 text-sky-700 dark:text-sky-400" />
+            )}
+          </button>
+        </div>
+
+        {/* Collapsible Content */}
+        <AnimatePresence>
+          {isColorsOpen && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.25, ease: "easeInOut" }}
+              className="overflow-hidden"
+            >
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 pt-2">
+                {SIDEBAR_COLOR_OPTIONS.map((opt) => {
+                  const isSelected = sidebarColor === opt.id;
+                  return (
+                    <button
+                      key={opt.id}
+                      onClick={() => setSidebarColor(opt.id)}
+                      className={cn(
+                        "flex items-center gap-3 p-3 rounded-2xl border text-left transition-all relative overflow-hidden group cursor-pointer active:scale-[0.98]",
+                        isSelected
+                          ? "border-blue-500 bg-white dark:bg-slate-900 ring-2 ring-blue-500/20 shadow-sm"
+                          : "border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 bg-white/90 dark:bg-slate-900/60"
+                      )}
+                    >
+                      {/* Swatch */}
+                      <div
+                        className="w-7 h-7 rounded-xl flex items-center justify-center shadow-inner flex-shrink-0 border border-white/20"
+                        style={{ backgroundColor: opt.bgHex }}
+                      >
+                        <div
+                          className="w-3 h-3 rounded-full"
+                          style={{ backgroundColor: opt.primaryHex }}
+                        />
+                      </div>
+
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate font-heading">
+                          {opt.name}
+                        </p>
                       </div>
 
                       {isSelected && (
-                        <div className="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <div className="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center flex-shrink-0">
                           <Check size={12} strokeWidth={3} />
                         </div>
                       )}
-                    </div>
-
-                    {/* Live Preview Sample in this exact font */}
-                    <div
-                      className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-950/60 border border-slate-100 dark:border-slate-800/80 my-2 w-full"
-                      style={{ fontFamily: f.fontFamilyCss }}
-                    >
-                      <p className="text-xs font-semibold text-slate-800 dark:text-slate-200 leading-snug">
-                        {f.previewText}
-                      </p>
-                      <p className="text-[11px] text-slate-400 mt-1">
-                        1234567890 • Tickets, Inventario y Facturas
-                      </p>
-                    </div>
-
-                    {/* Description */}
-                    <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed mt-auto">
-                      {f.description}
-                    </p>
-                  </button>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* 2. COLOR PALETTE CARD */}
-        <Card className="md:col-span-2 shadow-sm border-slate-200/80 dark:border-slate-800/80 bg-white/80 dark:bg-slate-900/60 backdrop-blur-md">
-          <CardHeader>
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold">
-                <Palette size={20} />
+                    </button>
+                  );
+                })}
               </div>
-              <div>
-                <CardTitle>Paleta de Color de la Barra Lateral</CardTitle>
-                <CardDescription>
-                  Selecciona el color y estilo visual para la barra de navegación principal.
-                </CardDescription>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 pt-2">
-              {SIDEBAR_COLOR_OPTIONS.map((opt) => {
-                const isSelected = sidebarColor === opt.id;
-                return (
-                  <button
-                    key={opt.id}
-                    onClick={() => setSidebarColor(opt.id)}
-                    className={cn(
-                      "flex items-center gap-3 p-3 rounded-2xl border text-left transition-all relative overflow-hidden group cursor-pointer active:scale-[0.98]",
-                      isSelected
-                        ? "border-blue-500 bg-blue-50/50 dark:bg-blue-950/30 ring-2 ring-blue-500/20 shadow-sm"
-                        : "border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 bg-white dark:bg-slate-900/40"
-                    )}
-                  >
-                    {/* Swatch */}
-                    <div
-                      className="w-7 h-7 rounded-xl flex items-center justify-center shadow-inner flex-shrink-0 border border-white/20"
-                      style={{ backgroundColor: opt.bgHex }}
-                    >
-                      <div
-                        className="w-3 h-3 rounded-full"
-                        style={{ backgroundColor: opt.primaryHex }}
-                      />
-                    </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
 
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate font-heading">
-                        {opt.name}
-                      </p>
-                    </div>
-
-                    {isSelected && (
-                      <div className="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center flex-shrink-0">
-                        <Check size={12} strokeWidth={3} />
-                      </div>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* 3. THEME MODE CARD */}
+      {/* ── 3. GRID DE AJUSTES GENERALES (Ahora directamente visible sin scroll excesivo) ── */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+        {/* Tema Modo Claro / Oscuro */}
         <Card className="shadow-sm border-slate-200/80 dark:border-slate-800/80 bg-white/80 dark:bg-slate-900/60 backdrop-blur-md">
           <CardHeader>
             <div className="flex items-center gap-3">
@@ -231,7 +311,7 @@ export function SettingsPage() {
           </CardContent>
         </Card>
 
-        {/* 4. ANIMATIONS TOGGLE CARD */}
+        {/* Animaciones */}
         <Card className="shadow-sm border-slate-200/80 dark:border-slate-800/80 bg-white/80 dark:bg-slate-900/60 backdrop-blur-md">
           <CardHeader>
             <div className="flex items-center gap-3">
@@ -274,7 +354,7 @@ export function SettingsPage() {
           </CardContent>
         </Card>
 
-        {/* 5. SHORTCUTS CARD */}
+        {/* Atajos de Teclado */}
         <Card className="shadow-sm border-slate-200/80 dark:border-slate-800/80 bg-white/80 dark:bg-slate-900/60 backdrop-blur-md">
           <CardHeader>
             <div className="flex items-center gap-3">
@@ -296,7 +376,7 @@ export function SettingsPage() {
                   Buscador Global (Spotlight)
                 </span>
                 <span className="text-xs text-slate-500">
-                  Acceso directo con tecla rápida a cualquier módulo, cliente o ticket
+                  Acceso directo con tecla rápida a cualquier módulo o ticket
                 </span>
               </div>
               <div className="flex items-center gap-3">
@@ -319,7 +399,7 @@ export function SettingsPage() {
           </CardContent>
         </Card>
 
-        {/* 6. SYSTEM INFO CARD */}
+        {/* Información del Sistema */}
         <Card className="shadow-sm border-slate-200/80 dark:border-slate-800/80 bg-white/80 dark:bg-slate-900/60 backdrop-blur-md">
           <CardHeader>
             <div className="flex items-center gap-3">
@@ -346,7 +426,7 @@ export function SettingsPage() {
             <div className="flex justify-between py-1.5">
               <span className="text-slate-500">Tipografía Activa:</span>
               <span className="font-mono font-bold text-blue-600 dark:text-blue-400 uppercase">
-                {FONT_OPTIONS.find((f) => f.id === fontFamily)?.name || fontFamily}
+                {activeFont.name}
               </span>
             </div>
           </CardContent>

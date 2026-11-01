@@ -58,7 +58,7 @@ export function AppShell() {
   };
 
   return (
-    <div className="min-h-screen flex bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans antialiased overflow-x-hidden">
+    <div className="min-h-screen flex bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans antialiased">
       {/* Mobile Sidebar Overlay Drawer */}
       <AnimatePresence>
         {isMobile && sidebarOpen && (
@@ -75,7 +75,7 @@ export function AppShell() {
               animate={{ x: 0 }}
               exit={{ x: "-100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 220 }}
-              className="fixed inset-y-0 left-0 z-50 w-72 shadow-2xl"
+              className="fixed inset-y-0 left-0 z-50 w-72 shadow-2xl h-screen"
             >
               <Sidebar
                 isMobile={true}
@@ -87,24 +87,32 @@ export function AppShell() {
         )}
       </AnimatePresence>
 
-      {/* Desktop Persistent Sidebar */}
+      {/* Desktop Fixed Sidebar — pinned 100% height */}
       {!isMobile && (
-        <div className="flex-shrink-0 h-screen sticky top-0 z-30 transition-all duration-300">
+        <aside
+          className={`fixed inset-y-0 left-0 z-30 h-screen transition-all duration-300 ${
+            sidebarCollapsed ? "w-20" : "w-64"
+          }`}
+        >
           <Sidebar
             collapsed={sidebarCollapsed}
             isMobile={false}
             onToggleCollapse={() => setSidebarCollapsed((prev) => !prev)}
           />
-        </div>
+        </aside>
       )}
 
-      {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 min-h-screen">
+      {/* Main Content Area (padded on desktop to accommodate fixed sidebar) */}
+      <div
+        className={`flex-1 flex flex-col min-w-0 min-h-screen transition-all duration-300 ${
+          !isMobile ? (sidebarCollapsed ? "pl-20" : "pl-64") : ""
+        }`}
+      >
         <TopBar toggle={handleToggleSidebar} />
 
         <GlobalSpotlight />
 
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 bg-slate-100/60 dark:bg-slate-900/40 overflow-y-auto">
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 bg-slate-100/60 dark:bg-slate-900/40">
           <motion.div
             key={location.pathname}
             initial={{ opacity: 0, y: 8 }}
