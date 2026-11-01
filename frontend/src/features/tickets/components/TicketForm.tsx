@@ -11,6 +11,7 @@ import {
   Paper,
   Box,
   ThemeIcon,
+  ActionIcon,
 } from "@mantine/core";
 import { useMediaQuery } from "@mantine/hooks";
 import { notifications } from "@mantine/notifications";
@@ -25,6 +26,8 @@ import {
   IconArrowLeft,
   IconArrowRight,
   IconCheck,
+  IconTools,
+  IconX,
 } from "@tabler/icons-react";
 import type { TicketReparacion } from "../../../types";
 import type { TicketFormValues } from "../types/tickets.types";
@@ -180,10 +183,10 @@ export function TicketForm({
 
   const renderStepper = (isEdit: boolean) => (
     <form onSubmit={form.onSubmit(handleSubmit)}>
-      <Stack gap={isMobile ? "sm" : "lg"}>
+      <Stack gap={isMobile ? "sm" : "md"} p={isMobile ? "md" : "xl"}>
         {/* ── MOBILE VIEW: Sleek Segment Bar & Step Badge ── */}
         {isMobile ? (
-          <Box mb={4}>
+          <Box mb={2}>
             {/* Segment Progress Bars */}
             <Group gap={4} grow mb={8}>
               {STEPS.map((_, idx) => {
@@ -214,7 +217,7 @@ export function TicketForm({
             {/* Step Header Pill */}
             <Paper
               p="xs"
-              radius="md"
+              radius="lg"
               style={{
                 background: "var(--bg-elevated)",
                 border: "1px solid var(--border-subtle)",
@@ -225,11 +228,11 @@ export function TicketForm({
                   <ThemeIcon size="md" radius="md" color="blue" variant="light">
                     {(() => {
                       const Icon = STEPS[activeStep].icon;
-                      return <Icon size={16} />;
+                      return <Icon size={16} strokeWidth={2.5} />;
                     })()}
                   </ThemeIcon>
                   <div>
-                    <Text size="xs" fw={700} className="font-heading" lineClamp={1}>
+                    <Text size="xs" fw={800} className="font-heading" lineClamp={1}>
                       Paso {activeStep + 1} de 5: {STEPS[activeStep].label}
                     </Text>
                     <Text size="10px" c="dimmed" lineClamp={1}>
@@ -238,14 +241,14 @@ export function TicketForm({
                   </div>
                 </Group>
 
-                <Badge size="xs" variant="filled" color={activeStep === 4 ? "green" : "blue"}>
+                <Badge size="xs" variant="filled" color={activeStep === 4 ? "green" : "blue"} radius="xl">
                   {activeStep + 1} / 5
                 </Badge>
               </Group>
             </Paper>
           </Box>
         ) : (
-          /* ── DESKTOP VIEW: Full Horizontal Mantine Stepper ── */
+          /* ── DESKTOP VIEW: Signature Stepper ── */
           <Stepper
             active={activeStep}
             onStepClick={(step) => {
@@ -258,14 +261,14 @@ export function TicketForm({
             orientation="horizontal"
             styles={{
               root: {
-                padding: "4px 0",
+                padding: "8px 0 16px 0",
               },
               step: {
                 cursor: isEdit ? "pointer" : "default",
               },
               stepLabel: {
                 fontSize: "13px",
-                fontWeight: 700,
+                fontWeight: 800,
                 fontFamily: "var(--font-heading)",
               },
               stepDescription: {
@@ -280,7 +283,7 @@ export function TicketForm({
                   key={idx}
                   label={`${idx + 1}. ${st.label}`}
                   description={st.subtitle}
-                  icon={<Icon size={16} />}
+                  icon={<Icon size={16} strokeWidth={2.2} />}
                 />
               );
             })}
@@ -292,7 +295,7 @@ export function TicketForm({
           {renderStepContent(activeStep, isEdit)}
         </Box>
 
-        {/* ── Footer Navigation Controls (Sticky on mobile for thumb reach) ── */}
+        {/* ── Sigepat-Style Footer Controls (Sticky on mobile) ── */}
         <Paper
           p={isMobile ? "xs" : undefined}
           style={{
@@ -302,13 +305,14 @@ export function TicketForm({
             background: isMobile ? "var(--bg-card)" : "transparent",
             zIndex: 20,
             marginTop: isMobile ? "8px" : "16px",
-            boxShadow: isMobile ? "0 -4px 12px rgba(0, 0, 0, 0.08)" : undefined,
+            boxShadow: isMobile ? "0 -4px 16px rgba(0, 0, 0, 0.08)" : undefined,
           }}
         >
           <Group justify="space-between" align="center" wrap="wrap" gap="xs">
             <Button
               variant="subtle"
               color="gray"
+              radius="xl"
               size={isMobile ? "xs" : "sm"}
               onClick={onClose}
             >
@@ -319,9 +323,10 @@ export function TicketForm({
               {activeStep > 0 && (
                 <Button
                   variant="default"
+                  radius="xl"
                   size={isMobile ? "xs" : "sm"}
                   onClick={handlePrevStep}
-                  leftSection={<IconArrowLeft size={14} />}
+                  leftSection={<IconArrowLeft size={14} strokeWidth={2.5} />}
                 >
                   Atrás
                 </Button>
@@ -329,9 +334,13 @@ export function TicketForm({
 
               {activeStep < 4 ? (
                 <Button
+                  radius="xl"
                   size={isMobile ? "xs" : "sm"}
                   onClick={handleNextStep}
-                  rightSection={<IconArrowRight size={14} />}
+                  rightSection={<IconArrowRight size={14} strokeWidth={2.5} />}
+                  style={{
+                    boxShadow: "0 4px 12px rgba(29, 112, 183, 0.25)",
+                  }}
                 >
                   Siguiente
                 </Button>
@@ -339,9 +348,13 @@ export function TicketForm({
                 <Button
                   type="submit"
                   color="green"
+                  radius="xl"
                   size={isMobile ? "xs" : "sm"}
                   disabled={isLocked}
-                  leftSection={<IconCheck size={14} />}
+                  leftSection={<IconCheck size={14} strokeWidth={2.5} />}
+                  style={{
+                    boxShadow: "0 4px 12px rgba(34, 197, 94, 0.3)",
+                  }}
                   title={
                     isLocked
                       ? "Ticket cerrado. Solo un Administrador puede modificarlo."
@@ -358,6 +371,7 @@ export function TicketForm({
                   type="submit"
                   variant="light"
                   color="blue"
+                  radius="xl"
                   size={isMobile ? "xs" : "sm"}
                   disabled={isLocked}
                 >
@@ -375,61 +389,143 @@ export function TicketForm({
     <Modal
       opened={opened}
       onClose={onClose}
-      title={
-        <Group gap="xs" align="center">
-          <Text fw={700} size={isMobile ? "sm" : "lg"} className="font-heading">
-            {modalTitle}
-          </Text>
-          {initialData?.estado && (
-            <Badge variant="light" size="xs">
-              {initialData.estado}
-            </Badge>
-          )}
-        </Group>
-      }
+      withCloseButton={false}
       size="xl"
       fullScreen={isMobile}
-      radius={isMobile ? 0 : "md"}
+      radius={isMobile ? 0 : 28}
       closeOnClickOutside={false}
       closeOnEscape={false}
       overlayProps={{
-        backgroundOpacity: 0.55,
-        blur: 3,
+        backgroundOpacity: 0.6,
+        blur: 5,
       }}
-      shadow="xl"
-      transitionProps={{ transition: "pop" }}
+      shadow="2xl"
+      transitionProps={{ transition: "pop", duration: 250 }}
       styles={{
-        header: {
-          borderBottom: "1px solid var(--border-subtle)",
-          paddingBottom: isMobile ? "0.5rem" : "1rem",
-          marginBottom: isMobile ? "0.5rem" : "1rem",
+        content: {
+          borderRadius: isMobile ? 0 : "28px",
+          overflow: "hidden",
+          border: "none",
+          boxShadow: "0 25px 60px -15px rgba(0, 0, 0, 0.35)",
         },
         body: {
-          paddingTop: 0,
-          paddingLeft: isMobile ? "12px" : undefined,
-          paddingRight: isMobile ? "12px" : undefined,
-          paddingBottom: isMobile ? "4px" : undefined,
+          padding: 0,
         },
       }}
     >
+      {/* ── Signature Sigepat Hero Header ── */}
+      <Box
+        style={{
+          background: "linear-gradient(135deg, #1d70b7 0%, #0f3d67 100%)",
+          padding: isMobile ? "16px 20px" : "24px 28px",
+          color: "white",
+          position: "relative",
+          overflow: "hidden",
+        }}
+      >
+        {/* Giant Watermark Background Icon */}
+        <Box
+          style={{
+            position: "absolute",
+            top: -12,
+            right: -8,
+            opacity: 0.1,
+            pointerEvents: "none",
+            color: "white",
+          }}
+        >
+          <IconTools size={120} strokeWidth={1.5} />
+        </Box>
+
+        <Group justify="space-between" align="flex-start" style={{ position: "relative", zIndex: 1 }}>
+          <Group gap="sm" align="center">
+            <ThemeIcon
+              size={isMobile ? "md" : "xl"}
+              radius="xl"
+              style={{
+                background: "rgba(255, 255, 255, 0.2)",
+                color: "white",
+                backdropFilter: "blur(4px)",
+              }}
+            >
+              <IconTool size={isMobile ? 18 : 22} strokeWidth={2.5} />
+            </ThemeIcon>
+            <div>
+              <Group gap="xs" align="center">
+                <Text
+                  size={isMobile ? "md" : "xl"}
+                  fw={900}
+                  className="font-heading tracking-tight"
+                  c="white"
+                >
+                  {modalTitle}
+                </Text>
+                {initialData?.estado && (
+                  <Badge
+                    variant="filled"
+                    radius="xl"
+                    style={{
+                      background: "rgba(255, 255, 255, 0.25)",
+                      color: "white",
+                      fontWeight: 800,
+                    }}
+                    size="xs"
+                  >
+                    {initialData.estado}
+                  </Badge>
+                )}
+              </Group>
+              <Text
+                size="xs"
+                style={{
+                  color: "rgba(255, 255, 255, 0.8)",
+                  marginTop: 2,
+                  fontWeight: 500,
+                }}
+              >
+                Control de recepción, hardware técnico, repuestos de taller y liquidación.
+              </Text>
+            </div>
+          </Group>
+
+          {/* Floating Glass Close Button */}
+          <ActionIcon
+            variant="subtle"
+            radius="xl"
+            size="md"
+            onClick={onClose}
+            aria-label="Cerrar modal"
+            style={{
+              background: "rgba(255, 255, 255, 0.15)",
+              color: "white",
+              backdropFilter: "blur(4px)",
+              transition: "all 0.15s ease",
+            }}
+          >
+            <IconX size={16} strokeWidth={2.5} />
+          </ActionIcon>
+        </Group>
+      </Box>
+
+      {/* ── Modal Content: Stepper or Tabs ── */}
       {initialData ? (
-        <Tabs defaultValue="general" mb="md">
-          <Tabs.List grow mb="md">
+        <Tabs defaultValue="general" radius="xl">
+          <Tabs.List grow px={isMobile ? "md" : "xl"} pt="md">
             <Tabs.Tab
               value="general"
-              leftSection={<IconListDetails size={16} />}
+              leftSection={<IconListDetails size={16} strokeWidth={2.2} />}
               color="blue"
             >
-              <Text fw={600} size={isMobile ? "xs" : "sm"}>
+              <Text fw={700} size={isMobile ? "xs" : "sm"}>
                 Pasos de la Orden
               </Text>
             </Tabs.Tab>
             <Tabs.Tab
               value="repuestos"
-              leftSection={<IconTool size={16} />}
+              leftSection={<IconTool size={16} strokeWidth={2.2} />}
               color="orange"
             >
-              <Text fw={600} size={isMobile ? "xs" : "sm"}>
+              <Text fw={700} size={isMobile ? "xs" : "sm"}>
                 Repuestos y Stock
               </Text>
             </Tabs.Tab>
@@ -439,7 +535,7 @@ export function TicketForm({
             {renderStepper(true)}
           </Tabs.Panel>
 
-          <Tabs.Panel value="repuestos">
+          <Tabs.Panel value="repuestos" p={isMobile ? "md" : "xl"}>
             <RepuestosTab ticketId={initialData.id} />
           </Tabs.Panel>
         </Tabs>
