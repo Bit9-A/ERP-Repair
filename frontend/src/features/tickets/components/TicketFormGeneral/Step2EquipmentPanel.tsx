@@ -106,7 +106,7 @@ export function Step2EquipmentPanel({
             </Text>
           </div>
 
-          <SimpleGrid cols={{ base: 2, sm: 4 }} spacing="xs">
+          <SimpleGrid cols={{ base: 2, xs: 4, sm: 4 }} spacing="xs">
             {DEVICE_TYPES.map((dt) => {
               const Icon = dt.icon;
               const isSelected = currentType === dt.value;
@@ -115,8 +115,8 @@ export function Step2EquipmentPanel({
                   key={dt.value}
                   onClick={() => form.setFieldValue("tipo_equipo", dt.value)}
                   style={{
-                    padding: "10px 12px",
-                    borderRadius: "10px",
+                    padding: "7px 10px",
+                    borderRadius: "8px",
                     border: isSelected
                       ? `2px solid var(--mantine-color-${dt.color}-filled)`
                       : "1px solid var(--border-subtle)",
@@ -126,16 +126,16 @@ export function Step2EquipmentPanel({
                     transition: "all 0.15s ease",
                     display: "flex",
                     alignItems: "center",
-                    gap: "8px",
+                    gap: "6px",
                   }}
                 >
                   <ThemeIcon
-                    size="md"
-                    radius="md"
+                    size="sm"
+                    radius="sm"
                     color={isSelected ? dt.color : "gray"}
                     variant={isSelected ? "filled" : "light"}
                   >
-                    <Icon size={16} />
+                    <Icon size={14} />
                   </ThemeIcon>
                   <Text
                     size="xs"
@@ -144,6 +144,10 @@ export function Step2EquipmentPanel({
                       color: isSelected
                         ? "var(--text-primary)"
                         : "var(--text-secondary)",
+                      fontSize: "12px",
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
                     }}
                   >
                     {dt.label}

@@ -8,6 +8,9 @@ import {
   Text,
   Stepper,
   Badge,
+  Paper,
+  Box,
+  ThemeIcon,
 } from "@mantine/core";
 import { useMediaQuery } from "@mantine/hooks";
 import { notifications } from "@mantine/notifications";
@@ -41,6 +44,14 @@ interface TicketFormProps {
   onSubmit: (values: TicketFormValues) => void;
   initialData?: TicketReparacion | null;
 }
+
+const STEPS = [
+  { label: "Cliente", subtitle: "Cédula y Datos", icon: IconUser },
+  { label: "Equipo", subtitle: "Tipo y Modelo", icon: IconDevices },
+  { label: "Seguridad", subtitle: "PIN y Falla", icon: IconLock },
+  { label: "Checklist", subtitle: "Test Inicial", icon: IconChecklist },
+  { label: "Costos", subtitle: "Precios y Técnico", icon: IconCurrencyDollar },
+];
 
 export function TicketForm({
   opened,
@@ -120,160 +131,242 @@ export function TicketForm({
     setActiveStep((current) => (current > 0 ? current - 1 : current));
   };
 
+  // Render individual step panels
+  const renderStepContent = (stepIndex: number, isEdit: boolean) => {
+    switch (stepIndex) {
+      case 0:
+        return (
+          <Step1ClientPanel
+            form={form}
+            state={state}
+            queries={queries}
+            actions={actions}
+            canEditSucursal={canEditSucursal}
+            onProceedNext={() => setActiveStep(1)}
+          />
+        );
+      case 1:
+        return (
+          <Step2EquipmentPanel
+            form={form}
+            state={state}
+            queries={queries}
+            actions={actions}
+          />
+        );
+      case 2:
+        return (
+          <Step3SecurityFaultPanel
+            form={form}
+            initialData={initialData}
+          />
+        );
+      case 3:
+        return <Step4ChecklistPanel form={form} />;
+      case 4:
+        return (
+          <Step5CostosPanel
+            form={form}
+            isEdit={isEdit}
+            queries={queries}
+            computed={computed}
+            permissions={permissions}
+          />
+        );
+      default:
+        return null;
+    }
+  };
+
   const renderStepper = (isEdit: boolean) => (
     <form onSubmit={form.onSubmit(handleSubmit)}>
-      <Stack gap="lg">
-        {/* ── Visual Stepper Navigation ── */}
-        <Stepper
-          active={activeStep}
-          onStepClick={(step) => {
-            // Permit free click in edit mode, or if the step was already unlocked
-            if (isEdit || step < activeStep) {
-              setActiveStep(step);
-            }
-          }}
-          size={isMobile ? "xs" : "sm"}
-          color="blue"
-          orientation={isMobile ? "vertical" : "horizontal"}
-          styles={{
-            root: {
-              padding: "4px 0",
-            },
-            step: {
-              cursor: isEdit ? "pointer" : "default",
-            },
-            stepLabel: {
-              fontSize: isMobile ? "12px" : "13px",
-              fontWeight: 700,
-              fontFamily: "var(--font-heading)",
-            },
-            stepDescription: {
-              fontSize: "11px",
-            },
-          }}
-        >
-          <Stepper.Step
-            label="1. Cliente"
-            description="Cédula y Datos"
-            icon={<IconUser size={16} />}
-          >
-            <Step1ClientPanel
-              form={form}
-              state={state}
-              queries={queries}
-              actions={actions}
-              canEditSucursal={canEditSucursal}
-              onProceedNext={() => setActiveStep(1)}
-            />
-          </Stepper.Step>
+      <Stack gap={isMobile ? "sm" : "lg"}>
+        {/* ── MOBILE VIEW: Sleek Segment Bar & Step Badge ── */}
+        {isMobile ? (
+          <Box mb={4}>
+            {/* Segment Progress Bars */}
+            <Group gap={4} grow mb={8}>
+              {STEPS.map((_, idx) => {
+                const isPast = idx < activeStep;
+                const isCurrent = idx === activeStep;
+                return (
+                  <Box
+                    key={idx}
+                    onClick={() => {
+                      if (isEdit || isPast) setActiveStep(idx);
+                    }}
+                    style={{
+                      height: 5,
+                      borderRadius: 3,
+                      backgroundColor: isCurrent
+                        ? "var(--mantine-color-blue-filled)"
+                        : isPast
+                        ? "var(--mantine-color-green-filled)"
+                        : "var(--border-subtle)",
+                      cursor: isEdit || isPast ? "pointer" : "default",
+                      transition: "all 0.2s ease",
+                    }}
+                  />
+                );
+              })}
+            </Group>
 
-          <Stepper.Step
-            label="2. Equipo"
-            description="Tipo y Hardware"
-            icon={<IconDevices size={16} />}
-          >
-            <Step2EquipmentPanel
-              form={form}
-              state={state}
-              queries={queries}
-              actions={actions}
-            />
-          </Stepper.Step>
+            {/* Step Header Pill */}
+            <Paper
+              p="xs"
+              radius="md"
+              style={{
+                background: "var(--bg-elevated)",
+                border: "1px solid var(--border-subtle)",
+              }}
+            >
+              <Group justify="space-between" align="center" wrap="nowrap">
+                <Group gap="xs" wrap="nowrap">
+                  <ThemeIcon size="md" radius="md" color="blue" variant="light">
+                    {(() => {
+                      const Icon = STEPS[activeStep].icon;
+                      return <Icon size={16} />;
+                    })()}
+                  </ThemeIcon>
+                  <div>
+                    <Text size="xs" fw={700} className="font-heading" lineClamp={1}>
+                      Paso {activeStep + 1} de 5: {STEPS[activeStep].label}
+                    </Text>
+                    <Text size="10px" c="dimmed" lineClamp={1}>
+                      {STEPS[activeStep].subtitle}
+                    </Text>
+                  </div>
+                </Group>
 
-          <Stepper.Step
-            label="3. Seguridad"
-            description="PIN y Falla"
-            icon={<IconLock size={16} />}
+                <Badge size="xs" variant="filled" color={activeStep === 4 ? "green" : "blue"}>
+                  {activeStep + 1} / 5
+                </Badge>
+              </Group>
+            </Paper>
+          </Box>
+        ) : (
+          /* ── DESKTOP VIEW: Full Horizontal Mantine Stepper ── */
+          <Stepper
+            active={activeStep}
+            onStepClick={(step) => {
+              if (isEdit || step < activeStep) {
+                setActiveStep(step);
+              }
+            }}
+            size="sm"
+            color="blue"
+            orientation="horizontal"
+            styles={{
+              root: {
+                padding: "4px 0",
+              },
+              step: {
+                cursor: isEdit ? "pointer" : "default",
+              },
+              stepLabel: {
+                fontSize: "13px",
+                fontWeight: 700,
+                fontFamily: "var(--font-heading)",
+              },
+              stepDescription: {
+                fontSize: "11px",
+              },
+            }}
           >
-            <Step3SecurityFaultPanel
-              form={form}
-              initialData={initialData}
-            />
-          </Stepper.Step>
+            {STEPS.map((st, idx) => {
+              const Icon = st.icon;
+              return (
+                <Stepper.Step
+                  key={idx}
+                  label={`${idx + 1}. ${st.label}`}
+                  description={st.subtitle}
+                  icon={<Icon size={16} />}
+                />
+              );
+            })}
+          </Stepper>
+        )}
 
-          <Stepper.Step
-            label="4. Checklist"
-            description="Test de Entrada"
-            icon={<IconChecklist size={16} />}
-          >
-            <Step4ChecklistPanel form={form} />
-          </Stepper.Step>
+        {/* ── Active Step Panel Body ── */}
+        <Box style={{ minHeight: isMobile ? "auto" : 320 }}>
+          {renderStepContent(activeStep, isEdit)}
+        </Box>
 
-          <Stepper.Step
-            label="5. Costos"
-            description="Precios y Comisión"
-            icon={<IconCurrencyDollar size={16} />}
-          >
-            <Step5CostosPanel
-              form={form}
-              isEdit={isEdit}
-              queries={queries}
-              computed={computed}
-              permissions={permissions}
-            />
-          </Stepper.Step>
-        </Stepper>
-
-        {/* ── Footer Navigation Controls ── */}
-        <Group
-          justify="space-between"
-          align="center"
-          pt="md"
+        {/* ── Footer Navigation Controls (Sticky on mobile for thumb reach) ── */}
+        <Paper
+          p={isMobile ? "xs" : undefined}
           style={{
             borderTop: "1px solid var(--border-subtle)",
+            position: isMobile ? "sticky" : "static",
+            bottom: isMobile ? 0 : undefined,
+            background: isMobile ? "var(--bg-card)" : "transparent",
+            zIndex: 20,
+            marginTop: isMobile ? "8px" : "16px",
+            boxShadow: isMobile ? "0 -4px 12px rgba(0, 0, 0, 0.08)" : undefined,
           }}
         >
-          <Button variant="subtle" color="gray" onClick={onClose}>
-            Cancelar
-          </Button>
+          <Group justify="space-between" align="center" wrap="wrap" gap="xs">
+            <Button
+              variant="subtle"
+              color="gray"
+              size={isMobile ? "xs" : "sm"}
+              onClick={onClose}
+            >
+              Cancelar
+            </Button>
 
-          <Group gap="sm">
-            {activeStep > 0 && (
-              <Button
-                variant="default"
-                onClick={handlePrevStep}
-                leftSection={<IconArrowLeft size={16} />}
-              >
-                Paso Anterior
-              </Button>
-            )}
+            <Group gap="xs">
+              {activeStep > 0 && (
+                <Button
+                  variant="default"
+                  size={isMobile ? "xs" : "sm"}
+                  onClick={handlePrevStep}
+                  leftSection={<IconArrowLeft size={14} />}
+                >
+                  Atrás
+                </Button>
+              )}
 
-            {activeStep < 4 ? (
-              <Button
-                onClick={handleNextStep}
-                rightSection={<IconArrowRight size={16} />}
-              >
-                Siguiente
-              </Button>
-            ) : (
-              <Button
-                type="submit"
-                color="green"
-                disabled={isLocked}
-                leftSection={<IconCheck size={16} />}
-                title={
-                  isLocked
-                    ? "Ticket cerrado. Solo un Administrador puede modificarlo."
-                    : undefined
-                }
-              >
-                {isEdit ? "Actualizar Orden" : "Crear Orden de Reparación"}
-              </Button>
-            )}
+              {activeStep < 4 ? (
+                <Button
+                  size={isMobile ? "xs" : "sm"}
+                  onClick={handleNextStep}
+                  rightSection={<IconArrowRight size={14} />}
+                >
+                  Siguiente
+                </Button>
+              ) : (
+                <Button
+                  type="submit"
+                  color="green"
+                  size={isMobile ? "xs" : "sm"}
+                  disabled={isLocked}
+                  leftSection={<IconCheck size={14} />}
+                  title={
+                    isLocked
+                      ? "Ticket cerrado. Solo un Administrador puede modificarlo."
+                      : undefined
+                  }
+                >
+                  {isEdit ? "Actualizar Orden" : "Crear Orden"}
+                </Button>
+              )}
 
-            {/* In Edit mode, allow quick save from any step */}
-            {isEdit && activeStep < 4 && (
-              <Button
-                type="submit"
-                variant="light"
-                color="blue"
-                disabled={isLocked}
-              >
-                Guardar Cambios
-              </Button>
-            )}
+              {/* In Edit mode, allow quick save from any step */}
+              {isEdit && activeStep < 4 && (
+                <Button
+                  type="submit"
+                  variant="light"
+                  color="blue"
+                  size={isMobile ? "xs" : "sm"}
+                  disabled={isLocked}
+                >
+                  Guardar
+                </Button>
+              )}
+            </Group>
           </Group>
-        </Group>
+        </Paper>
       </Stack>
     </form>
   );
@@ -283,12 +376,12 @@ export function TicketForm({
       opened={opened}
       onClose={onClose}
       title={
-        <Group gap="xs">
-          <Text fw={700} size="lg" className="font-heading">
+        <Group gap="xs" align="center">
+          <Text fw={700} size={isMobile ? "sm" : "lg"} className="font-heading">
             {modalTitle}
           </Text>
           {initialData?.estado && (
-            <Badge variant="light" size="sm">
+            <Badge variant="light" size="xs">
               {initialData.estado}
             </Badge>
           )}
@@ -308,11 +401,14 @@ export function TicketForm({
       styles={{
         header: {
           borderBottom: "1px solid var(--border-subtle)",
-          paddingBottom: "1rem",
-          marginBottom: "1rem",
+          paddingBottom: isMobile ? "0.5rem" : "1rem",
+          marginBottom: isMobile ? "0.5rem" : "1rem",
         },
         body: {
           paddingTop: 0,
+          paddingLeft: isMobile ? "12px" : undefined,
+          paddingRight: isMobile ? "12px" : undefined,
+          paddingBottom: isMobile ? "4px" : undefined,
         },
       }}
     >
@@ -324,14 +420,18 @@ export function TicketForm({
               leftSection={<IconListDetails size={16} />}
               color="blue"
             >
-              <Text fw={600}>Pasos de la Orden</Text>
+              <Text fw={600} size={isMobile ? "xs" : "sm"}>
+                Pasos de la Orden
+              </Text>
             </Tabs.Tab>
             <Tabs.Tab
               value="repuestos"
               leftSection={<IconTool size={16} />}
               color="orange"
             >
-              <Text fw={600}>Repuestos y Stock</Text>
+              <Text fw={600} size={isMobile ? "xs" : "sm"}>
+                Repuestos y Stock
+              </Text>
             </Tabs.Tab>
           </Tabs.List>
 
