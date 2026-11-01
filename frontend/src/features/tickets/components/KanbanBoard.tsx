@@ -7,7 +7,9 @@ import {
   Badge,
   Paper,
   ScrollArea,
+  ThemeIcon,
 } from "@mantine/core";
+import { IconInbox, IconArrowDownCircle } from "@tabler/icons-react";
 import { TicketCard } from "./TicketCard";
 import { KANBAN_COLUMNS, TICKET_STATUS } from "../../../lib/constants";
 import type { EstadoTicket, TicketReparacion } from "../../../types";
@@ -23,13 +25,10 @@ const COLUMN_COLORS: Record<EstadoTicket, string> = {
   RECIBIDO: "#64748B",
   EN_REVISION: "#3B82F6",
   ESPERANDO_REPUESTO: "#F59E0B",
-  REPARADO: "#22C55E",
+  REPARADO: "#10B981",
   ENTREGADO: "#8B5CF6",
   ABANDONO: "#EF4444",
 };
-
-// Single row for Kanban-style horizontal scrolling
-const ALL_COLUMNS = KANBAN_COLUMNS;
 
 export function KanbanBoard({
   tickets,
@@ -39,7 +38,7 @@ export function KanbanBoard({
   const [dragOverColumn, setDragOverColumn] = useState<string | null>(null);
   const [draggingId, setDraggingId] = useState<string | null>(null);
 
-  // --- Business logic: 60/90 day rules ---
+  // Business logic: 60/90 day abandon rules
   const processedTickets = tickets.map((ticket) => {
     const diasTranscurridos = dayjs().diff(dayjs(ticket.fecha_ingreso), "day");
 
@@ -67,10 +66,9 @@ export function KanbanBoard({
     {} as Record<EstadoTicket, TicketReparacion[]>,
   );
 
-  // --- Native HTML5 DnD handlers ---
+  // Native HTML5 DnD handlers
   const handleDragStart = useCallback(
     (e: React.DragEvent, ticket: TicketReparacion) => {
-      // Prevent dragging if ticket is already delivered
       if (ticket.estado === "ENTREGADO") {
         e.preventDefault();
         return;
@@ -125,62 +123,79 @@ export function KanbanBoard({
         onDragLeave={handleDragLeave}
         onDrop={(e) => handleDrop(e, estado)}
         style={{
-          minWidth: "var(--column-width, 320px)",
-          maxWidth: "var(--column-width, 320px)",
-          height: "calc(100vh - 250px)",
+          width: 310,
+          minWidth: 310,
+          height: "calc(100vh - 280px)",
+          minHeight: 520,
           display: "flex",
           flexDirection: "column",
-          background: isOver ? `${accentColor}15` : "var(--bg-elevated)",
+          background: isOver ? `${accentColor}18` : "var(--bg-elevated)",
           border: isOver
             ? `2px dashed ${accentColor}`
             : "1px solid var(--border-subtle)",
-          transition: "all 0.2s ease",
-          transform: "none",
-          boxShadow: isOver ? "0 4px 20px rgba(15, 23, 42, 0.05)" : "none",
-          scrollSnapAlign: "center",
+          transition: "all 0.2s cubic-bezier(0.16, 1, 0.3, 1)",
+          boxShadow: isOver ? `0 8px 24px ${accentColor}25` : "none",
         }}
       >
         {/* Column header */}
         <Group
           justify="space-between"
-          mb="xs"
-          pb="sm"
-          style={{ borderBottom: `2px solid ${accentColor}` }}
+          align="center"
+          mb="sm"
+          pb="xs"
+          style={{
+            borderBottom: "1px solid var(--border-subtle)",
+          }}
         >
-          <Text
-            size="xs"
-            fw={700}
-            tt="uppercase"
-            style={{ letterSpacing: "0.05em", color: accentColor }}
-          >
-            {status.label}
-          </Text>
+          <Group gap="xs">
+            <Box
+              style={{
+                width: 8,
+                height: 8,
+                borderRadius: "50%",
+                backgroundColor: accentColor,
+              }}
+            />
+            <Text
+              size="xs"
+              fw={700}
+              className="font-heading"
+              tt="uppercase"
+              style={{ letterSpacing: "0.06em", color: "var(--text-primary)" }}
+            >
+              {status.label}
+            </Text>
+          </Group>
+
           <Badge
             size="sm"
-            variant="filled"
-            radius="xl"
-            style={{ backgroundColor: accentColor }}
+            variant="light"
+            style={{
+              backgroundColor: `${accentColor}20`,
+              color: accentColor,
+              fontWeight: 700,
+            }}
           >
             {columnTickets.length}
           </Badge>
         </Group>
 
-        {/* Draggable Cards - scrollable area */}
+        {/* Scrollable list of cards */}
         <ScrollArea
-          style={{ flex: 1, marginRight: -10, paddingRight: 10 }}
+          style={{ flex: 1 }}
           type="hover"
           offsetScrollbars
         >
-          <Stack gap="sm" style={{ minHeight: "100%", paddingBottom: 20 }}>
+          <Stack gap="xs" style={{ minHeight: "100%", paddingBottom: 16 }}>
             {columnTickets.map((ticket) => (
               <Box
                 key={ticket.id}
-                draggable={ticket.estado !== "ENTREGADO"} // Disable dragging visually if delivered
+                draggable={ticket.estado !== "ENTREGADO"}
                 onDragStart={(e) => handleDragStart(e, ticket)}
                 onDragEnd={handleDragEnd}
                 style={{
                   cursor: ticket.estado === "ENTREGADO" ? "default" : "grab",
-                  opacity: draggingId === ticket.id ? 0.4 : 1,
+                  opacity: draggingId === ticket.id ? 0.35 : 1,
                   transition: "opacity 150ms ease",
                 }}
               >
@@ -197,9 +212,25 @@ export function KanbanBoard({
             ))}
 
             {columnTickets.length === 0 && (
-              <Text size="xs" c="dimmed" ta="center" py="xl">
-                {isOver ? "Soltar aquí" : "Sin tickets"}
-              </Text>
+              <Stack align="center" justify="center" py="xl" gap={4} style={{ opacity: 0.5 }}>
+                {isOver ? (
+                  <>
+                    <ThemeIcon size="lg" radius="xl" color="blue" variant="light">
+                      <IconArrowDownCircle size={20} />
+                    </ThemeIcon>
+                    <Text size="xs" fw={600} mt={4} c="blue">
+                      Soltar aquí
+                    </Text>
+                  </>
+                ) : (
+                  <>
+                    <IconInbox size={26} stroke={1.5} />
+                    <Text size="xs" c="dimmed">
+                      Sin órdenes
+                    </Text>
+                  </>
+                )}
+              </Stack>
             )}
           </Stack>
         </ScrollArea>
@@ -212,23 +243,22 @@ export function KanbanBoard({
       pb="md"
       offsetScrollbars
       type="auto"
-      scrollbarSize={12}
+      scrollbarSize={10}
       styles={{
-        viewport: { paddingBottom: 16 },
+        viewport: { paddingBottom: 8 },
       }}
     >
       <Group
         align="flex-start"
         wrap="nowrap"
         gap="16px"
-        pb="sm"
         style={{
           width: "max-content",
           minWidth: "100%",
-          padding: "0 16px",
+          paddingBottom: 4,
         }}
       >
-        {ALL_COLUMNS.map(renderColumn)}
+        {KANBAN_COLUMNS.map(renderColumn)}
       </Group>
     </ScrollArea>
   );
