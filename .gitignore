@@ -35,3 +35,9 @@ node_modules
 skills-lock.json
 .agents
 odd/
+
+# Agent & Memory (local AI context - do not commit)
+agent.md
+AGENT.md
+memory.md
+MEMORY.md

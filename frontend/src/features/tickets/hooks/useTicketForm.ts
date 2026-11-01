@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useForm } from "@mantine/form";
 import { notifications } from "@mantine/notifications";
 import type { TicketFormValues } from "../types/tickets.types";
@@ -132,104 +132,108 @@ export function useTicketForm({
     }
   }, [foundClient, searchingClient, cedula]);
 
-  // Initial Data population
+  // Track whether the form has been populated for the current opened session
+  const hasInitializedRef = useRef(false);
+
+  // Initial Data population — runs only ONCE when modal opens or initialData changes
   useEffect(() => {
-    if (opened) {
-      if (initialData) {
-        if (initialData.cliente) {
-          setCedula(initialData.cliente.cedula || "");
-          setClienteNombre(initialData.cliente.nombre || "");
-          setClienteTelefono(initialData.cliente.telefono || "");
-          setClienteCorreo(initialData.cliente.correo || "");
-        }
-
-        form.setValues({
-          clienteId: initialData.clienteId,
-          tecnicoId: initialData.tecnicoId,
-          sucursalId: initialData.sucursalId || "",
-          tipo_equipo: initialData.tipo_equipo,
-          marca: initialData.marca,
-          modelo: initialData.modelo,
-          imei: initialData.imei || "",
-          clave: initialData.clave || "",
-          patron_visual: initialData.patron_visual || "",
-          checklist:
-            (initialData.checklist as TicketFormValues["checklist"]) || {
-              camaras: false,
-              touch: false,
-              senal: false,
-              encendido: false,
-              botones: false,
-              bateria: false,
-              carcasa_rota: false,
-              accesorios_sim_sd: false,
-              funda: false,
-              uso_diario_desgaste: false,
-              biometria: false,
-              audio: false,
-              sensor_proximidad: false,
-              puerto_carga: false,
-              conectividad_wifi_bt: false,
-              flash_linterna: false,
-              pantalla_fallas_internas: false,
-              tornilleria_faltante: false,
-              riesgos_explicados: false,
-            },
-          falla: initialData.falla,
-          falla_reportada: initialData.falla_reportada || "",
-          observaciones: initialData.observaciones || "",
-          costo_repuestos_usd: initialData.costo_repuestos_usd,
-          precio_total_usd: initialData.precio_total_usd,
-          porcentaje_tecnico: initialData.porcentaje_tecnico,
-          mano_de_obra_usd: Math.max(
-            0,
-            initialData.precio_total_usd -
-              (initialData.repuestos?.reduce(
-                (sum: number, r: any) =>
-                  sum + r.precio_congelado_usd * r.cantidad,
-                0,
-              ) || 0) -
-              (initialData.servicios?.reduce(
-                (sum: number, s: any) => sum + s.precio_cobrado_usd,
-                0,
-              ) || 0),
-          ),
-        });
-
-        const marca = marcas.find((m: any) => m.nombre === initialData.marca);
-        if (marca) setSelectedMarcaId(marca.id);
-      } else {
-        form.reset();
-
-        // Auto-assign technical fields if current user is not allowed to re-assign or edit commissions
-        if (user && !canAsignarTecnico) {
-          form.setFieldValue("tecnicoId", user.id);
-        }
-        if (user && !canEditarComision) {
-          form.setFieldValue(
-            "porcentaje_tecnico",
-            user.porcentaje_comision_base,
-          );
-        }
-        if (user && user.sucursalId) {
-          form.setFieldValue("sucursalId", user.sucursalId);
-        }
-
-        setSelectedMarcaId(null);
-        setCedula("");
-        setClienteNombre("");
-        setClienteTelefono("");
-        setClienteCorreo("");
-      }
+    if (!opened) {
+      hasInitializedRef.current = false;
+      return;
     }
-  }, [
-    initialData,
-    opened,
-    user,
-    canAsignarTecnico,
-    canEditarComision,
-    marcas /* usually want this to run when marcas load if initialData has a marca */,
-  ]);
+
+    if (hasInitializedRef.current) {
+      return;
+    }
+    hasInitializedRef.current = true;
+
+    if (initialData) {
+      if (initialData.cliente) {
+        setCedula(initialData.cliente.cedula || "");
+        setClienteNombre(initialData.cliente.nombre || "");
+        setClienteTelefono(initialData.cliente.telefono || "");
+        setClienteCorreo(initialData.cliente.correo || "");
+      }
+
+      form.setValues({
+        clienteId: initialData.clienteId,
+        tecnicoId: initialData.tecnicoId,
+        sucursalId: initialData.sucursalId || "",
+        tipo_equipo: initialData.tipo_equipo,
+        marca: initialData.marca,
+        modelo: initialData.modelo,
+        imei: initialData.imei || "",
+        clave: initialData.clave || "",
+        patron_visual: initialData.patron_visual || "",
+        checklist:
+          (initialData.checklist as TicketFormValues["checklist"]) || {
+            camaras: false,
+            touch: false,
+            senal: false,
+            encendido: false,
+            botones: false,
+            bateria: false,
+            carcasa_rota: false,
+            accesorios_sim_sd: false,
+            funda: false,
+            uso_diario_desgaste: false,
+            biometria: false,
+            audio: false,
+            sensor_proximidad: false,
+            puerto_carga: false,
+            conectividad_wifi_bt: false,
+            flash_linterna: false,
+            pantalla_fallas_internas: false,
+            tornilleria_faltante: false,
+            riesgos_explicados: false,
+          },
+        falla: initialData.falla,
+        falla_reportada: initialData.falla_reportada || "",
+        observaciones: initialData.observaciones || "",
+        costo_repuestos_usd: initialData.costo_repuestos_usd,
+        precio_total_usd: initialData.precio_total_usd,
+        porcentaje_tecnico: initialData.porcentaje_tecnico,
+        mano_de_obra_usd: Math.max(
+          0,
+          initialData.precio_total_usd -
+            (initialData.repuestos?.reduce(
+              (sum: number, r: any) =>
+                sum + r.precio_congelado_usd * r.cantidad,
+              0,
+            ) || 0) -
+            (initialData.servicios?.reduce(
+              (sum: number, s: any) => sum + s.precio_cobrado_usd,
+              0,
+            ) || 0),
+        ),
+      });
+
+      const marca = marcas.find((m: any) => m.nombre === initialData.marca);
+      if (marca) setSelectedMarcaId(marca.id);
+    } else {
+      form.reset();
+
+      // Auto-assign technical fields if current user is not allowed to re-assign or edit commissions
+      if (user && !canAsignarTecnico) {
+        form.setFieldValue("tecnicoId", user.id);
+      }
+      if (user && !canEditarComision) {
+        form.setFieldValue(
+          "porcentaje_tecnico",
+          user.porcentaje_comision_base,
+        );
+      }
+      if (user && user.sucursalId) {
+        form.setFieldValue("sucursalId", user.sucursalId);
+      }
+
+      setSelectedMarcaId(null);
+      setCedula("");
+      setClienteNombre("");
+      setClienteTelefono("");
+      setClienteCorreo("");
+    }
+  }, [opened, initialData]);
 
   // -- Event Handlers --
   const handleMarcaChange = (value: string | null) => {
@@ -335,24 +339,37 @@ export function useTicketForm({
     onSubmit(payload);
   };
 
-  // Select Options
-  const marcaOptions = marcas.map((m: any) => ({
-    value: m.nombre,
-    label: m.nombre,
-  }));
-  const modeloOptions = selectedMarcaId
-    ? modelos.map((m: any) => ({ value: m.nombre, label: m.nombre }))
-    : marcas
-        .find((m) => m.nombre === form.values.marca)
-        ?.modelos?.map((m: any) => ({ value: m.nombre, label: m.nombre })) ||
-      [];
-      
-  const sucursalOptions = sucursales
-    .filter((s: any) => s.activa)
-    .map((s: any) => ({
-      value: s.id,
-      label: s.nombre,
-    }));
+  // Select Options (memoized to prevent re-render loops in Select/Combobox)
+  const marcaOptions = useMemo(
+    () =>
+      marcas.map((m: any) => ({
+        value: m.nombre,
+        label: m.nombre,
+      })),
+    [marcas],
+  );
+
+  const modeloOptions = useMemo(
+    () =>
+      selectedMarcaId
+        ? modelos.map((m: any) => ({ value: m.nombre, label: m.nombre }))
+        : marcas
+            .find((m) => m.nombre === form.values.marca)
+            ?.modelos?.map((m: any) => ({ value: m.nombre, label: m.nombre })) ||
+          [],
+    [selectedMarcaId, modelos, marcas, form.values.marca],
+  );
+
+  const sucursalOptions = useMemo(
+    () =>
+      sucursales
+        .filter((s: any) => s.activa)
+        .map((s: any) => ({
+          value: s.id,
+          label: s.nombre,
+        })),
+    [sucursales],
+  );
 
   return {
     form,

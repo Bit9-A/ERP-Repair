@@ -124,7 +124,7 @@ export function AiChat() {
         setLoading(true);
 
         try {
-            const res = await api.post('/ai-chat', { question: text });
+            const res = await api.post('/ai-chat', { question: text }, { timeout: 120000 });
             const data = res.data?.data;
             const assistantMsg: Message = {
                 role: 'assistant',
@@ -164,6 +164,7 @@ export function AiChat() {
         try {
             const res = await api.post('/ai-chat/upload', formData, {
                 headers: { 'Content-Type': 'multipart/form-data' },
+                timeout: 90000,
             });
             const data = res.data?.data;
             setMessages(prev => [...prev, {

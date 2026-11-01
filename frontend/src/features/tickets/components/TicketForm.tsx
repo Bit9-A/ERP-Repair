@@ -33,6 +33,9 @@ export function TicketForm({
   onSubmit,
   initialData,
 }: TicketFormProps) {
+  const isMobile = useMediaQuery("(max-width: 768px)");
+  const user = useAuthStore((state) => state.user);
+
   // Extract all the complex logic and hooks
   const { form, handleSubmit, state, queries, actions, computed, permissions } =
     useTicketForm({
@@ -45,8 +48,6 @@ export function TicketForm({
     ? `Editar Orden  #-${initialData.id.substring(0, 6)}`
     : "Nueva Orden de Reparación";
 
-  const isMobile = useMediaQuery("(max-width: 768px)");
-  const user = useAuthStore((state) => state.user);
   const isLocked = initialData?.estado === "ENTREGADO" && user?.rol !== "ADMIN";
   // Non-admin users with a branch assigned cannot change the sucursal
   const canEditSucursal = user?.rol === "ADMIN" || !user?.sucursalId;
