@@ -25,6 +25,12 @@ import {
 } from "@tabler/icons-react";
 import type { UseFormReturnType } from "@mantine/form";
 import type { TicketFormValues } from "../../types/tickets.types";
+import { CedulaInput } from "../../../../components/ui/CedulaInput";
+import { PhoneInput } from "../../../../components/ui/PhoneInput";
+import {
+  bloquearTeclasNoLetras,
+  sanitizarSoloLetras,
+} from "../../../../lib/sanitizers";
 
 interface Step1ClientPanelProps {
   form: UseFormReturnType<TicketFormValues>;
@@ -153,15 +159,15 @@ export function Step1ClientPanel({
             )}
           </Group>
 
-          <TextInput
-            label="Cédula / Documento"
-            placeholder="Ej: V-18459123 o 1098..."
+          <CedulaInput
+            label="Cédula / Documento de Identidad"
+            description="Ingresa el tipo (V, E, J, G, O) y los dígitos para consultar en base de datos"
+            placeholder="18459123"
             required
             size="md"
             error={form.errors.clienteId}
             value={cedula}
-            onChange={(e) => {
-              const val = e.currentTarget.value;
+            onChange={(val) => {
               setCedula(val);
               setClienteNombre("");
               setClienteTelefono("");
@@ -277,15 +283,16 @@ export function Step1ClientPanel({
                   placeholder="Ej: Carlos Mendoza"
                   required
                   value={clienteNombre}
-                  onChange={(e) => setClienteNombre(e.currentTarget.value)}
+                  onKeyDown={bloquearTeclasNoLetras}
+                  onChange={(e) => setClienteNombre(sanitizarSoloLetras(e.currentTarget.value, 40))}
                   size="sm"
                 />
-                <TextInput
+                <PhoneInput
                   label="Teléfono Móvil"
-                  placeholder="Ej: 0414-1234567"
+                  placeholder="4141234567"
                   required
                   value={clienteTelefono}
-                  onChange={(e) => setClienteTelefono(e.currentTarget.value)}
+                  onChange={(val) => setClienteTelefono(val)}
                   size="sm"
                 />
                 <TextInput

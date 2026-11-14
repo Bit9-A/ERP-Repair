@@ -27,12 +27,38 @@ export async function findById(id: string) {
 }
 
 export async function findByCedula(cedula: string) {
-  return prisma.cliente.findUnique({
-    where: { cedula },
+  const clean = cedula.trim();
+  const digits = clean.replace(/\D/g, "");
+
+  // 1. Try exact match first
+  let cliente = await prisma.cliente.findUnique({
+    where: { cedula: clean },
     include: {
       _count: { select: { tickets: true, ventas: true } },
     },
   });
+
+  // 2. If not found, search with or without prefix variations
+  if (!cliente && digits.length >= 3) {
+    cliente = await prisma.cliente.findFirst({
+      where: {
+        OR: [
+          { cedula: digits },
+          { cedula: `V-${digits}` },
+          { cedula: `E-${digits}` },
+          { cedula: `J-${digits}` },
+          { cedula: `G-${digits}` },
+          { cedula: `O-${digits}` },
+          { cedula: { contains: digits } },
+        ],
+      },
+      include: {
+        _count: { select: { tickets: true, ventas: true } },
+      },
+    });
+  }
+
+  return cliente;
 }
 
 interface CreateClienteDTO {

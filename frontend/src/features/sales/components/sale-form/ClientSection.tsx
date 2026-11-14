@@ -3,6 +3,12 @@ import { Group, Text, Divider, TextInput, Loader, Paper, Badge, SimpleGrid, Butt
 import { IconSearch, IconUserCheck, IconUserPlus } from "@tabler/icons-react";
 import { notifications } from "@mantine/notifications";
 import { useClientByCedula, useCreateClient } from "../../../../services";
+import { CedulaInput } from "../../../../components/ui/CedulaInput";
+import { PhoneInput } from "../../../../components/ui/PhoneInput";
+import {
+  bloquearTeclasNoLetras,
+  sanitizarSoloLetras,
+} from "../../../../lib/sanitizers";
 
 interface ClientSectionProps {
   onClientSelect: (id: string | undefined) => void;
@@ -60,12 +66,12 @@ export function ClientSection({ onClientSelect }: ClientSectionProps) {
       />
 
       {/* Cédula lookup */}
-      <TextInput
+      <CedulaInput
         label="Cédula del Cliente"
-        placeholder="V-12345678"
+        placeholder="12345678"
         value={cedula}
-        onChange={(e) => {
-          setCedula(e.currentTarget.value);
+        onChange={(val) => {
+          setCedula(val);
           setNewNombre("");
           setNewTelefono("");
           setNewCorreo("");
@@ -83,7 +89,7 @@ export function ClientSection({ onClientSelect }: ClientSectionProps) {
             ? foundClient
               ? "✅ Cliente encontrado"
               : "Cliente no registrado — completa los datos abajo"
-            : "Escribe al menos 3 caracteres"
+            : "Selecciona el prefijo (V, E, J, G, O) e ingresa la cédula"
         }
         size="sm"
       />
@@ -136,15 +142,16 @@ export function ClientSection({ onClientSelect }: ClientSectionProps) {
               placeholder="Juan Pérez"
               required
               value={newNombre}
-              onChange={(e) => setNewNombre(e.currentTarget.value)}
+              onKeyDown={bloquearTeclasNoLetras}
+              onChange={(e) => setNewNombre(sanitizarSoloLetras(e.currentTarget.value, 40))}
               size="sm"
             />
-            <TextInput
+            <PhoneInput
               label="Teléfono"
-              placeholder="0414-1234567"
+              placeholder="4141234567"
               required
               value={newTelefono}
-              onChange={(e) => setNewTelefono(e.currentTarget.value)}
+              onChange={(val) => setNewTelefono(val)}
               size="sm"
             />
             <TextInput

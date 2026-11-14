@@ -4,6 +4,12 @@ import { useEffect } from "react";
 import { IconSearch, IconUserCheck } from "@tabler/icons-react";
 import type { Cliente } from "../../../services/clients.service";
 import { useClientByCedula } from "../../../services";
+import { CedulaInput } from "../../../components/ui/CedulaInput";
+import { PhoneInput } from "../../../components/ui/PhoneInput";
+import {
+  bloquearTeclasNoLetras,
+  sanitizarSoloLetras,
+} from "../../../lib/sanitizers";
 
 export interface ClientFormValues {
   nombre: string;
@@ -86,30 +92,33 @@ export function ClientForm({
     >
       <form onSubmit={form.onSubmit(handleSubmit)}>
         <Stack gap="md">
-          <Group grow align="flex-start">
-            <TextInput
-              label="Cédula / Identificación"
-              placeholder="V-12345678"
-              withAsterisk
-              disabled={isEditing}
-              leftSection={<IconSearch size={16} />}
-              rightSection={
-                searchingClient ? (
-                  <Loader size={14} />
-                ) : foundClient && !isEditing ? (
-                  <IconUserCheck size={16} color="var(--mantine-color-green-6)" />
-                ) : undefined
-              }
-              error={clientExists ? "Esta cédula ya está registrada" : form.errors.cedula}
-              {...form.getInputProps("cedula")}
-            />
-            <TextInput
-              label="Nombre Completo"
-              placeholder="Ej: Juan Pérez"
-              withAsterisk
-              {...form.getInputProps("nombre")}
-            />
-          </Group>
+          <CedulaInput
+            label="Cédula / Identificación"
+            placeholder="12345678"
+            required
+            disabled={isEditing}
+            leftSection={<IconSearch size={16} />}
+            rightSection={
+              searchingClient ? (
+                <Loader size={14} />
+              ) : foundClient && !isEditing ? (
+                <IconUserCheck size={16} color="var(--mantine-color-green-6)" />
+              ) : undefined
+            }
+            error={clientExists ? "Esta cédula ya está registrada" : form.errors.cedula}
+            value={form.values.cedula}
+            onChange={(val) => form.setFieldValue("cedula", val)}
+          />
+
+          <TextInput
+            label="Nombre Completo"
+            placeholder="Ej: Juan Pérez"
+            withAsterisk
+            value={form.values.nombre}
+            onKeyDown={bloquearTeclasNoLetras}
+            onChange={(e) => form.setFieldValue("nombre", sanitizarSoloLetras(e.currentTarget.value, 40))}
+            error={form.errors.nombre}
+          />
 
           {foundClient && !isEditing && (
             <Paper
@@ -135,19 +144,20 @@ export function ClientForm({
             </Paper>
           )}
 
-          <Group grow>
-            <TextInput
-              label="Teléfono"
-              placeholder="Ej: +58 412 1234567"
-              withAsterisk
-              {...form.getInputProps("telefono")}
-            />
-            <TextInput
-              label="Correo Electrónico"
-              placeholder="Opcional"
-              {...form.getInputProps("correo")}
-            />
-          </Group>
+          <PhoneInput
+            label="Teléfono de Contacto"
+            placeholder="4121234567"
+            required
+            value={form.values.telefono}
+            onChange={(val) => form.setFieldValue("telefono", val)}
+            error={form.errors.telefono}
+          />
+
+          <TextInput
+            label="Correo Electrónico"
+            placeholder="cliente@ejemplo.com (Opcional)"
+            {...form.getInputProps("correo")}
+          />
 
           <Group justify="flex-end" mt="md">
             <Button variant="subtle" onClick={onClose}>
