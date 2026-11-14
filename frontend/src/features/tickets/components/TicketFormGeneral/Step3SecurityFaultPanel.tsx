@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   Stack,
   TextInput,
@@ -30,7 +30,10 @@ import {
   IconVolume,
   IconDroplet,
   IconCpu,
-  IconSparkles,
+  IconChevronRight,
+  IconFolderPlus,
+  IconTag,
+  IconX,
 } from "@tabler/icons-react";
 import type { UseFormReturnType } from "@mantine/form";
 import type { TicketFormValues } from "../../types/tickets.types";
@@ -38,6 +41,7 @@ import { PatternCanvas } from "../PatternCanvas";
 import {
   ARBOL_FALLAS,
   DEFAULT_OBSERVACIONES_FRECUENTES,
+  type FallaNodoDef,
 } from "../../data/deviceCatalog";
 
 interface Step3SecurityFaultPanelProps {
@@ -46,6 +50,7 @@ interface Step3SecurityFaultPanelProps {
   onProceedNext?: () => void;
 }
 
+const STORAGE_KEY_ARBOL = "erp_repair_arbol_fallas_custom";
 const STORAGE_KEY_OBSERVACIONES = "erp_repair_observaciones_rapidas";
 
 const MACRO_ICONS: Record<string, any> = {
@@ -68,17 +73,31 @@ export function Step3SecurityFaultPanel({
     hasExistingLock || (initialData?.clave || initialData?.patron_visual ? true : false)
   );
 
-  // Árbol de fallas en 2 niveles (Tronco activo)
+  // Árbol de fallas dinámico (Base + Personalizado)
+  const [arbolNodos, setArbolNodos] = useState<FallaNodoDef[]>(ARBOL_FALLAS);
   const [selectedTroncoId, setSelectedTroncoId] = useState<string>("energia");
 
-  // Estados de acordeón para observaciones
+  // Inputs para crear nuevos grupos (troncos) y ramas
+  const [mostrarCrearGrupo, setMostrarCrearGrupo] = useState(false);
+  const [nuevoGrupoInput, setNuevoGrupoInput] = useState("");
+  const [nuevaRamaInput, setNuevaRamaInput] = useState("");
+
+  // Observaciones rápidas
   const [expandObservaciones, setExpandObservaciones] = useState(false);
   const [observacionesRapidas, setObservacionesRapidas] = useState<string[]>(DEFAULT_OBSERVACIONES_FRECUENTES);
   const [nuevaObsInput, setNuevaObsInput] = useState("");
 
-  // Cargar atajos personalizados guardados en localStorage
+  // Cargar estado guardado de localStorage
   useEffect(() => {
     try {
+      const storedArbol = localStorage.getItem(STORAGE_KEY_ARBOL);
+      if (storedArbol) {
+        const parsed = JSON.parse(storedArbol);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setArbolNodos(parsed);
+        }
+      }
+
       const storedObs = localStorage.getItem(STORAGE_KEY_OBSERVACIONES);
       if (storedObs) {
         const parsed = JSON.parse(storedObs);
@@ -87,7 +106,7 @@ export function Step3SecurityFaultPanel({
         }
       }
     } catch {
-      // Usar defaults si hay error en parse
+      // Ignorar fallback
     }
   }, []);
 
@@ -99,17 +118,91 @@ export function Step3SecurityFaultPanel({
     }
   };
 
-  // Función para aplicar una rama de falla
-  const handleApplyRama = (textoRama: string) => {
+  const activeTronco = useMemo(() => {
+    return arbolNodos.find((t) => t.id === selectedTroncoId) || arbolNodos[0];
+  }, [arbolNodos, selectedTroncoId]);
+
+  // Verificar si una rama está seleccionada en el texto actual de falla
+  const isRamaSelected = (rama: string): boolean => {
+    const fallaText = (form.values.falla || "").toLowerCase();
+    return fallaText.includes(rama.toLowerCase());
+  };
+
+  // Alternar selección de una rama (Progressive Disclosure)
+  const handleToggleRama = (rama: string, troncoLabel: string) => {
     const current = (form.values.falla || "").trim();
-    if (!current) {
-      form.setFieldValue("falla", textoRama);
-    } else if (!current.toLowerCase().includes(textoRama.toLowerCase())) {
-      form.setFieldValue("falla", `${current}, ${textoRama}`);
+    const isSelected = isRamaSelected(rama);
+
+    if (!isSelected) {
+      // Agregar rama con contexto de su macro-sistema si no existe aún
+      if (!current) {
+        form.setFieldValue("falla", `${troncoLabel}: ${rama}`);
+      } else if (!current.toLowerCase().includes(troncoLabel.toLowerCase())) {
+        form.setFieldValue("falla", `${current} | ${troncoLabel}: ${rama}`);
+      } else {
+        form.setFieldValue("falla", `${current}, ${rama}`);
+      }
+    } else {
+      // Remover la rama del texto
+      const regex = new RegExp(`(?:,\\s*)?${rama}`, "gi");
+      let updated = current.replace(regex, "").trim();
+      // Limpiar separadores sobrantes
+      updated = updated.replace(/:\s*,/g, ":").replace(/\|\s*\|/g, "|").replace(/^\||\|$/g, "").trim();
+      form.setFieldValue("falla", updated);
     }
   };
 
-  // Función para aplicar un atajo de observación
+  // Agregar una nueva rama al tronco actual
+  const handleAddRamaToCurrentTronco = () => {
+    const texto = nuevaRamaInput.trim();
+    if (!texto || !activeTronco) return;
+
+    if (!activeTronco.ramas.some((r) => r.toLowerCase() === texto.toLowerCase())) {
+      const updatedArbol = arbolNodos.map((nodo) => {
+        if (nodo.id === activeTronco.id) {
+          return { ...nodo, ramas: [...nodo.ramas, texto] };
+        }
+        return nodo;
+      });
+      setArbolNodos(updatedArbol);
+      try {
+        localStorage.setItem(STORAGE_KEY_ARBOL, JSON.stringify(updatedArbol));
+      } catch {
+        // Fallback
+      }
+    }
+
+    handleToggleRama(texto, activeTronco.label);
+    setNuevaRamaInput("");
+  };
+
+  // Crear un nuevo grupo / tronco de fallas
+  const handleCreateNewTronco = () => {
+    const nombre = nuevoGrupoInput.trim();
+    if (!nombre) return;
+
+    const id = nombre.toLowerCase().replace(/[^a-z0-9]/g, "_");
+    if (!arbolNodos.some((n) => n.id === id)) {
+      const nuevoNodo: FallaNodoDef = {
+        id,
+        label: nombre,
+        color: "blue",
+        ramas: [],
+      };
+      const updatedArbol = [...arbolNodos, nuevoNodo];
+      setArbolNodos(updatedArbol);
+      setSelectedTroncoId(id);
+      try {
+        localStorage.setItem(STORAGE_KEY_ARBOL, JSON.stringify(updatedArbol));
+      } catch {
+        // Fallback
+      }
+    }
+    setNuevoGrupoInput("");
+    setMostrarCrearGrupo(false);
+  };
+
+  // Observaciones handlers
   const handleApplyObservacion = (texto: string) => {
     const current = (form.values.observaciones || "").trim();
     if (!current) {
@@ -119,7 +212,6 @@ export function Step3SecurityFaultPanel({
     }
   };
 
-  // Función para agregar un nuevo atajo de observación al vuelo
   const handleAddNewObservacion = () => {
     const texto = nuevaObsInput.trim();
     if (!texto) return;
@@ -129,18 +221,16 @@ export function Step3SecurityFaultPanel({
       try {
         localStorage.setItem(STORAGE_KEY_OBSERVACIONES, JSON.stringify(updated));
       } catch {
-        // Silenciar error en storage
+        // Fallback
       }
     }
     handleApplyObservacion(texto);
     setNuevaObsInput("");
   };
 
-  const activeTronco = ARBOL_FALLAS.find((t) => t.id === selectedTroncoId) || ARBOL_FALLAS[0];
-
   return (
     <Stack gap="lg">
-      {/* ── 1. Seguridad y Desbloqueo ── */}
+      {/* ── 1. Seguridad y Desbloqueo de Pantalla ── */}
       <Paper
         p="lg"
         radius="md"
@@ -166,7 +256,7 @@ export function Step3SecurityFaultPanel({
                   Seguridad y Bloqueo de Pantalla
                 </Text>
                 <Text size="xs" c="dimmed">
-                  ¿El equipo requiere PIN, contraseña o patrón para pruebas técnicas?
+                  ¿El equipo requiere PIN, contraseña o patrón para pruebas técnicas en taller?
                 </Text>
               </div>
             </Group>
@@ -252,7 +342,7 @@ export function Step3SecurityFaultPanel({
         </Stack>
       </Paper>
 
-      {/* ── 2. Diagnóstico y Falla Reportada + Observaciones (Con Árbol Progresivo en 2 Niveles) ── */}
+      {/* ── 2. Diagnóstico en 2 Niveles: Progressive Disclosure (Tronco -> Ramas) ── */}
       <Paper
         p="lg"
         radius="md"
@@ -262,221 +352,293 @@ export function Step3SecurityFaultPanel({
           borderColor: "var(--border-subtle)",
         }}
       >
-        <Stack gap="lg">
-          <div>
-            <Text fw={700} size="sm" className="font-heading">
-              Diagnóstico, Falla y Estado Físico
-            </Text>
-            <Text size="xs" c="dimmed">
-              Usa el árbol de diagnóstico rápido (Tronco → Ramas) en 2 toques o escribe el detalle
-            </Text>
+        <Stack gap="md">
+          <div className="flex items-center justify-between">
+            <div>
+              <Text fw={700} size="sm" className="font-heading">
+                Árbol de Diagnóstico Rápido (2 Niveles)
+              </Text>
+              <Text size="xs" c="dimmed">
+                Selecciona el sistema afectado (Tronco) y toca sus fallas específicas (Ramas) al lado
+              </Text>
+            </div>
+            <Button
+              variant="subtle"
+              color="blue"
+              size="compact-xs"
+              leftSection={<IconFolderPlus size={14} />}
+              onClick={() => setMostrarCrearGrupo(!mostrarCrearGrupo)}
+              className="font-sirac-title text-xs font-bold cursor-pointer"
+            >
+              {mostrarCrearGrupo ? "Cancelar" : "+ Agrupar Nuevas Fallas"}
+            </Button>
           </div>
 
-          <SimpleGrid cols={{ base: 1, md: 2 }} spacing="lg">
-            {/* ── COLUMNA 1: ÁRBOL DE FALLAS (Tronco -> Ramas) + TEXTAREA ── */}
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <label className="text-xs font-bold text-slate-800 dark:text-slate-200 font-sirac-title flex items-center gap-1.5">
-                  <IconAlertCircle size={15} className="text-rose-500" />
-                  <span>Falla Reportada por el Cliente <span className="text-rose-500">*</span></span>
-                </label>
-                <Badge variant="light" color="rose" size="xs" className="font-sirac-title font-bold">
-                  Requerido
-                </Badge>
-              </div>
+          {/* Mini-panel para crear nuevo grupo / categoría si el técnico lo solicita */}
+          {mostrarCrearGrupo && (
+            <Paper
+              p="xs"
+              radius="md"
+              className="border border-dashed border-blue-400 dark:border-blue-500/50 bg-blue-50/50 dark:bg-blue-950/20"
+            >
+              <Group gap="xs" wrap="nowrap">
+                <TextInput
+                  placeholder="Nombre de la nueva categoría (Ej: Conectividad Wi-Fi, Teclado, Biometría...)"
+                  size="xs"
+                  value={nuevoGrupoInput}
+                  onChange={(e) => setNuevoGrupoInput(e.currentTarget.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      handleCreateNewTronco();
+                    }
+                  }}
+                  className="flex-1 font-sirac-title text-xs"
+                />
+                <Button
+                  size="xs"
+                  color="blue"
+                  onClick={handleCreateNewTronco}
+                  disabled={!nuevoGrupoInput.trim()}
+                  className="font-sirac-title text-xs font-bold"
+                >
+                  Crear Grupo
+                </Button>
+              </Group>
+            </Paper>
+          )}
 
-              {/* Nivel 1: Tronco (Macro-sistemas) */}
-              <div>
-                <Text size="10px" fw={700} c="dimmed" tt="uppercase" lts={0.5} mb={4}>
-                  1. Selecciona el Sistema Afectado (Tronco):
-                </Text>
-                <div className="flex flex-wrap gap-1.5">
-                  {ARBOL_FALLAS.map((tronco) => {
-                    const Icon = MACRO_ICONS[tronco.id] || IconBolt;
-                    const isSelected = selectedTroncoId === tronco.id;
-                    return (
-                      <button
-                        key={tronco.id}
-                        type="button"
-                        onClick={() => setSelectedTroncoId(tronco.id)}
-                        className={`px-2.5 py-1 rounded-xl text-xs font-bold transition-all border cursor-pointer flex items-center gap-1.5 font-sirac-title ${
-                          isSelected
-                            ? "bg-slate-900 dark:bg-white text-white dark:text-slate-900 border-slate-900 dark:border-white shadow-xs scale-102"
-                            : "bg-white dark:bg-[#0b1320] text-slate-700 dark:text-slate-300 border-slate-200 dark:border-[#243f5d] hover:border-slate-400"
-                        }`}
-                      >
-                        <Icon size={13} className={isSelected ? "text-amber-400 dark:text-amber-600" : `text-${tronco.color}-500`} />
+          {/* ── ÁRBOL EN 2 COLUMNAS: TRONCO (Izquierda) → RAMAS (Derecha) ── */}
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-3 p-3 rounded-2xl border border-slate-200 dark:border-[#1e324f] bg-slate-50/70 dark:bg-[#131f33]/70">
+            {/* ── NIVEL 1: TRONCO (Macro-sistemas) ── */}
+            <div className="md:col-span-5 space-y-1.5 border-b md:border-b-0 md:border-r border-slate-200 dark:border-[#1e324f] pb-3 md:pb-0 md:pr-3">
+              <Text size="10px" fw={800} c="dimmed" tt="uppercase" lts={0.5} className="font-sirac-title mb-2">
+                Nivel 1: Macro-sistema (Tronco)
+              </Text>
+              <div className="space-y-1 max-h-56 overflow-y-auto pr-1">
+                {arbolNodos.map((tronco) => {
+                  const Icon = MACRO_ICONS[tronco.id] || IconTag;
+                  const isSelected = activeTronco?.id === tronco.id;
+
+                  // Contar cuántas ramas de este tronco están activas en el texto
+                  const activeBranchesCount = tronco.ramas.filter((r) => isRamaSelected(r)).length;
+
+                  return (
+                    <button
+                      key={tronco.id}
+                      type="button"
+                      onClick={() => setSelectedTroncoId(tronco.id)}
+                      className={`w-full p-2 rounded-xl text-xs font-bold transition-all border cursor-pointer flex items-center justify-between font-sirac-title ${
+                        isSelected
+                          ? "bg-blue-600 text-white border-blue-600 shadow-sm"
+                          : "bg-white dark:bg-[#0b1320] text-slate-700 dark:text-slate-300 border-slate-200 dark:border-[#243f5d] hover:border-blue-400"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <Icon size={15} className={isSelected ? "text-white" : `text-${tronco.color}-500`} />
                         <span>{tronco.label}</span>
-                      </button>
-                    );
-                  })}
-                </div>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        {activeBranchesCount > 0 && (
+                          <Badge
+                            size="xs"
+                            color={isSelected ? "white" : "blue"}
+                            variant={isSelected ? "filled" : "light"}
+                            className={isSelected ? "text-blue-900 font-bold" : "font-bold"}
+                          >
+                            {activeBranchesCount}
+                          </Badge>
+                        )}
+                        <IconChevronRight
+                          size={14}
+                          className={`transition-transform ${isSelected ? "text-white translate-x-0.5" : "text-slate-400"}`}
+                        />
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
+            </div>
 
-              {/* Nivel 2: Ramas de especificación inmediata */}
-              <div className="p-2.5 rounded-2xl border border-slate-200 dark:border-[#1e324f] bg-slate-50/80 dark:bg-[#131f33]/80 space-y-1.5">
-                <div className="flex items-center justify-between">
-                  <Text size="10px" fw={800} c="dimmed" tt="uppercase" lts={0.5} className="flex items-center gap-1 font-sirac-title">
-                    <IconSparkles size={12} className="text-amber-500" />
-                    <span>2. Especifica la Falla en {activeTronco.label} (Ramas):</span>
+            {/* ── NIVEL 2: RAMAS (Sub-chips inmediatos) ── */}
+            <div className="md:col-span-7 space-y-2.5 flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <Text size="10px" fw={800} c="dimmed" tt="uppercase" lts={0.5} className="font-sirac-title">
+                    Nivel 2: Ramas de {activeTronco?.label}
                   </Text>
-                  <span className="text-[10px] text-slate-400 font-medium">Toca para agregar</span>
+                  <span className="text-[10px] text-slate-400 font-medium">Toca para marcar</span>
                 </div>
 
+                {/* Sub-chips de especificación inmediata */}
                 <div className="flex flex-wrap gap-1.5 max-h-40 overflow-y-auto pr-1">
-                  {activeTronco.ramas.map((rama) => {
-                    const isAdded = (form.values.falla || "").toLowerCase().includes(rama.toLowerCase());
+                  {activeTronco?.ramas.map((rama) => {
+                    const isSelected = isRamaSelected(rama);
                     return (
                       <button
                         key={rama}
                         type="button"
-                        onClick={() => handleApplyRama(rama)}
+                        onClick={() => handleToggleRama(rama, activeTronco.label)}
                         className={`px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all border cursor-pointer flex items-center gap-1 font-sirac-title ${
-                          isAdded
+                          isSelected
                             ? "bg-rose-600 text-white border-rose-600 shadow-xs"
                             : "bg-white dark:bg-[#0b1320] text-slate-700 dark:text-slate-300 border-slate-200 dark:border-[#243f5d] hover:border-rose-400"
                         }`}
                       >
-                        {isAdded && <IconCheck size={12} strokeWidth={3} />}
+                        {isSelected && <IconCheck size={12} strokeWidth={3} />}
                         <span>{rama}</span>
                       </button>
                     );
                   })}
+                  {activeTronco?.ramas.length === 0 && (
+                    <Text size="xs" c="dimmed" py="xs">
+                      No hay ramas aún en este grupo. Agrega una abajo:
+                    </Text>
+                  )}
                 </div>
               </div>
 
-              {/* Textarea Principal */}
+              {/* Agregar nueva rama rápida al tronco activo */}
+              <div className="pt-2 border-t border-slate-200/80 dark:border-[#1e324f]">
+                <Group gap="xs" wrap="nowrap">
+                  <TextInput
+                    placeholder={`+ Agregar nueva rama a ${activeTronco?.label}...`}
+                    size="xs"
+                    value={nuevaRamaInput}
+                    onChange={(e) => setNuevaRamaInput(e.currentTarget.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        handleAddRamaToCurrentTronco();
+                      }
+                    }}
+                    className="flex-1 font-sirac-title text-xs"
+                  />
+                  <Button
+                    size="xs"
+                    color="blue"
+                    variant="light"
+                    leftSection={<IconPlus size={14} />}
+                    onClick={handleAddRamaToCurrentTronco}
+                    disabled={!nuevaRamaInput.trim()}
+                    className="font-sirac-title text-xs font-bold cursor-pointer"
+                  >
+                    Agregar Rama
+                  </Button>
+                </Group>
+              </div>
+            </div>
+          </div>
+
+          {/* ── Textarea Principal y Observaciones ── */}
+          <SimpleGrid cols={{ base: 1, md: 2 }} spacing="md">
+            {/* Textarea Falla Reportada */}
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-bold text-slate-800 dark:text-slate-200 font-sirac-title flex items-center gap-1.5">
+                  <IconAlertCircle size={15} className="text-rose-500" />
+                  <span>Resumen de Falla Reportada <span className="text-rose-500">*</span></span>
+                </label>
+                {form.values.falla && (
+                  <Button
+                    variant="subtle"
+                    color="gray"
+                    size="compact-xs"
+                    leftSection={<IconX size={12} />}
+                    onClick={() => form.setFieldValue("falla", "")}
+                    className="font-sirac-title text-[11px]"
+                  >
+                    Limpiar
+                  </Button>
+                )}
+              </div>
               <Textarea
-                placeholder="Describe la falla manifestada por el cliente..."
+                placeholder="Falla diagnosticada por el cliente..."
                 required
                 minRows={3}
                 {...form.getInputProps("falla")}
                 error={form.errors.falla}
-                description="Mínimo 5 caracteres explicando el problema manifestado"
+                description="Se completa automáticamente al tocar las ramas o puedes escribir detalles libres"
                 className="font-sirac-title text-xs"
               />
             </div>
 
-            {/* ── COLUMNA 2: OBSERVACIONES FÍSICAS + ACCESOS RÁPIDOS ── */}
-            <div className="space-y-3">
+            {/* Observaciones Físicas y de Recepción */}
+            <div className="space-y-1.5">
               <div className="flex items-center justify-between">
                 <label className="text-xs font-bold text-slate-800 dark:text-slate-200 font-sirac-title flex items-center gap-1.5">
                   <IconNotes size={15} className="text-amber-500" />
                   <span>Observaciones Físicas y de Recepción</span>
                 </label>
-                <Badge variant="light" color="gray" size="xs" className="font-sirac-title font-bold">
-                  Opcional
-                </Badge>
-              </div>
-
-              {/* Los 3-4 accesos directos visibles en pantalla directa */}
-              <div>
-                <div className="flex items-center gap-1 mb-1.5">
-                  <IconBolt size={12} className="text-amber-500" />
-                  <Text size="10px" fw={700} c="dimmed" tt="uppercase" lts={0.5}>
-                    Accesos Directos (Toca para agregar):
-                  </Text>
-                </div>
-                <div className="flex flex-wrap gap-1.5">
-                  {observacionesRapidas.slice(0, 4).map((obs) => {
-                    const isAdded = (form.values.observaciones || "").toLowerCase().includes(obs.toLowerCase());
-                    return (
-                      <button
-                        key={obs}
-                        type="button"
-                        onClick={() => handleApplyObservacion(obs)}
-                        className={`px-2.5 py-1 rounded-xl text-xs font-bold transition-all border cursor-pointer flex items-center gap-1 font-sirac-title ${
-                          isAdded
-                            ? "bg-amber-600 text-white border-amber-600 shadow-xs"
-                            : "bg-slate-50 dark:bg-[#131f33] text-slate-700 dark:text-slate-300 border-slate-200 dark:border-[#243f5d] hover:border-amber-400"
-                        }`}
-                      >
-                        {isAdded && <IconCheck size={12} strokeWidth={3} />}
-                        <span>{obs}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Botón Acordeón Desplegable para ver más observaciones o crear nuevas */}
-              <div>
                 <button
                   type="button"
                   onClick={() => setExpandObservaciones(!expandObservaciones)}
-                  className="w-full py-1.5 px-2.5 rounded-xl bg-slate-100/70 dark:bg-[#131f33]/70 hover:bg-slate-200/70 dark:hover:bg-[#1e324f] flex items-center justify-between text-[11px] font-bold text-slate-600 dark:text-slate-300 transition-colors cursor-pointer"
+                  className="text-[11px] font-bold text-blue-500 hover:text-blue-600 transition-colors flex items-center gap-0.5 cursor-pointer"
                 >
-                  <span className="flex items-center gap-1.5">
-                    <IconBolt size={13} className="text-amber-500" />
-                    <span>
-                      {expandObservaciones ? "Ocultar observaciones" : `Ver más observaciones (+${observacionesRapidas.length - 4})`}
-                    </span>
-                  </span>
-                  {expandObservaciones ? <IconChevronUp size={14} /> : <IconChevronDown size={14} />}
+                  <span>{expandObservaciones ? "Menos" : `Más atajos (+${observacionesRapidas.length - 4})`}</span>
+                  {expandObservaciones ? <IconChevronUp size={12} /> : <IconChevronDown size={12} />}
                 </button>
-
-                {/* Contenedor Contenido de Observaciones Frecuentes */}
-                {expandObservaciones && (
-                  <div className="mt-1.5 p-2.5 bg-white dark:bg-[#0b1320] border border-slate-200 dark:border-[#1e324f] rounded-xl max-h-48 overflow-y-auto space-y-2">
-                    <div className="flex flex-wrap gap-1.5">
-                      {observacionesRapidas.slice(4).map((obs) => {
-                        const isAdded = (form.values.observaciones || "").toLowerCase().includes(obs.toLowerCase());
-                        return (
-                          <button
-                            key={obs}
-                            type="button"
-                            onClick={() => handleApplyObservacion(obs)}
-                            className={`px-2 py-1 rounded-md text-[11px] font-bold transition-all border cursor-pointer ${
-                              isAdded
-                                ? "bg-amber-600 text-white border-amber-600"
-                                : "bg-slate-50 dark:bg-[#131f33] text-slate-700 dark:text-slate-300 border-slate-200 dark:border-[#243f5d] hover:border-amber-400"
-                            }`}
-                          >
-                            {obs}
-                          </button>
-                        );
-                      })}
-                    </div>
-
-                    {/* Crear nuevo atajo de observación */}
-                    <div className="pt-2 border-t border-slate-100 dark:border-[#1e324f]">
-                      <Group gap="xs" wrap="nowrap">
-                        <TextInput
-                          placeholder="Nueva observación física para guardar..."
-                          size="xs"
-                          value={nuevaObsInput}
-                          onChange={(e) => setNuevaObsInput(e.currentTarget.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") {
-                              e.preventDefault();
-                              handleAddNewObservacion();
-                            }
-                          }}
-                          className="flex-1 font-sirac-title text-xs"
-                        />
-                        <Button
-                          size="xs"
-                          color="yellow"
-                          variant="light"
-                          leftSection={<IconPlus size={14} />}
-                          onClick={handleAddNewObservacion}
-                          disabled={!nuevaObsInput.trim()}
-                          className="font-sirac-title text-xs font-bold"
-                        >
-                          Crear
-                        </Button>
-                      </Group>
-                    </div>
-                  </div>
-                )}
               </div>
 
-              {/* Textarea Principal */}
+              {/* Chips rápidos de observaciones */}
+              <div className="flex flex-wrap gap-1.5 mb-1.5">
+                {(expandObservaciones ? observacionesRapidas : observacionesRapidas.slice(0, 4)).map((obs) => {
+                  const isAdded = (form.values.observaciones || "").toLowerCase().includes(obs.toLowerCase());
+                  return (
+                    <button
+                      key={obs}
+                      type="button"
+                      onClick={() => handleApplyObservacion(obs)}
+                      className={`px-2 py-1 rounded-lg text-[11px] font-bold transition-all border cursor-pointer flex items-center gap-1 font-sirac-title ${
+                        isAdded
+                          ? "bg-amber-600 text-white border-amber-600 shadow-xs"
+                          : "bg-slate-50 dark:bg-[#131f33] text-slate-700 dark:text-slate-300 border-slate-200 dark:border-[#243f5d] hover:border-amber-400"
+                      }`}
+                    >
+                      {isAdded && <IconCheck size={11} strokeWidth={3} />}
+                      <span>{obs}</span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Input para guardar nueva observación personalizada */}
+              {expandObservaciones && (
+                <div className="p-2 border border-slate-200 dark:border-[#1e324f] rounded-xl bg-slate-50/70 dark:bg-[#131f33]/70 mb-1.5">
+                  <Group gap="xs" wrap="nowrap">
+                    <TextInput
+                      placeholder="Nueva observación frecuente para guardar..."
+                      size="xs"
+                      value={nuevaObsInput}
+                      onChange={(e) => setNuevaObsInput(e.currentTarget.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          handleAddNewObservacion();
+                        }
+                      }}
+                      className="flex-1 font-sirac-title text-xs"
+                    />
+                    <Button
+                      size="xs"
+                      color="yellow"
+                      variant="light"
+                      leftSection={<IconPlus size={14} />}
+                      onClick={handleAddNewObservacion}
+                      disabled={!nuevaObsInput.trim()}
+                      className="font-sirac-title text-xs font-bold"
+                    >
+                      Guardar
+                    </Button>
+                  </Group>
+                </div>
+              )}
+
               <Textarea
                 placeholder="Detalles de golpes, rayones o piezas externas faltantes..."
                 minRows={3}
                 {...form.getInputProps("observaciones")}
-                description="Estado estético y de componentes externos al recibir"
+                description="Detalla el estado estético y componentes externos recibidos"
                 className="font-sirac-title text-xs"
               />
             </div>

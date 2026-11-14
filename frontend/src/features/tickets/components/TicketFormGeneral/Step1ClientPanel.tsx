@@ -21,7 +21,6 @@ import {
   IconPhone,
   IconMail,
   IconId,
-  IconSparkles,
 } from "@tabler/icons-react";
 import type { UseFormReturnType } from "@mantine/form";
 import type { TicketFormValues } from "../../types/tickets.types";
@@ -298,7 +297,7 @@ export function Step1ClientPanel({
                 <Button
                   size="sm"
                   color="blue"
-                  leftSection={<IconSparkles size={15} />}
+                  leftSection={<IconUserPlus size={15} />}
                   rightSection={<IconArrowRight size={15} />}
                   disabled={!clienteNombre.trim() || !clienteTelefono.trim()}
                   loading={createClient.isPending}

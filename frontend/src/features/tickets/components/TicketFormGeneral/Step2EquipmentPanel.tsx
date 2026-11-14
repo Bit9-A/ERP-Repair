@@ -30,7 +30,8 @@ import {
   IconX,
   IconChevronDown,
   IconChevronUp,
-  IconSparkles,
+  IconTag,
+  IconCpu,
 } from "@tabler/icons-react";
 import { notifications } from "@mantine/notifications";
 import type { UseFormReturnType } from "@mantine/form";
@@ -317,7 +318,7 @@ export function Step2EquipmentPanel({
             <div className="border border-slate-200 dark:border-[#1e324f] rounded-2xl p-3 bg-slate-50/70 dark:bg-[#131f33]/70 space-y-2.5">
               <div className="flex items-center justify-between">
                 <label className="text-xs font-bold text-slate-800 dark:text-slate-200 font-sirac-title flex items-center gap-1.5">
-                  <IconSparkles size={14} className="text-amber-500" />
+                  <IconTag size={14} className="text-blue-500" />
                   <span>Marca *</span>
                 </label>
                 {form.values.marca && (
@@ -438,7 +439,7 @@ export function Step2EquipmentPanel({
             <div className="border border-slate-200 dark:border-[#1e324f] rounded-2xl p-3 bg-slate-50/70 dark:bg-[#131f33]/70 space-y-2.5">
               <div className="flex items-center justify-between">
                 <label className="text-xs font-bold text-slate-800 dark:text-slate-200 font-sirac-title flex items-center gap-1.5">
-                  <IconSparkles size={14} className="text-blue-500" />
+                  <IconCpu size={14} className="text-indigo-500" />
                   <span>Modelo *</span>
                 </label>
                 {form.values.modelo && (

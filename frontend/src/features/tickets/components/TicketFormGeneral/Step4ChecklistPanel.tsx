@@ -18,7 +18,7 @@ import {
   IconAlertTriangle,
   IconCheck,
   IconShieldCheck,
-  IconSparkles,
+  IconCategory,
   IconPower,
   IconAlertCircle,
   IconRefresh,
@@ -267,7 +267,7 @@ export function Step4ChecklistPanel({ form }: Step4ChecklistPanelProps) {
                 className="p-3 rounded-2xl border border-slate-200 dark:border-[#1e324f] bg-slate-50/60 dark:bg-[#131f33]/60 space-y-2.5"
               >
                 <div className="flex items-center gap-1.5">
-                  <IconSparkles size={14} className={`text-${group.color}-500`} />
+                  <IconCategory size={14} className={`text-${group.color}-500`} />
                   <Text size="xs" fw={800} tt="uppercase" c={group.color} lts={0.5} className="font-sirac-title">
                     {group.titulo}
                   </Text>
