@@ -1,4 +1,4 @@
-﻿import React, { useState } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useAuthStore } from "../store/auth.store";
@@ -17,7 +17,6 @@ import {
   Wrench,
   ShoppingCart,
   BarChart3,
-  Building2,
   Sparkles,
 } from "lucide-react";
 
@@ -42,13 +41,6 @@ const ECOSYSTEM = [
     desc: "Dashboard inteligente y analítica de negocio",
     icon: BarChart3,
     color: "from-purple-500 to-indigo-700",
-    active: false,
-  },
-  {
-    name: "SIGEPAT",
-    desc: "Control de bienes y patrimonio institucional",
-    icon: Building2,
-    color: "from-cyan-500 to-blue-700",
     active: false,
   },
 ];
