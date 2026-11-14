@@ -27,6 +27,8 @@ import {
   IconClockHour4,
   IconCircleCheck,
   IconAlertTriangle,
+  IconUsers,
+  IconUserPlus,
 } from "@tabler/icons-react";
 import { KanbanBoard } from "../components/KanbanBoard";
 import { TicketListView } from "../components/TicketListView";
@@ -34,6 +36,16 @@ import { HistoryTable } from "../components/HistoryTable";
 import { TicketForm } from "../components/TicketForm";
 import { DeliveryModal } from "../components/DeliveryModal";
 import { RepairClosureModal } from "../components/RepairClosureModal";
+import {
+  useClients,
+  useCreateClient,
+  useUpdateClient,
+  useDeleteClient,
+} from "../../../services/hooks/useClients";
+import type { Cliente } from "../../../services/clients.service";
+import { ClientTable } from "../../clients/components/ClientTable";
+import { ClientForm, type ClientFormValues } from "../../clients/components/ClientForm";
+import { ClientHistoryDrawer } from "../../clients/components/ClientHistoryDrawer";
 import { TICKET_STATUS } from "../../../lib/constants";
 import type { TicketFormValues } from "../types/tickets.types";
 import type { TicketReparacion, EstadoTicket } from "../../../types";
@@ -77,10 +89,118 @@ export function KanbanPage() {
   const [closureTicket, setClosureTicket] = useState<TicketReparacion | null>(null);
   const [closureOpened, { open: openClosure, close: closeClosure }] = useDisclosure(false);
 
+  // Active Main Tab state (supports ?tab=clientes)
+  const tabFromUrl = searchParams.get("tab") || "activos";
+  const [activeMainTab, setActiveMainTab] = useState<string>(tabFromUrl);
+
+  // Client Directory & Device History states
+  const [clientSearch, setClientSearch] = useState("");
+  const [clientModalOpened, { open: openClientModal, close: closeClientModal }] = useDisclosure(false);
+  const [clientHistoryOpened, { open: openClientHistory, close: closeClientHistory }] = useDisclosure(false);
+  const [editingClient, setEditingClient] = useState<Cliente | null>(null);
+  const [historyClient, setHistoryClient] = useState<Cliente | null>(null);
+
   // API hooks
   const { data: tickets = [], isLoading } = useRepairs();
   const createRepair = useCreateRepair();
   const updateRepair = useUpdateRepair();
+
+  const { data: clients = [], isLoading: isLoadingClients } = useClients();
+  const createClient = useCreateClient();
+  const updateClient = useUpdateClient();
+  const deleteClient = useDeleteClient();
+
+  const filteredClients = useMemo(() => {
+    if (!clientSearch.trim()) return clients;
+    const lower = clientSearch.toLowerCase();
+
+    // Match client IDs whose tickets match device brand, model, imei or fault
+    const clientIdsMatchingDevice = new Set(
+      tickets
+        .filter(
+          (t) =>
+            t.marca?.toLowerCase().includes(lower) ||
+            t.modelo?.toLowerCase().includes(lower) ||
+            t.equipo?.toLowerCase().includes(lower) ||
+            t.imei?.toLowerCase().includes(lower) ||
+            t.falla?.toLowerCase().includes(lower),
+        )
+        .map((t) => t.clienteId)
+        .filter(Boolean),
+    );
+
+    return clients.filter(
+      (c) =>
+        c.nombre.toLowerCase().includes(lower) ||
+        c.cedula.toLowerCase().includes(lower) ||
+        c.telefono.includes(lower) ||
+        clientIdsMatchingDevice.has(c.id),
+    );
+  }, [clients, clientSearch, tickets]);
+
+  const handleNewClient = () => {
+    setEditingClient(null);
+    openClientModal();
+  };
+
+  const handleEditClient = (client: Cliente) => {
+    setEditingClient(client);
+    openClientModal();
+  };
+
+  const handleDeleteClient = async (client: Cliente) => {
+    try {
+      await deleteClient.mutateAsync(client.id);
+      notifications.show({
+        title: "Cliente eliminado",
+        message: `${client.nombre} ha sido eliminado.`,
+        color: "red",
+      });
+    } catch (e: any) {
+      notifications.show({
+        title: "Error al eliminar",
+        message: e.response?.data?.error || "Error desconocido",
+        color: "red",
+      });
+    }
+  };
+
+  const handleSubmitClient = async (values: ClientFormValues) => {
+    try {
+      if (editingClient) {
+        await updateClient.mutateAsync({
+          id: editingClient.id,
+          nombre: values.nombre,
+          telefono: values.telefono,
+          correo: values.correo,
+        });
+        notifications.show({
+          title: "Cliente actualizado",
+          message: "Los datos se guardaron correctamente.",
+          color: "green",
+        });
+      } else {
+        await createClient.mutateAsync({
+          nombre: values.nombre,
+          cedula: values.cedula,
+          telefono: values.telefono,
+          correo: values.correo,
+        });
+        notifications.show({
+          title: "Cliente registrado",
+          message: `${values.nombre} ha sido agregado.`,
+          color: "green",
+        });
+      }
+      closeClientModal();
+    } catch (e: any) {
+      notifications.show({
+        title: "Error",
+        message: e.response?.data?.error || "Revisa los datos.",
+        color: "red",
+      });
+    }
+  };
 
   // Metrics summary
   const metrics = useMemo(() => {
@@ -424,17 +544,29 @@ export function KanbanPage() {
         </SimpleGrid>
       </div>
 
-      {/* ── Main Tabs: Activos vs Historial ── */}
-      <Tabs defaultValue="activos" keepMounted={false} radius="md">
+      {/* ── Main Tabs: Activos vs Historial vs Clientes/Equipos ── */}
+      <Tabs value={activeMainTab} onChange={(v) => setActiveMainTab(v || "activos")} radius="md">
         <Tabs.List mb="md">
           <Tabs.Tab
             value="activos"
             leftSection={<IconLayoutKanban size={16} />}
+            className="font-sirac-title text-xs uppercase tracking-wider font-bold"
           >
             Tablero Operativo
           </Tabs.Tab>
-          <Tabs.Tab value="historial" leftSection={<IconArchive size={16} />}>
+          <Tabs.Tab
+            value="historial"
+            leftSection={<IconArchive size={16} />}
+            className="font-sirac-title text-xs uppercase tracking-wider font-bold"
+          >
             Historial de Entregados
+          </Tabs.Tab>
+          <Tabs.Tab
+            value="clientes"
+            leftSection={<IconUsers size={16} />}
+            className="font-sirac-title text-xs uppercase tracking-wider font-bold"
+          >
+            Directorio &amp; Historial por Equipo / Cliente ({clients.length})
           </Tabs.Tab>
         </Tabs.List>
 
@@ -535,6 +667,53 @@ export function KanbanPage() {
         <Tabs.Panel value="historial">
           <HistoryTable onTicketClick={handleEditTicket} />
         </Tabs.Panel>
+
+        <Tabs.Panel value="clientes">
+          <Stack gap="md">
+            <Group justify="space-between" align="center" wrap="wrap" gap="sm">
+              <TextInput
+                placeholder="Buscar por cliente, teléfono, cédula, modelo de equipo o IMEI..."
+                value={clientSearch}
+                onChange={(e) => setClientSearch(e.currentTarget.value)}
+                leftSection={<IconSearch size={16} />}
+                w={{ base: "100%", sm: 420 }}
+                size="sm"
+                styles={{
+                  input: {
+                    borderRadius: "12px",
+                  },
+                }}
+              />
+
+              <Button
+                size="sm"
+                leftSection={<IconUserPlus size={16} />}
+                onClick={handleNewClient}
+                className="bg-blue-600 hover:bg-blue-500 text-white rounded-xl shadow-md text-xs font-bold h-9 px-4 font-sirac-title tracking-wider uppercase"
+              >
+                Nuevo Cliente
+              </Button>
+            </Group>
+
+            {isLoadingClients ? (
+              <Group justify="center" p="xl">
+                <LoadingOverlay visible />
+              </Group>
+            ) : (
+              <div className="rounded-2xl border border-slate-200/90 dark:border-[#1e324f] bg-white dark:bg-[#131f33] overflow-hidden shadow-xs">
+                <ClientTable
+                  clients={filteredClients}
+                  onEdit={handleEditClient}
+                  onDelete={handleDeleteClient}
+                  onViewHistory={(client) => {
+                    setHistoryClient(client);
+                    openClientHistory();
+                  }}
+                />
+              </div>
+            )}
+          </Stack>
+        </Tabs.Panel>
       </Tabs>
 
       {/* ── 5-Step Ticket Form Wizard Modal ── */}
@@ -568,6 +747,21 @@ export function KanbanPage() {
         }}
         ticket={closureTicket}
         onConfirm={handleConfirmClosure}
+      />
+
+      {/* ── Modal de Registro / Edición de Cliente ── */}
+      <ClientForm
+        opened={clientModalOpened}
+        onClose={closeClientModal}
+        onSubmit={handleSubmitClient}
+        initialData={editingClient}
+      />
+
+      {/* ── Drawer de Historial Técnico del Equipo / Cliente ── */}
+      <ClientHistoryDrawer
+        opened={clientHistoryOpened}
+        onClose={closeClientHistory}
+        cliente={historyClient}
       />
     </Stack>
   );

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import {
   SimpleGrid,
   Stack,
@@ -50,6 +51,7 @@ import {
   useCurrencyRates,
 } from "../../../services";
 import { exportFinanceExcel } from "../../../services/excel/exportFinanceExcel";
+import { BillingPage } from "../../billing/pages/BillingPage";
 
 type Periodo = "dia" | "semana" | "mes";
 
@@ -88,6 +90,10 @@ const PERIODO_LABELS: Record<Periodo, string> = {
 };
 
 export function FinancePage() {
+  const [searchParams] = useSearchParams();
+  const tabFromUrl = searchParams.get("tab") || "recaudacion";
+  const [activeTab, setActiveTab] = useState<string>(tabFromUrl);
+
   // -- Period state --
   const [periodo, setPeriodo] = useState<Periodo>("dia");
 
@@ -523,11 +529,12 @@ export function FinancePage() {
       )}
 
       {/* Main Content Tabs */}
-      <Tabs defaultValue="recaudacion" variant="outline" radius="md">
+      <Tabs value={activeTab} onChange={(v) => setActiveTab(v || "recaudacion")} variant="outline" radius="md">
         <Tabs.List mb="md">
           <Tabs.Tab
             value="recaudacion"
             leftSection={<IconReportMoney size={16} />}
+            className="font-sirac-title text-xs uppercase tracking-wider font-bold"
           >
             Recaudación (Ingresos)
           </Tabs.Tab>
@@ -535,6 +542,7 @@ export function FinancePage() {
             value="gastos"
             leftSection={<IconTrendingDown size={16} />}
             color="red"
+            className="font-sirac-title text-xs uppercase tracking-wider font-bold"
           >
             Egresos
           </Tabs.Tab>
@@ -543,8 +551,18 @@ export function FinancePage() {
             value="recurrentes"
             leftSection={<IconCalendarStats size={16} />}
             color="violet"
+            className="font-sirac-title text-xs uppercase tracking-wider font-bold"
           >
             Gastos Fijos Programados
+          </Tabs.Tab>
+
+          <Tabs.Tab
+            value="facturacion"
+            leftSection={<IconReceipt size={16} />}
+            color="blue"
+            className="font-sirac-title text-xs uppercase tracking-wider font-bold"
+          >
+            Facturación Fiscal a2
           </Tabs.Tab>
         </Tabs.List>
 
@@ -558,6 +576,10 @@ export function FinancePage() {
 
         <Tabs.Panel value="recurrentes">
           <RecurringExpensesPanel />
+        </Tabs.Panel>
+
+        <Tabs.Panel value="facturacion">
+          <BillingPage />
         </Tabs.Panel>
       </Tabs>
 

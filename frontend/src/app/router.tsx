@@ -45,24 +45,9 @@ const SucursalesPage = lazy(() =>
     default: m.SucursalesPage,
   })),
 );
-const ClientsPage = lazy(() =>
-  import("../features/clients/pages/ClientsPage").then((m) => ({
-    default: m.ClientsPage,
-  })),
-);
 const SettingsPage = lazy(() =>
   import("../features/settings/pages/SettingsPage").then((m) => ({
     default: m.SettingsPage,
-  })),
-);
-const OnlineOrdersPage = lazy(() =>
-  import("../features/online-orders/pages/OnlineOrdersPage").then((m) => ({
-    default: m.OnlineOrdersPage,
-  })),
-);
-const BillingPage = lazy(() =>
-  import("../features/billing/pages/BillingPage").then((m) => ({
-    default: m.BillingPage,
   })),
 );
 
@@ -116,14 +101,10 @@ export const router = createBrowserRouter([
             ),
           },
 
-          // ADMIN + VENDEDOR pueden ver Pedidos Web
+          // ADMIN + VENDEDOR pueden ver Pedidos Web (Redirige al tab unificado en Ventas)
           {
             path: "pedidos-web",
-            element: (
-              <RoleGuard roles={["ADMIN", "VENDEDOR"]}>
-                <OnlineOrdersPage />
-              </RoleGuard>
-            ),
+            element: <Navigate to="/ventas?tab=pedidos-web" replace />,
           },
 
           // ADMIN + TECNICO pueden ver Finanzas
@@ -136,14 +117,10 @@ export const router = createBrowserRouter([
             ),
           },
 
-          // ADMIN + VENDEDOR pueden ver Facturación a2
+          // Facturación a2 (Redirige al tab unificado en Finanzas)
           {
             path: "facturacion",
-            element: (
-              <RoleGuard roles={["ADMIN", "VENDEDOR"]}>
-                <BillingPage />
-              </RoleGuard>
-            ),
+            element: <Navigate to="/finanzas?tab=facturacion" replace />,
           },
 
           // Solo ADMIN puede ver Usuarios
@@ -166,14 +143,10 @@ export const router = createBrowserRouter([
             ),
           },
 
-          // ADMIN + TECNICO + VENDEDOR pueden ver Clientes
+          // Clientes (Redirige al tab unificado en Taller Técnico)
           {
             path: "clients",
-            element: (
-              <RoleGuard roles={["ADMIN", "TECNICO", "VENDEDOR"]}>
-                <ClientsPage />
-              </RoleGuard>
-            ),
+            element: <Navigate to="/reparaciones?tab=clientes" replace />,
           },
 
           // Todos los usuarios autenticados pueden acceder a Configuración

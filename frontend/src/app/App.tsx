@@ -1,4 +1,4 @@
-﻿import { Suspense, useEffect } from "react";
+import { Suspense, useEffect } from "react";
 import { MantineProvider, type CSSVariablesResolver } from "@mantine/core";
 import { Notifications } from "@mantine/notifications";
 import { ModalsProvider } from "@mantine/modals";

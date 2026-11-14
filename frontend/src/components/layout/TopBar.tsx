@@ -1,4 +1,4 @@
-﻿import { useLocation, Link } from "react-router-dom";
+import { useLocation, Link } from "react-router-dom";
 import { spotlight } from "@mantine/spotlight";
 import { useThemeStore } from "../../stores/theme.store";
 import {
@@ -19,11 +19,13 @@ interface TopBarProps {
 
 const ROUTE_LABELS: Record<string, string> = {
   "/": "Dashboard",
-  "/reparaciones": "Reparaciones",
-  "/clients": "Clientes",
-  "/inventario": "Inventario",
-  "/ventas": "Ventas & POS",
-  "/finanzas": "Finanzas",
+  "/reparaciones": "Taller Técnico & Clientes",
+  "/clients": "Directorio de Clientes",
+  "/inventario": "Inventario & Almacén",
+  "/ventas": "Ventas & Pedidos Online",
+  "/pedidos-web": "Pedidos & Tienda Online",
+  "/finanzas": "Finanzas & Facturación",
+  "/facturacion": "Facturación a2",
   "/sucursales": "Sucursales",
   "/usuarios": "Usuarios & Permisos",
   "/configuracion": "Configuración & Personalización",

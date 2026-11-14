@@ -16,6 +16,7 @@ import {
   Tooltip,
   Modal,
   LoadingOverlay,
+  Tabs,
 } from "@mantine/core";
 import { useSearchParams } from "react-router-dom";
 import { useDisclosure } from "@mantine/hooks";
@@ -31,10 +32,12 @@ import {
   IconBan,
   IconCheck,
   IconDownload,
+  IconGlobe,
 } from "@tabler/icons-react";
 import { StatCard } from "../../../components/ui/StatCard";
 import { exportSalesExcel } from "../../../services/excel/exportSalesExcel";
 import { SaleForm } from "../components/SaleForm";
+import { OnlineOrdersPage } from "../../online-orders/pages/OnlineOrdersPage";
 import { SALE_STATUS, APP_NAME } from "../../../lib/constants";
 import type { Venta } from "../../../types";
 import {
@@ -45,6 +48,9 @@ import {
 
 export function SalesPage() {
   const [searchParams] = useSearchParams();
+  const tabFromUrl = searchParams.get("tab") || "pos";
+  const [activeMainTab, setActiveMainTab] = useState<string>(tabFromUrl);
+
   const [search, setSearch] = useState(searchParams.get("search") || "");
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
   const [detailSale, setDetailSale] = useState<Venta | null>(null);
@@ -203,8 +209,29 @@ export function SalesPage() {
         </Group>
       </div>
 
-      {/* KPI Cards */}
-      <SimpleGrid cols={{ base: 1, sm: 3 }} spacing="md">
+      {/* ── Main Tabs: POS vs Pedidos Web B2B/B2C ── */}
+      <Tabs value={activeMainTab} onChange={(v) => setActiveMainTab(v || "pos")} radius="md">
+        <Tabs.List mb="md">
+          <Tabs.Tab
+            value="pos"
+            leftSection={<IconShoppingCart size={16} />}
+            className="font-sirac-title text-xs uppercase tracking-wider font-bold"
+          >
+            Punto de Venta Mostrador &amp; Historial
+          </Tabs.Tab>
+          <Tabs.Tab
+            value="pedidos-web"
+            leftSection={<IconGlobe size={16} />}
+            className="font-sirac-title text-xs uppercase tracking-wider font-bold"
+          >
+            Pedidos &amp; Tienda Online B2B / B2C
+          </Tabs.Tab>
+        </Tabs.List>
+
+        <Tabs.Panel value="pos">
+          <Stack gap="xl">
+            {/* KPI Cards */}
+            <SimpleGrid cols={{ base: 1, sm: 3 }} spacing="md">
         <StatCard
           title="Ventas Hoy"
           value={ventasHoy}
@@ -437,6 +464,13 @@ export function SalesPage() {
           </Badge>
         </Group>
       </Paper>
+    </Stack>
+  </Tabs.Panel>
+
+  <Tabs.Panel value="pedidos-web">
+    <OnlineOrdersPage />
+  </Tabs.Panel>
+</Tabs>
 
       {/* Sale Detail Modal */}
       <Modal

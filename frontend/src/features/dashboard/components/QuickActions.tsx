@@ -46,11 +46,11 @@ const ACTIONS: QuickAction[] = [
     path: "/inventario",
   },
   {
-    label: "Nuevo Cliente",
-    description: "Ficha o mayorista",
+    label: "Directorio Clientes",
+    description: "Historial de equipos y fichas",
     icon: UserPlus,
     color: "#06B6D4",
-    path: "/clients",
+    path: "/reparaciones?tab=clientes",
   },
   {
     label: "Cierre de Caja",

@@ -11,15 +11,12 @@ import {
   Wrench,
   Package,
   ShoppingCart,
-  Users,
   BadgeDollarSign,
   Building2,
   ShieldCheck,
   Settings,
   LogOut,
   ChevronLeft,
-  Globe,
-  Receipt,
 } from "lucide-react";
 
 interface NavItem {
@@ -39,17 +36,18 @@ const NAV_ITEMS: NavItem[] = [
     section: "GENERAL",
   },
   {
-    label: "Reparaciones",
+    label: "Taller Técnico",
     icon: Wrench,
     path: "/reparaciones",
     section: "OPERACIONES",
     moduleKey: "tickets",
   },
   {
-    label: "Clientes",
-    icon: Users,
-    path: "/clients",
+    label: "Ventas & Pedidos",
+    icon: ShoppingCart,
+    path: "/ventas",
     section: "OPERACIONES",
+    moduleKey: "ventas",
   },
   {
     label: "Inventario",
@@ -59,30 +57,11 @@ const NAV_ITEMS: NavItem[] = [
     moduleKey: "inventario",
   },
   {
-    label: "Ventas",
-    icon: ShoppingCart,
-    path: "/ventas",
-    section: "OPERACIONES",
-    moduleKey: "ventas",
-  },
-  {
-    label: "Pedidos Web",
-    icon: Globe,
-    path: "/pedidos-web",
-    section: "OPERACIONES",
-  },
-  {
-    label: "Finanzas",
+    label: "Finanzas & Facturación",
     icon: BadgeDollarSign,
     path: "/finanzas",
     section: "ADMINISTRACIÓN",
     moduleKey: "finanzas",
-  },
-  {
-    label: "Facturación a2",
-    icon: Receipt,
-    path: "/facturacion",
-    section: "ADMINISTRACIÓN",
   },
   {
     label: "Sucursales",
