@@ -6,8 +6,15 @@ import type { RolUsuario } from "../../generated/prisma/client";
 
 // ── Auth ──
 
-export async function login(email: string, password: string) {
-  const user = await prisma.usuario.findUnique({ where: { email } });
+export async function login(emailOrNombre: string, password: string) {
+  const user = await prisma.usuario.findFirst({
+    where: {
+      OR: [
+        { email: emailOrNombre },
+        { nombre: emailOrNombre },
+      ],
+    },
+  });
   if (!user)
     throw Object.assign(new Error("Credenciales inválidas"), {
       statusCode: 401,

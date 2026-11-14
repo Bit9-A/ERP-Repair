@@ -36,7 +36,7 @@ import {
 import { StatCard } from "../../../components/ui/StatCard";
 import { exportSalesExcel } from "../../../services/excel/exportSalesExcel";
 import { SaleForm } from "../components/SaleForm";
-import { SALE_STATUS } from "../../../lib/constants";
+import { SALE_STATUS, APP_NAME } from "../../../lib/constants";
 import type { Venta } from "../../../types";
 import {
   useSales,
@@ -403,7 +403,7 @@ export function SalesPage() {
         <Divider color="dark.6" />
         <Group justify="space-between" p="md">
           <Text size="xs" c="dimmed">
-            TecnoPro Cell ERP
+            {APP_NAME}
           </Text>
           <Badge variant="filled" color="brand" size="xs">
             {isLoading ? "Cargando..." : "Sincronizado"}
