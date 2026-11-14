@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   Stack,
   TextInput,
@@ -9,6 +10,9 @@ import {
   Paper,
   ThemeIcon,
   UnstyledButton,
+  ActionIcon,
+  Tooltip,
+  Group,
 } from "@mantine/core";
 import {
   IconPlus,
@@ -21,9 +25,13 @@ import {
   IconDeviceWatch,
   IconDevices,
   IconBarcode,
+  IconScan,
+  IconArrowRight,
 } from "@tabler/icons-react";
+import { notifications } from "@mantine/notifications";
 import type { UseFormReturnType } from "@mantine/form";
 import type { TicketFormValues } from "../../types/tickets.types";
+import { BarcodeScanner } from "../../../sales/components/BarcodeScanner";
 
 interface Step2EquipmentPanelProps {
   form: UseFormReturnType<TicketFormValues>;
@@ -47,6 +55,7 @@ interface Step2EquipmentPanelProps {
     createMarca: any;
     createModelo: any;
   };
+  onProceedNext?: () => void;
 }
 
 const DEVICE_TYPES = [
@@ -65,7 +74,9 @@ export function Step2EquipmentPanel({
   state,
   queries,
   actions,
+  onProceedNext,
 }: Step2EquipmentPanelProps) {
+  const [scannerOpen, setScannerOpen] = useState(false);
   const {
     selectedMarcaId,
     marcaSearch,
@@ -254,14 +265,75 @@ export function Step2EquipmentPanel({
             />
           </SimpleGrid>
 
-          {/* ── IMEI / Serial ── */}
-          <TextInput
-            label="IMEI o Número de Serie"
-            placeholder="15 dígitos de IMEI o N° Serie del fabricante (Opcional)"
-            leftSection={<IconBarcode size={18} />}
-            {...form.getInputProps("imei")}
-            description="Recomendado para identificar inequívocamente el equipo del cliente"
+          {/* ── IMEI / Serial con Escáner de Código de Barras / QR ── */}
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-bold text-slate-800 dark:text-slate-200 font-sirac-title">
+                IMEI o Número de Serie
+              </label>
+              <Button
+                variant="light"
+                size="compact-xs"
+                color="blue"
+                leftSection={<IconScan size={14} />}
+                onClick={() => setScannerOpen(true)}
+                className="font-sirac-title text-[11px] font-bold"
+              >
+                Escanear Código / IMEI
+              </Button>
+            </div>
+            <TextInput
+              placeholder="15 dígitos de IMEI o N° Serie del fabricante (Opcional)"
+              leftSection={<IconBarcode size={18} />}
+              rightSection={
+                <Tooltip label="Escanear código de barras o QR de IMEI con la cámara">
+                  <ActionIcon
+                    variant="subtle"
+                    color="blue"
+                    size="sm"
+                    onClick={() => setScannerOpen(true)}
+                    className="cursor-pointer"
+                  >
+                    <IconScan size={16} />
+                  </ActionIcon>
+                </Tooltip>
+              }
+              {...form.getInputProps("imei")}
+              description="Recomendado para identificar inequívocamente el equipo del cliente"
+            />
+          </div>
+
+          {/* Barcode Scanner Modal */}
+          <BarcodeScanner
+            opened={scannerOpen}
+            onClose={() => setScannerOpen(false)}
+            onDetected={(code) => {
+              const cleanCode = code.trim();
+              form.setFieldValue("imei", cleanCode);
+              setScannerOpen(false);
+              notifications.show({
+                title: "IMEI Escaneado",
+                message: `Se capturó el código: ${cleanCode}`,
+                color: "green",
+              });
+            }}
           />
+
+          {/* ── Inline Action: Continuar a Seguridad ── */}
+          {onProceedNext && (
+            <Group justify="flex-end" pt="sm" className="border-t border-slate-100 dark:border-[#1e324f]">
+              <Button
+                size="sm"
+                color="blue"
+                rightSection={<IconArrowRight size={15} />}
+                onClick={onProceedNext}
+                disabled={!form.values.marca || !form.values.modelo}
+                className="font-sirac-title uppercase tracking-wider text-xs font-bold"
+              >
+                Continuar a Seguridad &amp; Falla
+              </Button>
+            </Group>
+          )}
         </Stack>
       </Paper>
     </Stack>

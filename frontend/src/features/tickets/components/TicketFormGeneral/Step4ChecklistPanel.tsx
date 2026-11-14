@@ -20,15 +20,17 @@ import {
   IconTool,
   IconCheck,
   IconX,
+  IconArrowRight,
 } from "@tabler/icons-react";
 import type { UseFormReturnType } from "@mantine/form";
 import type { TicketFormValues } from "../../types/tickets.types";
 
 interface Step4ChecklistPanelProps {
   form: UseFormReturnType<TicketFormValues>;
+  onProceedNext?: () => void;
 }
 
-export function Step4ChecklistPanel({ form }: Step4ChecklistPanelProps) {
+export function Step4ChecklistPanel({ form, onProceedNext }: Step4ChecklistPanelProps) {
   const handleCheckAllGood = () => {
     form.setFieldValue("checklist.encendido", true);
     form.setFieldValue("checklist.touch", true);
@@ -300,6 +302,21 @@ export function Step4ChecklistPanel({ form }: Step4ChecklistPanelProps) {
           />
         </Group>
       </Alert>
+
+      {/* ── Inline Action: Continuar a Costos ── */}
+      {onProceedNext && (
+        <Group justify="flex-end" pt="xs">
+          <Button
+            size="sm"
+            color="blue"
+            rightSection={<IconArrowRight size={15} />}
+            onClick={onProceedNext}
+            className="font-sirac-title uppercase tracking-wider text-xs font-bold"
+          >
+            Continuar a Costos &amp; Presupuesto
+          </Button>
+        </Group>
+      )}
     </Stack>
   );
 }

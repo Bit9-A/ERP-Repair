@@ -19,6 +19,7 @@ import {
   IconNotes,
   IconShieldCheck,
   IconShieldLock,
+  IconArrowRight,
 } from "@tabler/icons-react";
 import type { UseFormReturnType } from "@mantine/form";
 import type { TicketFormValues } from "../../types/tickets.types";
@@ -27,11 +28,13 @@ import { PatternCanvas } from "../PatternCanvas";
 interface Step3SecurityFaultPanelProps {
   form: UseFormReturnType<TicketFormValues>;
   initialData?: any;
+  onProceedNext?: () => void;
 }
 
 export function Step3SecurityFaultPanel({
   form,
   initialData,
+  onProceedNext,
 }: Step3SecurityFaultPanelProps) {
   const hasExistingLock = Boolean(
     form.values.clave?.trim() || form.values.patron_visual?.trim()
@@ -201,6 +204,22 @@ export function Step3SecurityFaultPanel({
               description="Detalles de golpes, rayones o componentes externos faltantes"
             />
           </SimpleGrid>
+
+          {/* ── Inline Action: Continuar a Checklist ── */}
+          {onProceedNext && (
+            <Group justify="flex-end" pt="sm" className="border-t border-slate-100 dark:border-[#1e324f]">
+              <Button
+                size="sm"
+                color="blue"
+                rightSection={<IconArrowRight size={15} />}
+                onClick={onProceedNext}
+                disabled={!form.values.falla || form.values.falla.trim().length < 5}
+                className="font-sirac-title uppercase tracking-wider text-xs font-bold"
+              >
+                Continuar a Checklist Técnico
+              </Button>
+            </Group>
+          )}
         </Stack>
       </Paper>
     </Stack>
