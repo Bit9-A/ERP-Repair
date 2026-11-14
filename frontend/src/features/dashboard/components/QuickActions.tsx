@@ -72,7 +72,7 @@ export function QuickActions() {
   const navigate = useNavigate();
 
   return (
-    <div className="relative overflow-hidden rounded-2xl p-6 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border border-slate-200/80 dark:border-slate-800/80 shadow-[0_4px_24px_-4px_rgba(15,23,42,0.06)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.25)] transition-all">
+    <div className="relative overflow-hidden rounded-2xl p-6 bg-white dark:bg-[#131f33] border border-slate-200/90 dark:border-[#1e324f] shadow-xs dark:shadow-md dark:shadow-[#070d18]/40 transition-all">
       {/* Header */}
       <div className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-2.5">
@@ -80,11 +80,11 @@ export function QuickActions() {
             <Zap className="w-4 h-4" />
           </div>
           <div>
-            <Text size="sm" fw={700} className="font-heading text-slate-900 dark:text-white">
+            <Text size="sm" fw={700} className="font-sirac-title text-slate-900 dark:text-white tracking-wide">
               Operaciones Rápidas
             </Text>
-            <Text size="xs" className="text-slate-400 dark:text-slate-500">
-              Accesos directos más frecuentes del personal
+            <Text size="xs" className="text-slate-400 dark:text-slate-400 font-sirac-sub">
+              Accesos directos más frecuentes del personal técnico
             </Text>
           </div>
         </div>
@@ -103,7 +103,7 @@ export function QuickActions() {
               whileHover={{ y: -2, transition: { duration: 0.15 } }}
               whileTap={{ scale: 0.98 }}
               onClick={() => navigate(action.path)}
-              className="group relative flex items-center justify-between p-3.5 rounded-xl border border-slate-200/70 dark:border-slate-800/80 bg-white/50 dark:bg-slate-800/30 hover:border-blue-400/50 dark:hover:border-blue-500/40 hover:bg-white dark:hover:bg-slate-800/60 shadow-xs hover:shadow-md transition-all cursor-pointer overflow-hidden"
+              className="group relative flex items-center justify-between p-3.5 rounded-xl border border-slate-200/80 dark:border-[#1e324f] bg-slate-50/50 dark:bg-[#18263d]/60 hover:border-blue-400/50 dark:hover:border-blue-500/40 hover:bg-white dark:hover:bg-[#18263d] shadow-xs hover:shadow-md transition-all cursor-pointer overflow-hidden"
             >
               {/* Left accent bar on hover */}
               <div
@@ -127,11 +127,11 @@ export function QuickActions() {
                   <Text
                     size="sm"
                     fw={700}
-                    className="text-slate-800 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 font-heading leading-tight truncate transition-colors"
+                    className="text-slate-800 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 font-sirac-title leading-tight truncate transition-colors text-xs"
                   >
                     {action.label}
                   </Text>
-                  <Text size="xs" className="text-slate-400 dark:text-slate-500 mt-0.5 truncate">
+                  <Text size="xs" className="text-slate-400 dark:text-slate-400 mt-0.5 truncate font-sirac-sub text-[11px]">
                     {action.description}
                   </Text>
                 </div>
@@ -139,7 +139,7 @@ export function QuickActions() {
 
               <div className="flex items-center gap-1.5 shrink-0 ml-2">
                 {action.badge && (
-                  <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-700/60 text-slate-500 dark:text-slate-400 group-hover:bg-blue-50 dark:group-hover:bg-blue-950/60 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                  <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-white dark:bg-[#131f33] text-slate-500 dark:text-slate-300 border border-slate-200/80 dark:border-[#294163] group-hover:border-blue-400/40 group-hover:text-blue-500 transition-colors">
                     {action.badge}
                   </span>
                 )}

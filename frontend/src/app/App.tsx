@@ -30,7 +30,14 @@ const cssVariablesResolver: CSSVariablesResolver = () => ({
     "--mantine-color-text": "#0f172a",
     "--mantine-color-dimmed": "#475569",
   },
-  dark: {},
+  dark: {
+    "--mantine-color-body": "#0b1320",
+    "--mantine-color-default": "#131f33",
+    "--mantine-color-default-hover": "#18263d",
+    "--mantine-color-default-color": "#f8fafc",
+    "--mantine-color-text": "#f8fafc",
+    "--mantine-color-dimmed": "#94a3b8",
+  },
 });
 
 export function App() {

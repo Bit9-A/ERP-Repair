@@ -7,7 +7,6 @@ import {
   Stack,
   Text,
   TextInput,
-  Title,
   Select,
   Badge,
   Divider,
@@ -156,30 +155,53 @@ export function SalesPage() {
     <Stack gap="xl" pos="relative">
       <LoadingOverlay visible={isLoading} />
 
-      {/* Header */}
-      <Group justify="space-between" align="center" wrap="wrap" gap="sm">
-        <Group gap="xs">
-          <Title order={2}>Ventas</Title>
+      {/* ── Executive Header (70% Sirac + 30% Sigepat) ── */}
+      <div className="relative overflow-hidden rounded-[24px] p-6 lg:p-7 bg-gradient-to-r from-[#0b1320] via-[#131f33] to-[#18263d] text-white shadow-xl border border-[#1e324f]">
+        {/* SIGEPAT watermark decorative icon */}
+        <IconShoppingCart className="absolute -right-6 -bottom-6 w-48 h-48 text-blue-400/[0.04] pointer-events-none rotate-12" />
+
+        <Group justify="space-between" align="center" wrap="wrap" gap="md" className="relative z-10">
+          <div>
+            <div className="flex items-center gap-2 mb-1.5">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/15 text-blue-300 ring-1 ring-blue-500/30 uppercase tracking-widest font-sirac-title">
+                <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
+                MÓDULO DE OPERACIONES
+              </span>
+              <span className="text-[10px] font-bold text-slate-300 bg-white/5 px-2.5 py-0.5 rounded-full uppercase tracking-wider font-sirac-title border border-white/5">
+                {sales.length} TRANSACCIONES
+              </span>
+            </div>
+
+            <h1 className="text-2xl lg:text-3xl font-bold font-sirac-title text-white tracking-wide uppercase">
+              Ventas & Facturación POS
+            </h1>
+            <p className="text-xs text-slate-300/80 mt-0.5 font-sirac-sub">
+              Punto de venta, cobros en mostrador, emisión de tickets y arqueo de caja
+            </p>
+          </div>
+
+          <Group gap="sm">
+            <Button
+              variant="default"
+              color="gray"
+              leftSection={<IconDownload size={15} />}
+              onClick={handleExport}
+              loading={isExporting}
+              className="bg-[#18263d]/80 hover:bg-[#18263d] text-white border-[#294163] rounded-xl text-xs font-semibold h-9 px-3.5 transition-all font-sirac-title tracking-wide"
+            >
+              Exportar
+            </Button>
+            <Button
+              leftSection={<IconPlus size={16} />}
+              size="sm"
+              onClick={openSaleForm}
+              className="bg-blue-600 hover:bg-blue-500 text-white rounded-xl shadow-lg shadow-blue-600/30 text-xs font-bold h-9 px-4 transition-all font-sirac-title tracking-wider uppercase"
+            >
+              Nueva Venta
+            </Button>
+          </Group>
         </Group>
-        <Group gap="sm">
-          <Button
-            variant="light"
-            color="green"
-            leftSection={<IconDownload size={16} />}
-            onClick={handleExport}
-            loading={isExporting}
-          >
-            Exportar
-          </Button>
-          <Button
-            leftSection={<IconPlus size={16} />}
-            size="sm"
-            onClick={openSaleForm}
-          >
-            Nueva Venta
-          </Button>
-        </Group>
-      </Group>
+      </div>
 
       {/* KPI Cards */}
       <SimpleGrid cols={{ base: 1, sm: 3 }} spacing="md">
@@ -273,12 +295,17 @@ export function SalesPage() {
             horizontalSpacing="md"
             verticalSpacing="sm"
             styles={{
-              tr: { transition: "background 200ms ease", cursor: "pointer" },
+              tr: { transition: "background 150ms ease", cursor: "pointer" },
               th: {
-                color: "#94A3B8",
-                fontSize: "12px",
+                color: "#94a3b8",
+                fontSize: "11px",
+                fontWeight: 700,
                 textTransform: "uppercase",
-                letterSpacing: "0.05em",
+                letterSpacing: "0.12em",
+                fontFamily: "'Titillium Web', sans-serif",
+                paddingTop: "14px",
+                paddingBottom: "14px",
+                borderBottom: "1px solid var(--border-subtle)",
               },
               td: {
                 borderColor: "var(--border-subtle)",
@@ -287,7 +314,7 @@ export function SalesPage() {
               },
             }}
           >
-            <Table.Thead>
+            <Table.Thead className="bg-slate-50/70 dark:bg-[#18263d]/50">
               <Table.Tr>
                 <Table.Th>Código</Table.Th>
                 <Table.Th>Cliente</Table.Th>

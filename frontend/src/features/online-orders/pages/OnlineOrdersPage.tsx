@@ -466,37 +466,41 @@ export function OnlineOrdersPage() {
 
   return (
     <div className="space-y-6 max-w-[1600px] mx-auto font-sans pb-10">
-      {/* ── Executive Hero Header ── */}
+      {/* ── Executive Hero Header (70% Sirac + 30% Sigepat) ── */}
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
-        className="relative overflow-hidden rounded-2xl p-6 lg:p-7 bg-gradient-to-br from-slate-900 via-slate-900 to-indigo-950 text-white shadow-xl border border-slate-800"
+        className="relative overflow-hidden rounded-[24px] p-6 lg:p-7 bg-gradient-to-r from-[#0b1320] via-[#131f33] to-[#18263d] text-white shadow-xl border border-[#1e324f]"
       >
-        <div className="absolute top-0 right-0 -mt-10 -mr-10 w-64 h-64 rounded-full bg-blue-500/20 blur-3xl pointer-events-none" />
+        {/* SIGEPAT watermark decorative icon */}
+        <Globe className="absolute -right-6 -bottom-6 w-52 h-52 text-blue-400/[0.04] pointer-events-none rotate-12" />
 
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="flex items-center gap-3.5">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center font-bold text-white shadow-lg shadow-blue-500/30 ring-2 ring-blue-400/20 shrink-0">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-[#243f5d] to-blue-600 flex items-center justify-center font-bold text-white shadow-lg shadow-blue-950/50 ring-1 ring-blue-400/30 shrink-0 font-sirac-title">
               <Globe className="w-6 h-6" />
             </div>
             <div>
               <div className="flex items-center gap-2 mb-1">
-                <h1 className="text-2xl font-extrabold font-heading text-white tracking-tight uppercase">
-                  Pedidos & Tienda Online
-                </h1>
-                <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-bold border border-emerald-500/30 flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="px-2.5 py-0.5 rounded-full bg-blue-500/15 text-blue-300 text-[10px] font-bold border border-blue-500/30 flex items-center gap-1 font-sirac-title uppercase tracking-widest">
+                  <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
                   CANAL DIGITAL B2B / B2C
                 </span>
+                <span className="text-[10px] font-bold text-slate-300 bg-white/5 px-2.5 py-0.5 rounded-full uppercase tracking-wider font-sirac-title border border-white/5">
+                  {orders.length} PEDIDOS
+                </span>
               </div>
-              <p className="text-xs text-slate-300/80 max-w-xl">
+              <h1 className="text-2xl font-bold font-sirac-title text-white tracking-wide uppercase">
+                Pedidos & Tienda Online
+              </h1>
+              <p className="text-xs text-slate-300/80 max-w-xl font-sirac-sub">
                 Gestión unificada de órdenes entrantes, comprobantes de pago, cuentas mayoristas y cupones de fidelización.
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-3 shrink-0 flex-wrap">
+          <div className="flex items-center gap-2.5 shrink-0 flex-wrap">
             <button
               onClick={() => setOrders([...INITIAL_ORDERS])}
               className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-white/10 hover:bg-white/15 text-slate-200 border border-white/10 transition-all cursor-pointer"
@@ -507,7 +511,7 @@ export function OnlineOrdersPage() {
 
             <Button
               size="sm"
-              className="bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs gap-1.5 rounded-xl shadow-lg shadow-blue-600/30 h-10 px-4 transition-all"
+              className="bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs gap-1.5 rounded-xl shadow-lg shadow-blue-600/30 h-10 px-4 transition-all font-sirac-title tracking-wider uppercase"
               onClick={() => setShowSimulateModal(true)}
             >
               <Plus className="w-4 h-4" /> Simular Pedido Web
@@ -553,27 +557,27 @@ export function OnlineOrdersPage() {
       </div>
 
       {/* ── Navigation Tabs (Módulos Internos) ── */}
-      <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-3">
+      <div className="flex items-center gap-2 border-b border-slate-200 dark:border-[#1e324f] pb-3">
         <button
           onClick={() => setActiveTab("ORDERS")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer font-sirac-title uppercase tracking-wider ${
             activeTab === "ORDERS"
-              ? "bg-blue-600 text-white shadow-md shadow-blue-600/20"
-              : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60"
+              ? "bg-[#18263d] text-white border border-blue-400/40 shadow-md shadow-blue-950/40"
+              : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-[#18263d]/60 border border-transparent"
           }`}
         >
-          <Receipt className="w-4 h-4" /> Órdenes & Pedidos ({orders.length})
+          <Receipt className="w-4 h-4 text-blue-400" /> Órdenes & Pedidos ({orders.length})
         </button>
 
         <button
           onClick={() => setActiveTab("REQUESTS")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer font-sirac-title uppercase tracking-wider ${
             activeTab === "REQUESTS"
-              ? "bg-blue-600 text-white shadow-md shadow-blue-600/20"
-              : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60"
+              ? "bg-[#18263d] text-white border border-blue-400/40 shadow-md shadow-blue-950/40"
+              : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-[#18263d]/60 border border-transparent"
           }`}
         >
-          <UserCheck className="w-4 h-4" /> Solicitudes Mayoristas
+          <UserCheck className="w-4 h-4 text-indigo-400" /> Solicitudes Mayoristas
           {kpis.solicitudesPendientes > 0 && (
             <span className="w-5 h-5 rounded-full bg-amber-500 text-slate-950 text-[10px] flex items-center justify-center font-black">
               {kpis.solicitudesPendientes}
@@ -583,13 +587,13 @@ export function OnlineOrdersPage() {
 
         <button
           onClick={() => setActiveTab("COUPONS")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer font-sirac-title uppercase tracking-wider ${
             activeTab === "COUPONS"
-              ? "bg-blue-600 text-white shadow-md shadow-blue-600/20"
-              : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60"
+              ? "bg-[#18263d] text-white border border-blue-400/40 shadow-md shadow-blue-950/40"
+              : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-[#18263d]/60 border border-transparent"
           }`}
         >
-          <Tag className="w-4 h-4" /> Cupones & Promociones ({coupons.length})
+          <Tag className="w-4 h-4 text-emerald-400" /> Cupones & Promociones ({coupons.length})
         </button>
       </div>
 
@@ -597,7 +601,7 @@ export function OnlineOrdersPage() {
       {activeTab === "ORDERS" && (
         <div className="space-y-4">
           {/* Filter Bar */}
-          <div className="flex flex-col sm:flex-row gap-3 items-center justify-between p-3 rounded-2xl bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border border-slate-200/80 dark:border-slate-800/80 shadow-xs">
+          <div className="flex flex-col sm:flex-row gap-3 items-center justify-between p-3 rounded-2xl bg-white dark:bg-[#131f33] border border-slate-200/90 dark:border-[#1e324f] shadow-xs">
             <div className="flex items-center gap-1.5 overflow-x-auto w-full sm:w-auto pb-1 sm:pb-0 scrollbar-none">
               {[
                 { id: "ALL", label: "Todas" },
@@ -610,10 +614,10 @@ export function OnlineOrdersPage() {
                 <button
                   key={tab.id}
                   onClick={() => setStatusFilter(tab.id)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all whitespace-nowrap cursor-pointer ${
+                  className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all whitespace-nowrap cursor-pointer font-sirac-title tracking-wide ${
                     statusFilter === tab.id
-                      ? "bg-blue-600 text-white shadow-sm shadow-blue-600/20"
-                      : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60"
+                      ? "bg-[#18263d] text-blue-300 border border-blue-400/40 shadow-xs"
+                      : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-[#18263d]/50"
                   }`}
                 >
                   {tab.label}

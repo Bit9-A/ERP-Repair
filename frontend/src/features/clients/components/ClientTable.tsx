@@ -17,12 +17,17 @@ export function ClientTable({ clients, onEdit, onDelete, onViewHistory }: Client
       horizontalSpacing="md"
       verticalSpacing="sm"
       styles={{
-        tr: { transition: "background 200ms ease" },
+        tr: { transition: "background 150ms ease" },
         th: {
-          color: "#94A3B8",
-          fontSize: "12px",
+          color: "#94a3b8",
+          fontSize: "11px",
+          fontWeight: 700,
           textTransform: "uppercase",
-          letterSpacing: "0.05em",
+          letterSpacing: "0.12em",
+          fontFamily: "'Titillium Web', sans-serif",
+          paddingTop: "14px",
+          paddingBottom: "14px",
+          borderBottom: "1px solid var(--border-subtle)",
         },
         td: {
           borderColor: "var(--border-subtle)",
@@ -31,7 +36,7 @@ export function ClientTable({ clients, onEdit, onDelete, onViewHistory }: Client
         },
       }}
     >
-      <Table.Thead>
+      <Table.Thead className="bg-slate-50/70 dark:bg-[#18263d]/50">
         <Table.Tr>
           <Table.Th>Nombre / Cédula</Table.Th>
           <Table.Th>Contacto</Table.Th>
@@ -45,33 +50,35 @@ export function ClientTable({ clients, onEdit, onDelete, onViewHistory }: Client
         {clients.length === 0 ? (
           <Table.Tr>
             <Table.Td colSpan={6} align="center">
-              <Text c="dimmed" fs="italic" py="lg">
+              <Text c="dimmed" fs="italic" py="lg" className="font-sirac-sub text-xs">
                 No hay clientes registrados o que coincidan con la búsqueda.
               </Text>
             </Table.Td>
           </Table.Tr>
         ) : (
           clients.map((client) => (
-            <Table.Tr key={client.id}>
+            <Table.Tr key={client.id} className="hover:bg-slate-50/80 dark:hover:bg-[#18263d]/50 transition-colors">
               {/* Nombre e Identificación */}
               <Table.Td>
-                <Text fw={600} size="sm">
+                <Text fw={700} size="sm" className="font-sirac-title text-slate-900 dark:text-white">
                   {client.nombre}
                 </Text>
-                <Text size="xs" c="dimmed" ff="monospace">
+                <Text size="xs" className="font-mono text-blue-600 dark:text-blue-400 font-semibold">
                   {client.cedula}
                 </Text>
               </Table.Td>
 
               {/* Contacto */}
               <Table.Td>
-                <Text size="sm">{client.telefono}</Text>
+                <Text size="sm" className="font-sirac-sub font-medium text-slate-800 dark:text-slate-200">
+                  {client.telefono}
+                </Text>
                 {client.correo ? (
-                  <Text size="xs" c="dimmed">
+                  <Text size="xs" c="dimmed" className="font-sirac-sub">
                     {client.correo}
                   </Text>
                 ) : (
-                  <Text size="xs" c="dimmed" fs="italic">
+                  <Text size="xs" c="dimmed" fs="italic" className="font-sirac-sub">
                     Sin correo
                   </Text>
                 )}
@@ -82,6 +89,8 @@ export function ClientTable({ clients, onEdit, onDelete, onViewHistory }: Client
                 <Badge
                   variant="light"
                   color={client._count?.tickets ? "blue" : "gray"}
+                  radius="md"
+                  className="font-mono font-bold text-xs"
                 >
                   {client._count?.tickets ?? 0}
                 </Badge>
@@ -92,6 +101,8 @@ export function ClientTable({ clients, onEdit, onDelete, onViewHistory }: Client
                 <Badge
                   variant="light"
                   color={client._count?.ventas ? "green" : "gray"}
+                  radius="md"
+                  className="font-mono font-bold text-xs"
                 >
                   {client._count?.ventas ?? 0}
                 </Badge>
@@ -99,7 +110,7 @@ export function ClientTable({ clients, onEdit, onDelete, onViewHistory }: Client
 
               {/* Fecha Registro */}
               <Table.Td style={{ textAlign: "right" }}>
-                <Text size="sm" c="dimmed">
+                <Text size="xs" c="dimmed" className="font-sirac-sub">
                   {new Date(client.createdAt).toLocaleDateString()}
                 </Text>
               </Table.Td>
@@ -110,8 +121,9 @@ export function ClientTable({ clients, onEdit, onDelete, onViewHistory }: Client
                   <Tooltip label="Ver Historial de Reparaciones">
                     <ActionIcon
                       variant="subtle"
-                      color="violet"
+                      color="indigo"
                       size="sm"
+                      radius="md"
                       onClick={() => onViewHistory(client)}
                     >
                       <IconClock size={16} />
@@ -122,6 +134,7 @@ export function ClientTable({ clients, onEdit, onDelete, onViewHistory }: Client
                       variant="subtle"
                       color="blue"
                       size="sm"
+                      radius="md"
                       onClick={() => onEdit(client)}
                     >
                       <IconPencil size={16} />
@@ -132,6 +145,7 @@ export function ClientTable({ clients, onEdit, onDelete, onViewHistory }: Client
                       variant="subtle"
                       color="red"
                       size="sm"
+                      radius="md"
                       onClick={() => {
                         modals.openConfirmModal({
                           title: "Eliminar Cliente",

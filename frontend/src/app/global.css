@@ -5,6 +5,17 @@
 @tailwind components;
 @tailwind utilities;
 
+.font-sirac-title {
+  font-family: 'Titillium Web', 'Outfit', sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.font-sirac-sub {
+  font-family: 'Titillium Web', sans-serif;
+  letter-spacing: 0.02em;
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -351,17 +362,17 @@ html[data-animations="disabled"] *::after {
 
 /* â”€â”€ Dark Mode (default) â”€â”€ */
 [data-mantine-color-scheme="dark"] {
-  --bg-main: #0f172a;
-  --bg-card: #1e293b;
-  --bg-elevated: #263548;
+  --bg-main: #0b1320;
+  --bg-card: #131f33;
+  --bg-elevated: #18263d;
 
-  --text-primary: #f1f5f9;
+  --text-primary: #f8fafc;
   --text-secondary: #94a3b8;
   --text-muted: #64748b;
 
-  --border-subtle: rgba(255, 255, 255, 0.06);
-  --border-default: rgba(255, 255, 255, 0.12);
-  --border-strong: rgba(255, 255, 255, 0.2);
+  --border-subtle: #1e324f;
+  --border-default: #294163;
+  --border-strong: #334d75;
 }
 
 /* â”€â”€ Light Mode (Premium Tech / Refined Utilitarian) â”€â”€ */
@@ -601,4 +612,32 @@ html[data-animations="disabled"] *::after {
   .mantine-Modal-inner {
     padding: 4px;
   }
+}
+
+/* =========================================================================
+   SIRAC Institutional Dark Mode (70% Sirac / 30% Sigepat)
+   ========================================================================= */
+html.dark body {
+  background-color: #0b1320 !important;
+  color: #f8fafc !important;
+}
+
+html.dark .bg-slate-950,
+html.dark .bg-slate-900\/40,
+html.dark .bg-slate-100\/60 {
+  background-color: #0b1320 !important;
+}
+
+html.dark .bg-slate-900,
+html.dark .bg-slate-900\/80,
+html.dark .bg-slate-900\/70,
+html.dark .bg-slate-900\/60,
+html.dark .bg-slate-900\/50 {
+  background-color: #131f33 !important;
+}
+
+html.dark .border-slate-800,
+html.dark .border-slate-800\/80,
+html.dark .border-slate-800\/60 {
+  border-color: #1e324f !important;
 }

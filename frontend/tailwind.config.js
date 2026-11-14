@@ -17,6 +17,7 @@ export default {
       fontFamily: {
         sans: ['"Plus Jakarta Sans"', "Inter", "system-ui", "-apple-system", "sans-serif"],
         heading: ['"Outfit"', '"Plus Jakarta Sans"', "sans-serif"],
+        titillium: ['"Titillium Web"', '"Outfit"', "sans-serif"],
         mono: ['"Fira Code"', "monospace"],
       },
       colors: {

@@ -35,20 +35,25 @@ export function StatCard({
       }}
       className="relative overflow-hidden rounded-2xl p-5 transition-all duration-300"
     >
-      {/* Background card with glass effect and subtle ambient glow */}
-      <div className="absolute inset-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border border-slate-200/80 dark:border-slate-800/80 shadow-[0_4px_24px_-4px_rgba(15,23,42,0.06)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.25)] rounded-2xl transition-colors" />
+      {/* Background card with Sirac midnight surface + Sigepat border radius */}
+      <div className="absolute inset-0 bg-white dark:bg-[#131f33] border border-slate-200/90 dark:border-[#1e324f] hover:border-slate-300 dark:hover:border-blue-500/40 shadow-xs dark:shadow-md dark:shadow-[#070d18]/40 rounded-2xl transition-all" />
 
       {/* Top accent line with ambient glow */}
       <div
-        className="absolute top-0 left-0 right-0 h-[3px] opacity-90 transition-opacity"
+        className="absolute top-0 left-0 right-0 h-[2.5px] opacity-90 transition-opacity"
         style={{
-          background: `linear-gradient(90deg, ${accentColor} 0%, color-mix(in srgb, ${accentColor} 40%, transparent) 100%)`,
+          background: `linear-gradient(90deg, ${accentColor} 0%, color-mix(in srgb, ${accentColor} 30%, transparent) 100%)`,
         }}
       />
 
+      {/* SIGEPAT watermark icon behind card */}
+      <div className="absolute -right-2 -bottom-2 w-20 h-20 opacity-[0.04] dark:opacity-[0.06] text-slate-900 dark:text-white pointer-events-none flex items-center justify-center scale-125 rotate-12">
+        {icon}
+      </div>
+
       {/* Subtle radial corner glow */}
       <div
-        className="absolute -top-12 -right-12 w-28 h-28 rounded-full blur-2xl pointer-events-none opacity-20 dark:opacity-30"
+        className="absolute -top-12 -right-12 w-28 h-28 rounded-full blur-2xl pointer-events-none opacity-15 dark:opacity-25"
         style={{ background: accentColor }}
       />
 
@@ -58,8 +63,8 @@ export function StatCard({
           <div className="flex-1 min-w-0 pr-2">
             <Text
               size="xs"
-              fw={600}
-              className="text-slate-500 dark:text-slate-400 uppercase tracking-wider font-sans truncate"
+              fw={700}
+              className="text-slate-500 dark:text-slate-400 uppercase tracking-[0.14em] font-sirac-title truncate text-[11px]"
             >
               {title}
             </Text>
@@ -76,11 +81,11 @@ export function StatCard({
 
           {/* Icon Badge capsule */}
           <div
-            className="flex items-center justify-center w-11 h-11 rounded-xl shadow-sm transition-transform duration-300 group-hover:scale-105 shrink-0"
+            className="flex items-center justify-center w-11 h-11 rounded-xl shadow-xs transition-transform duration-300 group-hover:scale-105 shrink-0"
             style={{
-              background: `color-mix(in srgb, ${accentColor} 14%, transparent)`,
+              background: `color-mix(in srgb, ${accentColor} 12%, transparent)`,
               color: accentColor,
-              border: `1px solid color-mix(in srgb, ${accentColor} 26%, transparent)`,
+              border: `1px solid color-mix(in srgb, ${accentColor} 24%, transparent)`,
             }}
           >
             <div className="w-5 h-5 flex items-center justify-center">
@@ -90,9 +95,9 @@ export function StatCard({
         </Group>
 
         {/* Footer info: Subtitle or Trend indicator */}
-        <div className="pt-2 mt-auto border-t border-slate-100 dark:border-slate-800/60 flex items-center justify-between text-xs">
+        <div className="pt-2 mt-auto border-t border-slate-100 dark:border-[#1e324f]/70 flex items-center justify-between text-xs font-sirac-sub">
           {subtitle && (
-            <Text size="xs" className="text-slate-500 dark:text-slate-400 font-medium">
+            <Text size="xs" className="text-slate-500 dark:text-slate-400 font-medium font-sirac-sub">
               {subtitle}
             </Text>
           )}

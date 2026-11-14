@@ -7,7 +7,6 @@ import {
   Stack,
   Text,
   TextInput,
-  Title,
   Select,
   Badge,
   Divider,
@@ -256,50 +255,77 @@ export function InventoryPage() {
     <Stack gap="xl" pos="relative">
       <LoadingOverlay visible={isLoading} />
 
-      {/* Header */}
-      <Group justify="space-between" align="center" wrap="wrap" gap="sm">
-        <Title order={2}>Inventario</Title>
-        <Group gap="sm">
-          <Button
-            variant="subtle"
-            color="gray"
-            leftSection={<IconDownload size={16} />}
-            size="sm"
-            onClick={handleExport}
-            loading={isExporting}
-          >
-            Exportar Inventario
-          </Button>
-          <Button
-            variant="subtle"
-            color="gray"
-            leftSection={<IconDownload size={16} />}
-            size="sm"
-            onClick={handleExportMovimientos}
-            loading={isExportingMovs}
-          >
-            Exportar Movimientos
-          </Button>
-          <Button
-            variant="light"
-            color="blue"
-            leftSection={<IconArrowsExchange size={16} />}
-            onClick={openTransfer}
-            size="sm"
-          >
-            Trasladar Mercancía
-          </Button>
-          {permisos.inventario.crearProducto && (
+      {/* ── Executive Header (70% Sirac + 30% Sigepat) ── */}
+      <div className="relative overflow-hidden rounded-[24px] p-6 lg:p-7 bg-gradient-to-r from-[#0b1320] via-[#131f33] to-[#18263d] text-white shadow-xl border border-[#1e324f]">
+        {/* SIGEPAT watermark decorative icon */}
+        <IconPackage className="absolute -right-6 -bottom-6 w-48 h-48 text-blue-400/[0.04] pointer-events-none rotate-12" />
+
+        <Group justify="space-between" align="center" wrap="wrap" gap="md" className="relative z-10">
+          <div>
+            <div className="flex items-center gap-2 mb-1.5">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/15 text-blue-300 ring-1 ring-blue-500/30 uppercase tracking-widest font-sirac-title">
+                <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
+                MÓDULO DE OPERACIONES
+              </span>
+              <span className="text-[10px] font-bold text-slate-300 bg-white/5 px-2.5 py-0.5 rounded-full uppercase tracking-wider font-sirac-title border border-white/5">
+                {products.length} ARTÍCULOS
+              </span>
+            </div>
+
+            <h1 className="text-2xl lg:text-3xl font-bold font-sirac-title text-white tracking-wide uppercase">
+              Inventario & Almacén Central
+            </h1>
+            <p className="text-xs text-slate-300/80 mt-0.5 font-sirac-sub">
+              Catálogo de repuestos, accesorios, traslados entre sucursales y alertas de stock mínimo
+            </p>
+          </div>
+
+          <Group gap="sm" wrap="wrap">
             <Button
-              leftSection={<IconPlus size={16} />}
-              onClick={handleNew}
+              variant="default"
+              color="gray"
+              leftSection={<IconDownload size={15} />}
               size="sm"
+              onClick={handleExport}
+              loading={isExporting}
+              className="bg-[#18263d]/80 hover:bg-[#18263d] text-white border-[#294163] rounded-xl text-xs font-semibold h-9 px-3.5 transition-all font-sirac-title tracking-wide"
             >
-              Nuevo Producto
+              Exportar
             </Button>
-          )}
+            <Button
+              variant="default"
+              color="gray"
+              leftSection={<IconDownload size={15} />}
+              size="sm"
+              onClick={handleExportMovimientos}
+              loading={isExportingMovs}
+              className="bg-[#18263d]/80 hover:bg-[#18263d] text-white border-[#294163] rounded-xl text-xs font-semibold h-9 px-3.5 transition-all font-sirac-title tracking-wide"
+            >
+              Movimientos
+            </Button>
+            <Button
+              variant="light"
+              color="blue"
+              leftSection={<IconArrowsExchange size={16} />}
+              onClick={openTransfer}
+              size="sm"
+              className="rounded-xl text-xs font-bold h-9 px-3.5 transition-all font-sirac-title tracking-wide"
+            >
+              Trasladar
+            </Button>
+            {permisos.inventario.crearProducto && (
+              <Button
+                leftSection={<IconPlus size={16} />}
+                onClick={handleNew}
+                size="sm"
+                className="bg-blue-600 hover:bg-blue-500 text-white rounded-xl shadow-lg shadow-blue-600/30 text-xs font-bold h-9 px-4 transition-all font-sirac-title tracking-wider uppercase"
+              >
+                Nuevo Producto
+              </Button>
+            )}
+          </Group>
         </Group>
-      </Group>
+      </div>
 
       {/* Summary KPI Cards */}
       <SimpleGrid cols={{ base: 1, sm: 3 }} spacing="md">

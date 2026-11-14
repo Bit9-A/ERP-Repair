@@ -16,18 +16,18 @@ const brand: MantineColorsTuple = [
   "#07182b", // 9
 ];
 
-// Dark-mode palette (used when colorScheme = "dark")
+// Dark-mode palette (Sirac Midnight: #0b1320 / #131f33)
 const darkPalette: MantineColorsTuple = [
   "#C1C2C5", // 0 — muted text
   "#A6A7AB", // 1
   "#909296", // 2
   "#5C5F66", // 3
-  "#373A40", // 4
-  "#2C2E33", // 5
-  "#1E293B", // 6 — card surface
-  "#0F172A", // 7 — main content bg
-  "#0B1120", // 8
-  "#020617", // 9 — deepest bg / sidebar
+  "#294163", // 4 — border subtle
+  "#1e324f", // 5 — border default
+  "#131f33", // 6 — card surface (SIRAC)
+  "#0b1320", // 7 — main content bg (SIRAC)
+  "#080e18", // 8
+  "#040810", // 9 — deepest bg
 ];
 
 export const theme = createTheme({

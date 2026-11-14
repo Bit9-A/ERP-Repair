@@ -58,7 +58,7 @@ export function AppShell() {
   };
 
   return (
-    <div className="min-h-screen flex bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans antialiased">
+    <div className="min-h-screen flex bg-[#f8fafc] dark:bg-[#0b1320] text-slate-900 dark:text-slate-100 font-sans antialiased">
       {/* Mobile Sidebar Overlay Drawer */}
       <AnimatePresence>
         {isMobile && sidebarOpen && (
@@ -112,7 +112,7 @@ export function AppShell() {
 
         <GlobalSpotlight />
 
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 bg-slate-100/60 dark:bg-slate-900/40">
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 bg-[#f8fafc] dark:bg-[#0b1320] transition-colors">
           <motion.div
             key={location.pathname}
             initial={{ opacity: 0, y: 8 }}

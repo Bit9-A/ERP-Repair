@@ -119,46 +119,46 @@ const colorMap: Record<
   { bg: string; border: string; hover: string; accent: string; subBg: string }
 > = {
   slate: {
-    bg: "bg-slate-950",
-    border: "border-slate-900/80",
-    hover: "hover:bg-slate-900",
-    accent: "bg-blue-600",
-    subBg: "bg-slate-900/60",
+    bg: "bg-[#0b1320]",
+    border: "border-[#1e324f]",
+    hover: "hover:bg-[#18263d]",
+    accent: "bg-gradient-to-r from-[#243f5d] to-[#18263d] text-white border border-blue-400/30 shadow-md shadow-blue-950/50",
+    subBg: "bg-[#131f33]/90",
   },
   "slate-light": {
-    bg: "bg-slate-900",
-    border: "border-slate-800",
-    hover: "hover:bg-slate-800",
-    accent: "bg-slate-600",
-    subBg: "bg-slate-800/50",
+    bg: "bg-[#0f1a2e]",
+    border: "border-[#1e324f]",
+    hover: "hover:bg-[#18263d]",
+    accent: "bg-[#243f5d] text-white",
+    subBg: "bg-[#131f33]/80",
   },
   blue: {
-    bg: "bg-blue-950",
-    border: "border-blue-900/80",
-    hover: "hover:bg-blue-900/80",
-    accent: "bg-blue-600",
-    subBg: "bg-blue-900/50",
+    bg: "bg-[#0b1320]",
+    border: "border-[#1e324f]",
+    hover: "hover:bg-blue-900/40",
+    accent: "bg-blue-600 text-white shadow-md shadow-blue-950/50",
+    subBg: "bg-blue-950/40",
   },
   indigo: {
-    bg: "bg-indigo-950",
-    border: "border-indigo-900/80",
-    hover: "hover:bg-indigo-900/80",
-    accent: "bg-indigo-600",
-    subBg: "bg-indigo-900/50",
+    bg: "bg-[#0b1320]",
+    border: "border-[#1e324f]",
+    hover: "hover:bg-indigo-900/40",
+    accent: "bg-indigo-600 text-white shadow-md shadow-indigo-950/50",
+    subBg: "bg-indigo-950/40",
   },
   violet: {
-    bg: "bg-violet-950",
-    border: "border-violet-900/80",
-    hover: "hover:bg-violet-900/80",
-    accent: "bg-violet-600",
-    subBg: "bg-violet-900/50",
+    bg: "bg-[#0b1320]",
+    border: "border-[#1e324f]",
+    hover: "hover:bg-violet-900/40",
+    accent: "bg-violet-600 text-white shadow-md shadow-violet-950/50",
+    subBg: "bg-violet-950/40",
   },
   zinc: {
-    bg: "bg-zinc-950",
-    border: "border-zinc-900/80",
-    hover: "hover:bg-zinc-900/80",
-    accent: "bg-zinc-700",
-    subBg: "bg-zinc-900/50",
+    bg: "bg-[#0b1320]",
+    border: "border-[#1e324f]",
+    hover: "hover:bg-[#18263d]",
+    accent: "bg-zinc-700 text-white shadow-md shadow-zinc-950/50",
+    subBg: "bg-[#131f33]/80",
   },
   stone: {
     bg: "bg-stone-950",
@@ -258,27 +258,30 @@ export function Sidebar({
         {/* Brand Header */}
         <div
           className={cn(
-            "h-16 flex items-center px-4 border-b transition-all",
+            "h-16 flex items-center px-4 border-b transition-all relative overflow-hidden",
             c.border,
             isCollapsed ? "justify-center" : "justify-between"
           )}
         >
+          {/* SIGEPAT watermark icon */}
+          <Wrench className="absolute -right-3 -top-2 w-16 h-16 text-white/[0.03] pointer-events-none rotate-12" />
+
           {!isCollapsed ? (
-            <div className="flex items-center gap-3 overflow-hidden">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center font-black text-sm text-white shadow-lg shadow-blue-500/20 ring-2 ring-blue-400/20 flex-shrink-0 font-heading">
+            <div className="flex items-center gap-3 overflow-hidden z-10">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#243f5d] to-blue-600 flex items-center justify-center font-black text-sm text-white shadow-lg shadow-blue-950/50 ring-1 ring-blue-400/30 flex-shrink-0 font-sirac-title">
                 TL
               </div>
               <div className="flex flex-col min-w-0">
-                <span className="font-heading font-extrabold text-sm tracking-tight text-white uppercase truncate">
+                <span className="font-sirac-title font-bold text-sm tracking-wider text-white uppercase truncate">
                   TECHLAND
                 </span>
-                <span className="text-[9px] font-black text-blue-400 uppercase tracking-widest truncate">
-                  ERP & Store B2B
+                <span className="font-sirac-sub text-[9px] font-semibold text-blue-400 uppercase tracking-widest truncate">
+                  SISTEMA DE GESTIÓN ERP
                 </span>
               </div>
             </div>
           ) : (
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center font-black text-sm text-white shadow-lg shadow-blue-500/20 ring-2 ring-blue-400/20 font-heading">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#243f5d] to-blue-600 flex items-center justify-center font-black text-sm text-white shadow-lg shadow-blue-950/50 ring-1 ring-blue-400/30 font-sirac-title z-10">
               TL
             </div>
           )}
@@ -287,7 +290,7 @@ export function Sidebar({
           {!isMobile && onToggleCollapse && !isCollapsed && (
             <button
               onClick={onToggleCollapse}
-              className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-colors"
+              className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-colors z-10"
               title="Colapsar menú"
             >
               <ChevronLeft size={18} />
@@ -306,7 +309,7 @@ export function Sidebar({
             return (
               <div key={sec} className="space-y-1.5">
                 {!isCollapsed && (
-                  <div className="px-3 text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 font-heading">
+                  <div className="px-3 text-[10px] font-bold text-slate-400/90 uppercase tracking-[0.18em] mb-2 font-sirac-title">
                     {sec}
                   </div>
                 )}
@@ -326,25 +329,25 @@ export function Sidebar({
                         onClick={() => handleNavClick(item.path)}
                         title={isCollapsed ? item.label : undefined}
                         className={cn(
-                          "w-full flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all group relative",
+                          "w-full flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all group relative font-sirac-title",
                           isCollapsed ? "justify-center px-0 py-3" : "",
                           isActive
-                            ? cn(c.accent, "text-white font-semibold shadow-md shadow-black/20")
-                            : "text-slate-400 hover:text-slate-100 hover:bg-white/5"
+                            ? "bg-[#18263d] text-blue-300 border border-blue-400/40 shadow-md shadow-blue-950/50"
+                            : "text-slate-400 hover:text-slate-100 hover:bg-[#18263d]/40"
                         )}
                       >
                         <Icon
-                          size={20}
+                          size={19}
                           className={cn(
                             "flex-shrink-0 transition-transform duration-200",
                             isActive
-                              ? "text-white scale-105"
-                              : "text-slate-400 group-hover:text-blue-400 group-hover:scale-110"
+                              ? "text-blue-400 scale-105"
+                              : "text-slate-400 group-hover:text-blue-300 group-hover:scale-105"
                           )}
                         />
 
                         {!isCollapsed && (
-                          <span className="truncate tracking-tight font-semibold">
+                          <span className="truncate tracking-wide font-medium">
                             {item.label}
                           </span>
                         )}
@@ -352,7 +355,7 @@ export function Sidebar({
                         {isActive && !isCollapsed && (
                           <motion.div
                             layoutId="activeIndicator"
-                            className="ml-auto w-1.5 h-1.5 rounded-full bg-white shadow-sm"
+                            className="ml-auto w-1.5 h-1.5 rounded-full bg-blue-400 shadow-[0_0_8px_rgba(96,165,250,0.8)]"
                           />
                         )}
                       </button>
@@ -373,7 +376,7 @@ export function Sidebar({
           c.bg
         )}
       >
-        {/* Status indicator (SIGEPAT style) */}
+        {/* Status indicator (SIGEPAT + SIRAC style) */}
         <AnimatePresence>
           {!isCollapsed && (
             <motion.div
@@ -381,19 +384,19 @@ export function Sidebar({
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 6 }}
               className={cn(
-                "rounded-xl p-3 border flex items-center justify-between shadow-inner",
+                "rounded-2xl p-2.5 border flex items-center justify-between shadow-inner",
                 c.subBg,
                 c.border
               )}
             >
               <div className="flex flex-col gap-0.5">
-                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest font-heading">
+                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest font-sirac-title">
                   ESTADO SISTEMA
                 </span>
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_#10b981] animate-pulse" />
-                  <span className="text-[10px] font-bold text-slate-200 uppercase tracking-tight font-mono">
-                    En Línea
+                  <span className="text-[10px] font-bold text-slate-200 uppercase tracking-tight font-sirac-sub">
+                    En Línea • SIRAC/ALLCODE
                   </span>
                 </div>
               </div>
@@ -412,17 +415,17 @@ export function Sidebar({
           )}
         >
           {/* Avatar */}
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center font-black text-xs text-white shadow-md ring-2 ring-blue-500/20 flex-shrink-0 font-heading">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#243f5d] to-blue-600 flex items-center justify-center font-bold text-xs text-white shadow-md ring-1 ring-blue-400/30 flex-shrink-0 font-sirac-title">
             {(user?.nombre || "A").charAt(0).toUpperCase()}
           </div>
 
           {!isCollapsed ? (
             <>
               <div className="flex-1 min-w-0">
-                <div className="font-bold text-xs uppercase tracking-tight truncate text-white font-heading">
+                <div className="font-bold text-xs uppercase tracking-tight truncate text-white font-sirac-title">
                   {user?.nombre || "Usuario"}
                 </div>
-                <div className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider truncate">
+                <div className="text-[9.5px] font-semibold text-slate-400 uppercase tracking-wider truncate font-sirac-sub">
                   {user?.rol || "Técnico"}
                 </div>
               </div>

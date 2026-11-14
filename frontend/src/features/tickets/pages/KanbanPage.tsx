@@ -5,14 +5,11 @@ import {
   Stack,
   LoadingOverlay,
   SegmentedControl,
-  Badge,
   TextInput,
   Select,
   Tabs,
-  Paper,
   Text,
   SimpleGrid,
-  ThemeIcon,
 } from "@mantine/core";
 import { useSearchParams } from "react-router-dom";
 import { useDisclosure } from "@mantine/hooks";
@@ -276,30 +273,29 @@ export function KanbanPage() {
     <Stack gap="lg" pos="relative">
       <LoadingOverlay visible={isLoading} />
 
-      {/* ── Executive Header ── */}
-      <Paper
-        p="lg"
-        radius="lg"
-        withBorder
-        style={{
-          background: "var(--bg-card)",
-          borderColor: "var(--border-subtle)",
-          boxShadow: "0 4px 20px rgba(15, 23, 42, 0.03)",
-        }}
-      >
-        <Group justify="space-between" align="center" wrap="wrap" gap="md">
+      {/* ── Executive Header (70% Sirac + 30% Sigepat) ── */}
+      <div className="relative overflow-hidden rounded-[24px] p-6 lg:p-7 bg-gradient-to-r from-[#0b1320] via-[#131f33] to-[#18263d] text-white shadow-xl border border-[#1e324f]">
+        {/* SIGEPAT watermark decorative icon */}
+        <IconTool className="absolute -right-6 -bottom-6 w-48 h-48 text-blue-400/[0.04] pointer-events-none rotate-12" />
+
+        <Group justify="space-between" align="center" wrap="wrap" gap="md" className="relative z-10">
           <div>
-            <Group gap="xs" align="center">
-              <Text size="xl" fw={800} className="font-heading tracking-tight">
-                Taller de Reparaciones
-              </Text>
-              <Badge variant="light" color="blue" size="md">
-                {tickets.length} activas
-              </Badge>
-            </Group>
-            <Text size="xs" c="dimmed" mt={2}>
+            <div className="flex items-center gap-2 mb-1.5">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/15 text-blue-300 ring-1 ring-blue-500/30 uppercase tracking-widest font-sirac-title">
+                <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
+                MÓDULO DE OPERACIONES
+              </span>
+              <span className="text-[10px] font-bold text-slate-300 bg-white/5 px-2.5 py-0.5 rounded-full uppercase tracking-wider font-sirac-title border border-white/5">
+                {tickets.length} ACTIVAS
+              </span>
+            </div>
+
+            <h1 className="text-2xl lg:text-3xl font-bold font-sirac-title text-white tracking-wide uppercase">
+              Taller de Reparaciones
+            </h1>
+            <p className="text-xs text-slate-300/80 mt-0.5 font-sirac-sub">
               Flujo de servicio técnico, inspección de dispositivos, repuestos y liquidación
-            </Text>
+            </p>
           </div>
 
           <Group gap="sm">
@@ -309,140 +305,124 @@ export function KanbanPage() {
               leftSection={<IconDownload size={15} />}
               loading={isExporting}
               onClick={handleExport}
+              className="bg-[#18263d]/80 hover:bg-[#18263d] text-white border-[#294163] rounded-xl text-xs font-semibold h-9 px-3.5 transition-all font-sirac-title tracking-wide"
             >
               Exportar
             </Button>
 
             <Button
               size="sm"
-              color="blue"
               leftSection={<IconPlus size={16} />}
               onClick={() => {
                 setSelectedTicket(null);
                 openForm();
               }}
-              style={{
-                boxShadow: "0 4px 12px rgba(59, 130, 246, 0.25)",
-              }}
+              className="bg-blue-600 hover:bg-blue-500 text-white rounded-xl shadow-lg shadow-blue-600/30 text-xs font-bold h-9 px-4 transition-all font-sirac-title tracking-wider uppercase"
             >
               Nueva Orden
             </Button>
           </Group>
         </Group>
 
-        {/* ── Stat Cards Grid ── */}
-        <SimpleGrid cols={{ base: 2, sm: 4 }} spacing="md" mt="lg">
+        {/* ── Stat Cards Grid (70% Sirac / 30% Sigepat) ── */}
+        <SimpleGrid cols={{ base: 2, sm: 4 }} spacing="md" mt="lg" className="relative z-10">
           {/* Total Activas */}
-          <Paper
-            p="md"
-            radius="md"
-            style={{
-              background: "var(--bg-elevated)",
-              border: "1px solid var(--border-subtle)",
-            }}
-          >
+          <div className="rounded-2xl p-4 bg-white/95 dark:bg-[#131f33] border border-slate-200/90 dark:border-[#1e324f] shadow-xs transition-all hover:border-blue-400/40">
             <Group justify="space-between" align="flex-start">
               <Stack gap={2}>
-                <Text size="xs" fw={600} c="dimmed">
+                <Text size="xs" fw={700} className="font-sirac-title text-slate-500 dark:text-slate-400 text-[10.5px] uppercase tracking-[0.14em]">
                   TOTAL ACTIVAS
                 </Text>
-                <Text size="xl" fw={800} className="font-heading">
+                <Text size="xl" fw={800} className="font-heading text-slate-900 dark:text-white text-2xl">
                   {metrics.total}
                 </Text>
               </Stack>
-              <ThemeIcon size="md" radius="md" color="blue" variant="light">
+              <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/40 border border-blue-200/60 dark:border-blue-800/40 flex items-center justify-center text-blue-600 dark:text-blue-400">
                 <IconTool size={18} />
-              </ThemeIcon>
+              </div>
             </Group>
-          </Paper>
+          </div>
 
           {/* En Taller */}
-          <Paper
-            p="md"
-            radius="md"
-            style={{
-              background: "var(--bg-elevated)",
-              border: "1px solid var(--border-subtle)",
-            }}
-          >
+          <div className="rounded-2xl p-4 bg-white/95 dark:bg-[#131f33] border border-slate-200/90 dark:border-[#1e324f] shadow-xs transition-all hover:border-blue-400/40">
             <Group justify="space-between" align="flex-start">
               <Stack gap={2}>
-                <Text size="xs" fw={600} c="dimmed">
+                <Text size="xs" fw={700} className="font-sirac-title text-slate-500 dark:text-slate-400 text-[10.5px] uppercase tracking-[0.14em]">
                   EN REVISIÓN / ESPERA
                 </Text>
-                <Text size="xl" fw={800} className="font-heading" c="blue">
+                <Text size="xl" fw={800} className="font-heading text-blue-600 dark:text-blue-400 text-2xl">
                   {metrics.enTaller}
                 </Text>
               </Stack>
-              <ThemeIcon size="md" radius="md" color="blue" variant="light">
+              <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200/60 dark:border-amber-800/40 flex items-center justify-center text-amber-600 dark:text-amber-400">
                 <IconClockHour4 size={18} />
-              </ThemeIcon>
+              </div>
             </Group>
-          </Paper>
+          </div>
 
           {/* Listas para entrega */}
-          <Paper
-            p="md"
-            radius="md"
-            style={{
-              background: "var(--bg-elevated)",
-              border: "1px solid var(--border-subtle)",
-            }}
-          >
+          <div className="rounded-2xl p-4 bg-white/95 dark:bg-[#131f33] border border-slate-200/90 dark:border-[#1e324f] shadow-xs transition-all hover:border-blue-400/40">
             <Group justify="space-between" align="flex-start">
               <Stack gap={2}>
-                <Text size="xs" fw={600} c="dimmed">
+                <Text size="xs" fw={700} className="font-sirac-title text-slate-500 dark:text-slate-400 text-[10.5px] uppercase tracking-[0.14em]">
                   LISTAS PARA ENTREGA
                 </Text>
-                <Text size="xl" fw={800} className="font-heading" c="green">
+                <Text size="xl" fw={800} className="font-heading text-emerald-600 dark:text-emerald-400 text-2xl">
                   {metrics.reparados}
                 </Text>
               </Stack>
-              <ThemeIcon size="md" radius="md" color="green" variant="light">
+              <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200/60 dark:border-emerald-800/40 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
                 <IconCircleCheck size={18} />
-              </ThemeIcon>
+              </div>
             </Group>
-          </Paper>
+          </div>
 
           {/* Abandono o Alerta (+60d) */}
-          <Paper
-            p="md"
-            radius="md"
-            style={{
-              background: metrics.abandonoOAlerta > 0
-                ? "rgba(239, 68, 68, 0.05)"
-                : "var(--bg-elevated)",
-              border: metrics.abandonoOAlerta > 0
-                ? "1px solid rgba(239, 68, 68, 0.2)"
-                : "1px solid var(--border-subtle)",
-            }}
+          <div
+            className={`rounded-2xl p-4 border shadow-xs transition-all ${
+              metrics.abandonoOAlerta > 0
+                ? "bg-red-50/50 dark:bg-red-950/20 border-red-200 dark:border-red-800/50"
+                : "bg-white/95 dark:bg-[#131f33] border-slate-200/90 dark:border-[#1e324f]"
+            }`}
           >
             <Group justify="space-between" align="flex-start">
               <Stack gap={2}>
-                <Text size="xs" fw={600} c={metrics.abandonoOAlerta > 0 ? "red" : "dimmed"}>
+                <Text
+                  size="xs"
+                  fw={700}
+                  className={`font-sirac-title text-[10.5px] uppercase tracking-[0.14em] ${
+                    metrics.abandonoOAlerta > 0
+                      ? "text-red-600 dark:text-red-400"
+                      : "text-slate-500 dark:text-slate-400"
+                  }`}
+                >
                   EN RIESGO (+60 DÍAS)
                 </Text>
                 <Text
                   size="xl"
                   fw={800}
-                  className="font-heading"
-                  c={metrics.abandonoOAlerta > 0 ? "red" : "dimmed"}
+                  className={`font-heading text-2xl ${
+                    metrics.abandonoOAlerta > 0
+                      ? "text-red-600 dark:text-red-400"
+                      : "text-slate-900 dark:text-white"
+                  }`}
                 >
                   {metrics.abandonoOAlerta}
                 </Text>
               </Stack>
-              <ThemeIcon
-                size="md"
-                radius="md"
-                color={metrics.abandonoOAlerta > 0 ? "red" : "gray"}
-                variant="light"
+              <div
+                className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                  metrics.abandonoOAlerta > 0
+                    ? "bg-red-100 dark:bg-red-950/60 border border-red-200 dark:border-red-800/60 text-red-600 dark:text-red-400"
+                    : "bg-slate-100 dark:bg-[#18263d] border border-slate-200/60 dark:border-[#294163] text-slate-400"
+                }`}
               >
                 <IconAlertTriangle size={18} />
-              </ThemeIcon>
+              </div>
             </Group>
-          </Paper>
+          </div>
         </SimpleGrid>
-      </Paper>
+      </div>
 
       {/* ── Main Tabs: Activos vs Historial ── */}
       <Tabs defaultValue="activos" keepMounted={false} radius="md">

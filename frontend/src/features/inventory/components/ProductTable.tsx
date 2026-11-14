@@ -39,12 +39,17 @@ export function ProductTable({
       horizontalSpacing="md"
       verticalSpacing="sm"
       styles={{
-        tr: { transition: "background 200ms ease", cursor: "pointer" },
+        tr: { transition: "background 150ms ease", cursor: "pointer" },
         th: {
-          color: "#94A3B8",
-          fontSize: "12px",
+          color: "#94a3b8",
+          fontSize: "11px",
+          fontWeight: 700,
           textTransform: "uppercase",
-          letterSpacing: "0.05em",
+          letterSpacing: "0.12em",
+          fontFamily: "'Titillium Web', sans-serif",
+          paddingTop: "14px",
+          paddingBottom: "14px",
+          borderBottom: "1px solid var(--border-subtle)",
         },
         td: {
           borderColor: "var(--border-subtle)",
@@ -53,7 +58,7 @@ export function ProductTable({
         },
       }}
     >
-      <Table.Thead>
+      <Table.Thead className="bg-slate-50/70 dark:bg-[#18263d]/50">
         <Table.Tr>
           <Table.Th>SKU</Table.Th>
           <Table.Th>Nombre</Table.Th>
