@@ -11,6 +11,9 @@ import {
   ActionIcon,
   Tooltip,
   Badge,
+  Switch,
+  Popover,
+  Group,
 } from "@mantine/core";
 import {
   IconPlus,
@@ -32,11 +35,16 @@ import {
   IconChevronUp,
   IconTag,
   IconCpu,
+  IconLock,
+  IconFingerprint,
+  IconShieldCheck,
+  IconShieldLock,
 } from "@tabler/icons-react";
 import { notifications } from "@mantine/notifications";
 import type { UseFormReturnType } from "@mantine/form";
 import type { TicketFormValues } from "../../types/tickets.types";
 import { BarcodeScanner } from "../../../sales/components/BarcodeScanner";
+import { PatternCanvas } from "../PatternCanvas";
 import {
   getBrandsForCategory,
   POPULAR_MODELS_BY_BRAND,
@@ -64,6 +72,7 @@ interface Step2EquipmentPanelProps {
     createMarca: any;
     createModelo: any;
   };
+  initialData?: any;
   onProceedNext?: () => void;
 }
 
@@ -84,10 +93,19 @@ export function Step2EquipmentPanel({
   state,
   queries,
   actions,
+  initialData,
 }: Step2EquipmentPanelProps) {
   const [scannerOpen, setScannerOpen] = useState(false);
   const [expandAllBrands, setExpandAllBrands] = useState(false);
   const [expandAllModels, setExpandAllModels] = useState(false);
+
+  // Estado de contraseña/bloqueo de seguridad
+  const hasExistingLock = Boolean(
+    form.values.clave?.trim() || form.values.patron_visual?.trim()
+  );
+  const [hasPassword, setHasPassword] = useState<boolean>(
+    hasExistingLock || (initialData?.clave || initialData?.patron_visual ? true : false)
+  );
 
   const {
     selectedMarcaId,
@@ -113,7 +131,6 @@ export function Step2EquipmentPanel({
 
   // Catálogo inteligente de marcas para la categoría seleccionada
   const { popular: popularBrands, all: allCategoryBrands } = useMemo(() => {
-    // Convertir marcaOptions a formato de marcas
     const dbBrands = marcaOptions.map((o) => ({ nombre: o.value }));
     return getBrandsForCategory(activeCategoryId, dbBrands);
   }, [activeCategoryId, marcaOptions]);
@@ -147,7 +164,6 @@ export function Step2EquipmentPanel({
     } else {
       form.setFieldValue("tipo_equipo", catId);
     }
-    // Si la marca actual no concuerda con la nueva categoría, permitir que el usuario elija una limpia
     setMarcaSearch("");
     setModeloSearch("");
   };
@@ -164,26 +180,31 @@ export function Step2EquipmentPanel({
     setExpandAllModels(false);
   };
 
+  const handleTogglePassword = (checked: boolean) => {
+    setHasPassword(checked);
+    if (!checked) {
+      form.setFieldValue("clave", "");
+      form.setFieldValue("patron_visual", "");
+    }
+  };
+
   return (
     <Stack gap="lg">
       {/* ── 1. Selector de Tipo de Dispositivo (Chips Interactivos) ── */}
       <Paper
         p="md"
-        radius="md"
+        radius="lg"
         withBorder
-        style={{
-          background: "var(--bg-surface)",
-          borderColor: "var(--border-subtle)",
-        }}
+        className="bg-white dark:bg-[#0b1320] border-slate-200 dark:border-[#1e324f] shadow-xs"
       >
         <Stack gap="sm">
           <div className="flex items-center justify-between">
             <div>
-              <Text fw={700} size="sm" className="font-heading">
+              <Text fw={800} size="xs" tt="uppercase" lts={0.5} className="font-sirac-title text-slate-800 dark:text-slate-200">
                 Categoría del Dispositivo
               </Text>
-              <Text size="xs" c="dimmed">
-                Selecciona la categoría del equipo para filtrar marcas y modelos correspondientes
+              <Text size="11px" c="dimmed" className="font-sirac-title">
+                Selecciona la categoría para contextualizar marcas, modelos y seguridad
               </Text>
             </div>
             <Badge variant="outline" color="blue" size="sm" className="font-sirac-title uppercase font-bold">
@@ -201,7 +222,7 @@ export function Step2EquipmentPanel({
                   onClick={() => handleSelectCategory(dt.id)}
                   style={{
                     padding: "8px 10px",
-                    borderRadius: "10px",
+                    borderRadius: "12px",
                     border: isSelected
                       ? `2px solid var(--mantine-color-${dt.color}-filled)`
                       : "1px solid var(--border-subtle)",
@@ -253,13 +274,16 @@ export function Step2EquipmentPanel({
             >
               <TextInput
                 label="Especificar Tipo de Dispositivo *"
-                description="Describe el tipo de equipo recibido (ej: Corneta Bluetooth, Impresora 3D, Dron, Micrófono, Amplificador...)"
+                description="Describe el equipo recibido (ej: Corneta Bluetooth, Impresora 3D, Dron, Micrófono, Amplificador...)"
                 placeholder="Ej: Corneta Bluetooth JBL / Impresora EPSON / Dron DJI"
                 size="xs"
                 value={form.values.tipo_equipo}
                 onChange={(e) => form.setFieldValue("tipo_equipo", e.currentTarget.value)}
                 required
                 className="font-sirac-title text-xs"
+                styles={{
+                  input: { borderRadius: "10px", fontWeight: 600 },
+                }}
               />
             </Paper>
           )}
@@ -269,21 +293,18 @@ export function Step2EquipmentPanel({
       {/* ── 2. Especificación de Hardware: Marca y Modelo (Estilo SIRAC Contenido) ── */}
       <Paper
         p="lg"
-        radius="md"
+        radius="lg"
         withBorder
-        style={{
-          background: "var(--bg-surface)",
-          borderColor: "var(--border-subtle)",
-        }}
+        className="bg-white dark:bg-[#0b1320] border-slate-200 dark:border-[#1e324f] shadow-xs"
       >
         <Stack gap="md">
           <div className="flex items-center justify-between">
             <div>
-              <Text fw={700} size="sm" className="font-heading">
+              <Text fw={800} size="xs" tt="uppercase" lts={0.5} className="font-sirac-title text-slate-800 dark:text-slate-200">
                 Especificación del Hardware
               </Text>
-              <Text size="xs" c="dimmed">
-                Marcas y modelos agrupados por <span className="font-bold text-blue-500">{activeCategoryId}</span> para evitar mezclas erróneas
+              <Text size="11px" c="dimmed" className="font-sirac-title">
+                Marcas y modelos agrupados por <span className="font-bold text-blue-500">{activeCategoryId}</span> sin mezclas erróneas
               </Text>
             </div>
             {form.values.marca && (
@@ -317,7 +338,7 @@ export function Step2EquipmentPanel({
             {/* ── SELECCIÓN DE MARCA (Contenida sin desbordar el modal) ── */}
             <div className="border border-slate-200 dark:border-[#1e324f] rounded-2xl p-3 bg-slate-50/70 dark:bg-[#131f33]/70 space-y-2.5">
               <div className="flex items-center justify-between">
-                <label className="text-xs font-bold text-slate-800 dark:text-slate-200 font-sirac-title flex items-center gap-1.5">
+                <label className="text-xs font-bold text-slate-800 dark:text-slate-200 font-sirac-title flex items-center gap-1.5 uppercase tracking-wide">
                   <IconTag size={14} className="text-blue-500" />
                   <span>Marca *</span>
                 </label>
@@ -341,7 +362,7 @@ export function Step2EquipmentPanel({
                         key={bName}
                         type="button"
                         onClick={() => handleSelectBrand(bName)}
-                        className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all border cursor-pointer flex items-center gap-1 font-sirac-title ${
+                        className={`px-2.5 py-1 rounded-xl text-xs font-bold transition-all border cursor-pointer flex items-center gap-1 font-sirac-title ${
                           isSelected
                             ? "bg-blue-600 text-white border-blue-600 shadow-xs"
                             : "bg-white dark:bg-[#0b1320] text-slate-700 dark:text-slate-300 border-slate-200 dark:border-[#243f5d] hover:border-blue-400"
@@ -355,7 +376,7 @@ export function Step2EquipmentPanel({
                 </div>
               </div>
 
-              {/* Búsqueda y Catálogo Desplegable Contenido (Estilo SIRAC Acordeón) */}
+              {/* Búsqueda y Catálogo Desplegable Contenido */}
               <div className="pt-1">
                 <TextInput
                   placeholder="Buscar o escribir otra marca..."
@@ -375,13 +396,15 @@ export function Step2EquipmentPanel({
                     ) : undefined
                   }
                   className="font-sirac-title text-xs"
+                  styles={{
+                    input: { borderRadius: "10px", fontWeight: 600 },
+                  }}
                 />
 
-                {/* Botón para expandir / contraer el panel de marcas */}
                 <button
                   type="button"
                   onClick={() => setExpandAllBrands(!expandAllBrands)}
-                  className="w-full mt-1 py-1 flex items-center justify-between text-[11px] font-bold text-slate-500 hover:text-blue-500 transition-colors cursor-pointer"
+                  className="w-full mt-1.5 py-1 flex items-center justify-between text-[11px] font-bold text-slate-500 hover:text-blue-500 transition-colors cursor-pointer"
                 >
                   <span>
                     {expandAllBrands ? "Ocultar catálogo" : `Ver todas las marcas de ${activeCategoryId} (${allCategoryBrands.length})`}
@@ -389,7 +412,6 @@ export function Step2EquipmentPanel({
                   {expandAllBrands ? <IconChevronUp size={14} /> : <IconChevronDown size={14} />}
                 </button>
 
-                {/* Panel Bounded / Contenido: nunca desborda el modal */}
                 {expandAllBrands && (
                   <div className="mt-1.5 p-2 bg-white dark:bg-[#0b1320] border border-slate-200 dark:border-[#1e324f] rounded-xl max-h-44 overflow-y-auto space-y-1.5">
                     {filteredBrands.length > 0 ? (
@@ -438,7 +460,7 @@ export function Step2EquipmentPanel({
             {/* ── SELECCIÓN DE MODELO (Contenida sin desbordar el modal) ── */}
             <div className="border border-slate-200 dark:border-[#1e324f] rounded-2xl p-3 bg-slate-50/70 dark:bg-[#131f33]/70 space-y-2.5">
               <div className="flex items-center justify-between">
-                <label className="text-xs font-bold text-slate-800 dark:text-slate-200 font-sirac-title flex items-center gap-1.5">
+                <label className="text-xs font-bold text-slate-800 dark:text-slate-200 font-sirac-title flex items-center gap-1.5 uppercase tracking-wide">
                   <IconCpu size={14} className="text-indigo-500" />
                   <span>Modelo *</span>
                 </label>
@@ -449,7 +471,6 @@ export function Step2EquipmentPanel({
                 )}
               </div>
 
-              {/* Si no hay marca seleccionada */}
               {!form.values.marca ? (
                 <div className="py-6 px-3 text-center border border-dashed border-slate-200 dark:border-[#243f5d] rounded-xl bg-white/50 dark:bg-[#0b1320]/50">
                   <Text size="xs" c="dimmed" fw={600} className="font-sirac-title">
@@ -458,7 +479,6 @@ export function Step2EquipmentPanel({
                 </div>
               ) : (
                 <>
-                  {/* Modelos rápidos sugeridos para esta marca */}
                   {suggestedModels.length > 0 && (
                     <div>
                       <Text size="10px" fw={700} c="dimmed" tt="uppercase" lts={0.5} mb={4}>
@@ -472,7 +492,7 @@ export function Step2EquipmentPanel({
                               key={mName}
                               type="button"
                               onClick={() => handleSelectModel(mName)}
-                              className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all border cursor-pointer flex items-center gap-1 font-sirac-title ${
+                              className={`px-2.5 py-1 rounded-xl text-xs font-bold transition-all border cursor-pointer flex items-center gap-1 font-sirac-title ${
                                 isSelected
                                   ? "bg-indigo-600 text-white border-indigo-600 shadow-xs"
                                   : "bg-white dark:bg-[#0b1320] text-slate-700 dark:text-slate-300 border-slate-200 dark:border-[#243f5d] hover:border-indigo-400"
@@ -487,7 +507,6 @@ export function Step2EquipmentPanel({
                     </div>
                   )}
 
-                  {/* Búsqueda o escritura directa de modelo */}
                   <div className="pt-1">
                     <TextInput
                       placeholder={`Escribir o buscar modelo de ${form.values.marca}...`}
@@ -518,13 +537,16 @@ export function Step2EquipmentPanel({
                         ) : undefined
                       }
                       className="font-sirac-title text-xs"
+                      styles={{
+                        input: { borderRadius: "10px", fontWeight: 600 },
+                      }}
                     />
 
                     {suggestedModels.length > 6 && (
                       <button
                         type="button"
                         onClick={() => setExpandAllModels(!expandAllModels)}
-                        className="w-full mt-1 py-1 flex items-center justify-between text-[11px] font-bold text-slate-500 hover:text-indigo-500 transition-colors cursor-pointer"
+                        className="w-full mt-1.5 py-1 flex items-center justify-between text-[11px] font-bold text-slate-500 hover:text-indigo-500 transition-colors cursor-pointer"
                       >
                         <span>
                           {expandAllModels ? "Ocultar lista" : `Ver todos los modelos conocidos (${suggestedModels.length})`}
@@ -533,7 +555,6 @@ export function Step2EquipmentPanel({
                       </button>
                     )}
 
-                    {/* Panel Bounded de Modelos */}
                     {expandAllModels && (
                       <div className="mt-1.5 p-2 bg-white dark:bg-[#0b1320] border border-slate-200 dark:border-[#1e324f] rounded-xl max-h-40 overflow-y-auto space-y-1.5">
                         {filteredModels.length > 0 ? (
@@ -584,13 +605,13 @@ export function Step2EquipmentPanel({
           </SimpleGrid>
 
           {/* ── 3. IMEI / Número de Serie con Escáner de Cámara ── */}
-          <div className="border border-slate-200 dark:border-[#1e324f] rounded-2xl p-3 bg-slate-50/70 dark:bg-[#131f33]/70 space-y-2">
+          <div className="border border-slate-200 dark:border-[#1e324f] rounded-2xl p-3.5 bg-slate-50/70 dark:bg-[#131f33]/70 space-y-2">
             <div className="flex items-center justify-between">
               <div>
-                <label className="text-xs font-bold text-slate-800 dark:text-slate-200 font-sirac-title">
+                <label className="text-xs font-bold text-slate-800 dark:text-slate-200 font-sirac-title uppercase tracking-wide">
                   IMEI o Número de Serie del Equipo
                 </label>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium font-sirac-title">
                   Recomendado para identificar inequívocamente el equipo del cliente y garantías
                 </p>
               </div>
@@ -624,7 +645,116 @@ export function Step2EquipmentPanel({
               }
               {...form.getInputProps("imei")}
               className="font-sirac-title text-xs"
+              styles={{
+                input: { borderRadius: "10px", fontWeight: 600 },
+              }}
             />
+          </div>
+
+          {/* ── 4. Seguridad & Desbloqueo (Atributo del Hardware) ── */}
+          <div className="border border-slate-200 dark:border-[#1e324f] rounded-2xl p-3.5 bg-slate-50/70 dark:bg-[#131f33]/70 space-y-3">
+            <Group justify="space-between" align="center" wrap="wrap">
+              <Group gap="sm">
+                <ThemeIcon
+                  size="md"
+                  radius="md"
+                  variant="light"
+                  color={hasPassword ? "indigo" : "gray"}
+                >
+                  {hasPassword ? <IconShieldLock size={18} /> : <IconShieldCheck size={18} />}
+                </ThemeIcon>
+                <div>
+                  <Text fw={800} size="xs" tt="uppercase" lts={0.5} className="font-sirac-title text-slate-800 dark:text-slate-200">
+                    Seguridad y Bloqueo de Pantalla
+                  </Text>
+                  <Text size="11px" c="dimmed" className="font-sirac-title">
+                    ¿El equipo requiere PIN, contraseña o patrón para pruebas técnicas en taller?
+                  </Text>
+                </div>
+              </Group>
+
+              <Switch
+                size="sm"
+                checked={hasPassword}
+                onChange={(e) => handleTogglePassword(e.currentTarget.checked)}
+                label={hasPassword ? "Tiene contraseña / bloqueo" : "Sin contraseña"}
+                color="indigo"
+                className="font-sirac-title text-xs font-bold"
+              />
+            </Group>
+
+            {hasPassword && (
+              <Paper
+                p="md"
+                radius="xl"
+                className="bg-indigo-50/40 dark:bg-indigo-950/20 border border-dashed border-indigo-300 dark:border-indigo-600/40"
+              >
+                <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
+                  <TextInput
+                    label="PIN / Contraseña alfanumérica"
+                    placeholder="Ej: 1234 o MiClave2024"
+                    leftSection={<IconLock size={16} />}
+                    {...form.getInputProps("clave")}
+                    className="font-sirac-title text-xs"
+                    styles={{
+                      input: { borderRadius: "10px", fontWeight: 600 },
+                    }}
+                  />
+
+                  <Popover width={300} position="bottom" withArrow shadow="md">
+                    <Popover.Target>
+                      <TextInput
+                        label="Patrón Visual de Puntos"
+                        placeholder="Click para dibujar patrón"
+                        readOnly
+                        leftSection={<IconFingerprint size={16} />}
+                        style={{ cursor: "pointer" }}
+                        value={form.values.patron_visual || ""}
+                        rightSection={
+                          form.values.patron_visual ? (
+                            <Button
+                              variant="subtle"
+                              size="compact-xs"
+                              color="red"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                form.setFieldValue("patron_visual", "");
+                              }}
+                            >
+                              Limpiar
+                            </Button>
+                          ) : undefined
+                        }
+                        description={
+                          form.values.patron_visual
+                            ? `Secuencia guardada: ${form.values.patron_visual}`
+                            : "Haz clic para trazar el patrón 3x3"
+                        }
+                        className="font-sirac-title text-xs"
+                        styles={{
+                          input: { borderRadius: "10px", fontWeight: 600 },
+                        }}
+                      />
+                    </Popover.Target>
+                    <Popover.Dropdown bg="gray.9">
+                      <Text size="xs" fw={700} mb="xs" c="white" ta="center">
+                        {initialData
+                          ? "PATRÓN GUARDADO (ANIMACIÓN)"
+                          : "DIBUJA EL PATRÓN EN LOS PUNTOS"}
+                      </Text>
+                      <PatternCanvas
+                        mode={initialData ? "view" : "draw"}
+                        value={form.values.patron_visual || ""}
+                        onPatternComplete={(pattern) =>
+                          form.setFieldValue("patron_visual", pattern)
+                        }
+                        aria-label="Dibujo de Patrón de desbloqueo"
+                      />
+                    </Popover.Dropdown>
+                  </Popover>
+                </SimpleGrid>
+              </Paper>
+            )}
           </div>
 
           {/* Barcode Scanner Modal */}

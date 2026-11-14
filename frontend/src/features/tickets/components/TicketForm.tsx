@@ -19,7 +19,6 @@ import {
   IconTool,
   IconUser,
   IconDevices,
-  IconLock,
   IconChecklist,
   IconCurrencyDollar,
   IconArrowLeft,
@@ -27,6 +26,7 @@ import {
   IconCheck,
   IconTools,
   IconX,
+  IconHierarchy2,
 } from "@tabler/icons-react";
 import type { TicketReparacion } from "../../../types";
 import type { TicketFormValues } from "../types/tickets.types";
@@ -48,11 +48,11 @@ interface TicketFormProps {
 }
 
 const STEPS = [
-  { label: "Cliente", subtitle: "Cédula y Datos", icon: IconUser },
-  { label: "Equipo", subtitle: "Tipo y Modelo", icon: IconDevices },
-  { label: "Seguridad", subtitle: "PIN y Falla", icon: IconLock },
-  { label: "Checklist", subtitle: "Test Inicial", icon: IconChecklist },
-  { label: "Costos", subtitle: "Precios y Técnico", icon: IconCurrencyDollar },
+  { label: "Cliente", subtitle: "Cédula & Sede", icon: IconUser },
+  { label: "Equipo", subtitle: "Hardware & PIN", icon: IconDevices },
+  { label: "Diagnóstico", subtitle: "Árbol de Fallas", icon: IconHierarchy2 },
+  { label: "Inspección", subtitle: "Checklist & Estado", icon: IconChecklist },
+  { label: "Costos", subtitle: "Precios & Técnico", icon: IconCurrencyDollar },
 ];
 
 export function TicketForm({
@@ -154,22 +154,19 @@ export function TicketForm({
             state={state}
             queries={queries}
             actions={actions}
-            onProceedNext={handleNextStep}
+            initialData={initialData}
           />
         );
       case 2:
         return (
           <Step3SecurityFaultPanel
             form={form}
-            initialData={initialData}
-            onProceedNext={handleNextStep}
           />
         );
       case 3:
         return (
           <Step4ChecklistPanel
             form={form}
-            onProceedNext={handleNextStep}
           />
         );
       case 4:

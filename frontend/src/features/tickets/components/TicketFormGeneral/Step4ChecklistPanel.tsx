@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   Stack,
   SimpleGrid,
@@ -12,6 +12,8 @@ import {
   Badge,
   Switch,
   Checkbox,
+  Textarea,
+  TextInput,
 } from "@mantine/core";
 import {
   IconChecklist,
@@ -22,18 +24,25 @@ import {
   IconPower,
   IconAlertCircle,
   IconRefresh,
+  IconNotes,
+  IconChevronDown,
+  IconChevronUp,
+  IconPlus,
 } from "@tabler/icons-react";
 import type { UseFormReturnType } from "@mantine/form";
 import type { TicketFormValues } from "../../types/tickets.types";
 import {
   getChecklistForCategory,
   DEVICE_CATEGORIES,
+  DEFAULT_OBSERVACIONES_FRECUENTES,
 } from "../../data/deviceCatalog";
 
 interface Step4ChecklistPanelProps {
   form: UseFormReturnType<TicketFormValues>;
   onProceedNext?: () => void;
 }
+
+const STORAGE_KEY_OBSERVACIONES = "erp_repair_observaciones_rapidas";
 
 // Claves que son banderas de defecto (true = tiene falla/daño)
 const DEFECT_FLAGS = new Set([
@@ -61,15 +70,31 @@ export function Step4ChecklistPanel({ form }: Step4ChecklistPanelProps) {
   const isPoweredOffInitial = form.values.checklist.encendido === false && Boolean(form.values.checklist.riesgos_explicados);
   const [equipoApagado, setEquipoApagado] = useState(isPoweredOffInitial);
 
+  // Observaciones físicas
+  const [expandObservaciones, setExpandObservaciones] = useState(false);
+  const [observacionesRapidas, setObservacionesRapidas] = useState<string[]>(DEFAULT_OBSERVACIONES_FRECUENTES);
+  const [nuevaObsInput, setNuevaObsInput] = useState("");
+
+  useEffect(() => {
+    try {
+      const storedObs = localStorage.getItem(STORAGE_KEY_OBSERVACIONES);
+      if (storedObs) {
+        const parsed = JSON.parse(storedObs);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setObservacionesRapidas(parsed);
+        }
+      }
+    } catch {
+      // Ignorar fallback
+    }
+  }, []);
+
   // Determinar si una clave específica tiene anomalía
   const isItemInAnomaly = (key: string): boolean => {
     const rawVal = (form.values.checklist as any)?.[key];
     if (DEFECT_FLAGS.has(key)) {
-      // Para banderas de defecto: true significa que tiene daño
       return Boolean(rawVal);
     }
-    // Para componentes funcionales: false o undefined significa que NO funciona (anomalía)
-    // Pero si el formulario apenas se abrió y es false por default, verificamos si está marcado como falla
     return rawVal === false;
   };
 
@@ -77,10 +102,8 @@ export function Step4ChecklistPanel({ form }: Step4ChecklistPanelProps) {
   const toggleItemAnomaly = (key: string) => {
     const isCurrentlyAnomaly = isItemInAnomaly(key);
     if (DEFECT_FLAGS.has(key)) {
-      // Invertir bandera de defecto
       form.setFieldValue(`checklist.${key}` as any, !isCurrentlyAnomaly);
     } else {
-      // Para funcionales: si ya es anomalía (false), ponerlo en true (OK); si está OK, ponerlo en false (Anomalía)
       form.setFieldValue(`checklist.${key}` as any, isCurrentlyAnomaly ? true : false);
     }
   };
@@ -104,7 +127,6 @@ export function Step4ChecklistPanel({ form }: Step4ChecklistPanelProps) {
     if (checked) {
       form.setFieldValue("checklist.encendido", false);
       form.setFieldValue("checklist.riesgos_explicados", true);
-      // Si la falla no menciona apagado, sugerir agregarlo
       const curFalla = (form.values.falla || "").trim();
       if (!curFalla.toLowerCase().includes("apagado") && !curFalla.toLowerCase().includes("no enciende")) {
         form.setFieldValue("falla", curFalla ? `${curFalla}, Equipo recibido apagado / No enciende` : "Equipo recibido apagado / No enciende");
@@ -128,12 +150,37 @@ export function Step4ChecklistPanel({ form }: Step4ChecklistPanelProps) {
     });
   };
 
+  const handleApplyObservacion = (texto: string) => {
+    const current = (form.values.observaciones || "").trim();
+    if (!current) {
+      form.setFieldValue("observaciones", texto);
+    } else if (!current.toLowerCase().includes(texto.toLowerCase())) {
+      form.setFieldValue("observaciones", `${current}, ${texto}`);
+    }
+  };
+
+  const handleAddNewObservacion = () => {
+    const texto = nuevaObsInput.trim();
+    if (!texto) return;
+    if (!observacionesRapidas.includes(texto)) {
+      const updated = [texto, ...observacionesRapidas];
+      setObservacionesRapidas(updated);
+      try {
+        localStorage.setItem(STORAGE_KEY_OBSERVACIONES, JSON.stringify(updated));
+      } catch {
+        // Fallback
+      }
+    }
+    handleApplyObservacion(texto);
+    setNuevaObsInput("");
+  };
+
   return (
     <Stack gap="lg">
       {/* ── 1. Toggle Maestro de Cobertura Legal (Equipo Apagado) ── */}
       <Paper
         p="md"
-        radius="md"
+        radius="lg"
         withBorder
         className={`transition-all border ${
           equipoApagado
@@ -180,7 +227,6 @@ export function Step4ChecklistPanel({ form }: Step4ChecklistPanelProps) {
           />
         </Group>
 
-        {/* Banner de protección legal inmediata */}
         {equipoApagado && (
           <Alert
             icon={<IconShieldCheck size={18} />}
@@ -208,11 +254,10 @@ export function Step4ChecklistPanel({ form }: Step4ChecklistPanelProps) {
       {/* ── 2. Inspección por Excepción (Solo Marcar lo Roto / Anomalías) ── */}
       <Paper
         p="lg"
-        radius="md"
+        radius="lg"
         withBorder
+        className="bg-white dark:bg-[#0b1320] border-slate-200 dark:border-[#1e324f] shadow-xs"
         style={{
-          background: "var(--bg-surface)",
-          borderColor: "var(--border-subtle)",
           opacity: equipoApagado ? 0.75 : 1,
         }}
       >
@@ -260,14 +305,14 @@ export function Step4ChecklistPanel({ form }: Step4ChecklistPanelProps) {
           <Divider color="var(--border-subtle)" />
 
           {/* Grupos de Componentes para la Categoría */}
-          <div className="space-y-4">
+          <div className="space-y-3.5">
             {checklistGroups.map((group, groupIdx) => (
               <div
                 key={groupIdx}
                 className="p-3 rounded-2xl border border-slate-200 dark:border-[#1e324f] bg-slate-50/60 dark:bg-[#131f33]/60 space-y-2.5"
               >
                 <div className="flex items-center gap-1.5">
-                  <IconCategory size={14} className={`text-${group.color}-500`} />
+                  <IconCategory size={15} className={`text-${group.color}-500`} />
                   <Text size="xs" fw={800} tt="uppercase" c={group.color} lts={0.5} className="font-sirac-title">
                     {group.titulo}
                   </Text>
@@ -307,7 +352,6 @@ export function Step4ChecklistPanel({ form }: Step4ChecklistPanelProps) {
                           </span>
                         </div>
 
-                        {/* Badge de estado */}
                         <Badge
                           size="xs"
                           color={isAnomaly ? "rose" : "teal"}
@@ -326,7 +370,109 @@ export function Step4ChecklistPanel({ form }: Step4ChecklistPanelProps) {
         </Stack>
       </Paper>
 
-      {/* ── 3. Cláusula de Responsabilidad Técnica ── */}
+      {/* ── 3. Observaciones Físicas y Cosméticas (Unificadas aquí) ── */}
+      <Paper
+        p="lg"
+        radius="lg"
+        withBorder
+        className="bg-white dark:bg-[#0b1320] border-slate-200 dark:border-[#1e324f] shadow-xs"
+      >
+        <Stack gap="sm">
+          <div className="flex items-center justify-between">
+            <Group gap="xs">
+              <ThemeIcon size="md" radius="md" color="amber" variant="light">
+                <IconNotes size={18} />
+              </ThemeIcon>
+              <div>
+                <Text fw={800} size="xs" tt="uppercase" lts={0.5} className="font-sirac-title text-slate-800 dark:text-slate-200">
+                  Observaciones Físicas y Cosméticas
+                </Text>
+                <Text size="11px" c="dimmed" className="font-sirac-title">
+                  Rayones, golpes, tapas sueltas o piezas faltantes al momento de recepción
+                </Text>
+              </div>
+            </Group>
+
+            <button
+              type="button"
+              onClick={() => setExpandObservaciones(!expandObservaciones)}
+              className="text-[11px] font-bold text-blue-500 hover:text-blue-600 transition-colors flex items-center gap-1 cursor-pointer font-sirac-title"
+            >
+              <span>{expandObservaciones ? "Menos atajos" : `Ver más atajos (+${observacionesRapidas.length - 4})`}</span>
+              {expandObservaciones ? <IconChevronUp size={12} /> : <IconChevronDown size={12} />}
+            </button>
+          </div>
+
+          {/* Chips de atajos rápidos de observaciones */}
+          <div className="flex flex-wrap gap-1.5 pt-1">
+            {(expandObservaciones ? observacionesRapidas : observacionesRapidas.slice(0, 4)).map((obs) => {
+              const isAdded = (form.values.observaciones || "").toLowerCase().includes(obs.toLowerCase());
+              return (
+                <button
+                  key={obs}
+                  type="button"
+                  onClick={() => handleApplyObservacion(obs)}
+                  className={`px-2.5 py-1 rounded-xl text-[11px] font-bold transition-all border cursor-pointer flex items-center gap-1 font-sirac-title ${
+                    isAdded
+                      ? "bg-amber-600 text-white border-amber-600 shadow-xs"
+                      : "bg-slate-50 dark:bg-[#131f33] text-slate-700 dark:text-slate-300 border-slate-200 dark:border-[#243f5d] hover:border-amber-400"
+                  }`}
+                >
+                  {isAdded && <IconCheck size={11} strokeWidth={3} />}
+                  <span>{obs}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Input para guardar nueva observación */}
+          {expandObservaciones && (
+            <Paper p="xs" radius="md" className="border border-slate-200 dark:border-[#1e324f] bg-slate-50/70 dark:bg-[#131f33]/70">
+              <Group gap="xs" wrap="nowrap">
+                <TextInput
+                  placeholder="Nueva observación frecuente para guardar..."
+                  size="xs"
+                  value={nuevaObsInput}
+                  onChange={(e) => setNuevaObsInput(e.currentTarget.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      handleAddNewObservacion();
+                    }
+                  }}
+                  className="flex-1 font-sirac-title text-xs"
+                  styles={{
+                    input: { borderRadius: "10px", fontWeight: 600 },
+                  }}
+                />
+                <Button
+                  size="xs"
+                  color="yellow"
+                  variant="light"
+                  leftSection={<IconPlus size={14} />}
+                  onClick={handleAddNewObservacion}
+                  disabled={!nuevaObsInput.trim()}
+                  className="font-sirac-title text-xs font-bold"
+                >
+                  Guardar
+                </Button>
+              </Group>
+            </Paper>
+          )}
+
+          <Textarea
+            placeholder="Detalles adicionales de rayones, tornillos faltantes, golpes o estado general..."
+            minRows={2}
+            {...form.getInputProps("observaciones")}
+            className="font-sirac-title text-xs"
+            styles={{
+              input: { borderRadius: "12px", fontSize: "12px", fontWeight: 600 },
+            }}
+          />
+        </Stack>
+      </Paper>
+
+      {/* ── 4. Cláusula de Responsabilidad Técnica ── */}
       <Alert
         icon={<IconAlertTriangle size={18} />}
         title="Cláusula de Responsabilidad Técnica y Manipulación"
