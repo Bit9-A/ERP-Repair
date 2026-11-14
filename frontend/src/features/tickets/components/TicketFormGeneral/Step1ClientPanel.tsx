@@ -238,16 +238,6 @@ export function Step1ClientPanel({
                   <Badge variant="light" color="blue" size="md">
                     {foundClient._count?.tickets ?? 0} reparaciones previas
                   </Badge>
-                  {onProceedNext && (
-                    <Button
-                      size="sm"
-                      color="green"
-                      rightSection={<IconArrowRight size={15} />}
-                      onClick={onProceedNext}
-                    >
-                      Continuar al Equipo
-                    </Button>
-                  )}
                 </Group>
               </Group>
             </Paper>

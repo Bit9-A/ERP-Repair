@@ -10,7 +10,6 @@ import {
   UnstyledButton,
   ActionIcon,
   Tooltip,
-  Group,
   Badge,
 } from "@mantine/core";
 import {
@@ -26,7 +25,6 @@ import {
   IconDevices,
   IconBarcode,
   IconScan,
-  IconArrowRight,
   IconCheck,
   IconSearch,
   IconX,
@@ -85,7 +83,6 @@ export function Step2EquipmentPanel({
   state,
   queries,
   actions,
-  onProceedNext,
 }: Step2EquipmentPanelProps) {
   const [scannerOpen, setScannerOpen] = useState(false);
   const [expandAllBrands, setExpandAllBrands] = useState(false);
@@ -644,22 +641,6 @@ export function Step2EquipmentPanel({
               });
             }}
           />
-
-          {/* ── Inline Action: Continuar a Seguridad & Falla ── */}
-          {onProceedNext && (
-            <Group justify="flex-end" pt="sm" className="border-t border-slate-100 dark:border-[#1e324f]">
-              <Button
-                size="sm"
-                color="blue"
-                rightSection={<IconArrowRight size={15} />}
-                onClick={onProceedNext}
-                disabled={!form.values.marca || !form.values.modelo}
-                className="font-sirac-title uppercase tracking-wider text-xs font-bold shadow-sm cursor-pointer"
-              >
-                Continuar a Seguridad &amp; Falla
-              </Button>
-            </Group>
-          )}
         </Stack>
       </Paper>
     </Stack>

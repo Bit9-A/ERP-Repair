@@ -20,18 +20,23 @@ import {
   IconNotes,
   IconShieldCheck,
   IconShieldLock,
-  IconArrowRight,
   IconBolt,
   IconChevronDown,
   IconChevronUp,
   IconPlus,
   IconCheck,
+  IconDeviceMobile,
+  IconCamera,
+  IconVolume,
+  IconDroplet,
+  IconCpu,
+  IconSparkles,
 } from "@tabler/icons-react";
 import type { UseFormReturnType } from "@mantine/form";
 import type { TicketFormValues } from "../../types/tickets.types";
 import { PatternCanvas } from "../PatternCanvas";
 import {
-  DEFAULT_FALLAS_FRECUENTES,
+  ARBOL_FALLAS,
   DEFAULT_OBSERVACIONES_FRECUENTES,
 } from "../../data/deviceCatalog";
 
@@ -41,13 +46,20 @@ interface Step3SecurityFaultPanelProps {
   onProceedNext?: () => void;
 }
 
-const STORAGE_KEY_FALLAS = "erp_repair_fallas_rapidas";
 const STORAGE_KEY_OBSERVACIONES = "erp_repair_observaciones_rapidas";
+
+const MACRO_ICONS: Record<string, any> = {
+  energia: IconBolt,
+  pantalla: IconDeviceMobile,
+  camaras: IconCamera,
+  audio: IconVolume,
+  humedad: IconDroplet,
+  sistema: IconCpu,
+};
 
 export function Step3SecurityFaultPanel({
   form,
   initialData,
-  onProceedNext,
 }: Step3SecurityFaultPanelProps) {
   const hasExistingLock = Boolean(
     form.values.clave?.trim() || form.values.patron_visual?.trim()
@@ -56,29 +68,17 @@ export function Step3SecurityFaultPanel({
     hasExistingLock || (initialData?.clave || initialData?.patron_visual ? true : false)
   );
 
-  // Estados de acordeón para accesos directos
-  const [expandFallas, setExpandFallas] = useState(false);
+  // Árbol de fallas en 2 niveles (Tronco activo)
+  const [selectedTroncoId, setSelectedTroncoId] = useState<string>("energia");
+
+  // Estados de acordeón para observaciones
   const [expandObservaciones, setExpandObservaciones] = useState(false);
-
-  // Estados de lista dinámica de accesos rápidos
-  const [fallasRapidas, setFallasRapidas] = useState<string[]>(DEFAULT_FALLAS_FRECUENTES);
   const [observacionesRapidas, setObservacionesRapidas] = useState<string[]>(DEFAULT_OBSERVACIONES_FRECUENTES);
-
-  // Inputs para agregar nuevos atajos al vuelo
-  const [nuevaFallaInput, setNuevaFallaInput] = useState("");
   const [nuevaObsInput, setNuevaObsInput] = useState("");
 
   // Cargar atajos personalizados guardados en localStorage
   useEffect(() => {
     try {
-      const storedFallas = localStorage.getItem(STORAGE_KEY_FALLAS);
-      if (storedFallas) {
-        const parsed = JSON.parse(storedFallas);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          setFallasRapidas(parsed);
-        }
-      }
-
       const storedObs = localStorage.getItem(STORAGE_KEY_OBSERVACIONES);
       if (storedObs) {
         const parsed = JSON.parse(storedObs);
@@ -99,31 +99,14 @@ export function Step3SecurityFaultPanel({
     }
   };
 
-  // Función para aplicar un atajo de falla
-  const handleApplyFalla = (texto: string) => {
+  // Función para aplicar una rama de falla
+  const handleApplyRama = (textoRama: string) => {
     const current = (form.values.falla || "").trim();
     if (!current) {
-      form.setFieldValue("falla", texto);
-    } else if (!current.toLowerCase().includes(texto.toLowerCase())) {
-      form.setFieldValue("falla", `${current}, ${texto}`);
+      form.setFieldValue("falla", textoRama);
+    } else if (!current.toLowerCase().includes(textoRama.toLowerCase())) {
+      form.setFieldValue("falla", `${current}, ${textoRama}`);
     }
-  };
-
-  // Función para agregar un nuevo atajo de falla al vuelo
-  const handleAddNewFalla = () => {
-    const texto = nuevaFallaInput.trim();
-    if (!texto) return;
-    if (!fallasRapidas.includes(texto)) {
-      const updated = [texto, ...fallasRapidas];
-      setFallasRapidas(updated);
-      try {
-        localStorage.setItem(STORAGE_KEY_FALLAS, JSON.stringify(updated));
-      } catch {
-        // Silenciar error en storage
-      }
-    }
-    handleApplyFalla(texto);
-    setNuevaFallaInput("");
   };
 
   // Función para aplicar un atajo de observación
@@ -152,6 +135,8 @@ export function Step3SecurityFaultPanel({
     handleApplyObservacion(texto);
     setNuevaObsInput("");
   };
+
+  const activeTronco = ARBOL_FALLAS.find((t) => t.id === selectedTroncoId) || ARBOL_FALLAS[0];
 
   return (
     <Stack gap="lg">
@@ -267,7 +252,7 @@ export function Step3SecurityFaultPanel({
         </Stack>
       </Paper>
 
-      {/* ── 2. Diagnóstico y Falla Reportada + Observaciones (Con Accesos Directos Estilo SIRAC) ── */}
+      {/* ── 2. Diagnóstico y Falla Reportada + Observaciones (Con Árbol Progresivo en 2 Niveles) ── */}
       <Paper
         p="lg"
         radius="md"
@@ -283,13 +268,13 @@ export function Step3SecurityFaultPanel({
               Diagnóstico, Falla y Estado Físico
             </Text>
             <Text size="xs" c="dimmed">
-              Usa los accesos directos de 1-toque o escribe la descripción detallada
+              Usa el árbol de diagnóstico rápido (Tronco → Ramas) en 2 toques o escribe el detalle
             </Text>
           </div>
 
           <SimpleGrid cols={{ base: 1, md: 2 }} spacing="lg">
-            {/* ── COLUMNA 1: FALLA REPORTADA + ACCESOS RÁPIDOS ── */}
-            <div className="space-y-2.5">
+            {/* ── COLUMNA 1: ÁRBOL DE FALLAS (Tronco -> Ramas) + TEXTAREA ── */}
+            <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <label className="text-xs font-bold text-slate-800 dark:text-slate-200 font-sirac-title flex items-center gap-1.5">
                   <IconAlertCircle size={15} className="text-rose-500" />
@@ -300,106 +285,64 @@ export function Step3SecurityFaultPanel({
                 </Badge>
               </div>
 
-              {/* Los 3-4 accesos directos visibles en pantalla directa */}
+              {/* Nivel 1: Tronco (Macro-sistemas) */}
               <div>
-                <div className="flex items-center gap-1 mb-1.5">
-                  <IconBolt size={12} className="text-amber-500" />
-                  <Text size="10px" fw={700} c="dimmed" tt="uppercase" lts={0.5}>
-                    Accesos Directos (Toca para agregar):
-                  </Text>
-                </div>
+                <Text size="10px" fw={700} c="dimmed" tt="uppercase" lts={0.5} mb={4}>
+                  1. Selecciona el Sistema Afectado (Tronco):
+                </Text>
                 <div className="flex flex-wrap gap-1.5">
-                  {fallasRapidas.slice(0, 4).map((falla) => {
-                    const isAdded = (form.values.falla || "").toLowerCase().includes(falla.toLowerCase());
+                  {ARBOL_FALLAS.map((tronco) => {
+                    const Icon = MACRO_ICONS[tronco.id] || IconBolt;
+                    const isSelected = selectedTroncoId === tronco.id;
                     return (
                       <button
-                        key={falla}
+                        key={tronco.id}
                         type="button"
-                        onClick={() => handleApplyFalla(falla)}
-                        className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all border cursor-pointer flex items-center gap-1 font-sirac-title ${
-                          isAdded
-                            ? "bg-rose-600 text-white border-rose-600 shadow-xs"
-                            : "bg-slate-50 dark:bg-[#131f33] text-slate-700 dark:text-slate-300 border-slate-200 dark:border-[#243f5d] hover:border-rose-400"
+                        onClick={() => setSelectedTroncoId(tronco.id)}
+                        className={`px-2.5 py-1 rounded-xl text-xs font-bold transition-all border cursor-pointer flex items-center gap-1.5 font-sirac-title ${
+                          isSelected
+                            ? "bg-slate-900 dark:bg-white text-white dark:text-slate-900 border-slate-900 dark:border-white shadow-xs scale-102"
+                            : "bg-white dark:bg-[#0b1320] text-slate-700 dark:text-slate-300 border-slate-200 dark:border-[#243f5d] hover:border-slate-400"
                         }`}
                       >
-                        {isAdded && <IconCheck size={12} strokeWidth={3} />}
-                        <span>{falla}</span>
+                        <Icon size={13} className={isSelected ? "text-amber-400 dark:text-amber-600" : `text-${tronco.color}-500`} />
+                        <span>{tronco.label}</span>
                       </button>
                     );
                   })}
                 </div>
               </div>
 
-              {/* Botón Acordeón Desplegable para ver más fallas o crear nuevas */}
-              <div>
-                <button
-                  type="button"
-                  onClick={() => setExpandFallas(!expandFallas)}
-                  className="w-full py-1 px-2 rounded-lg bg-slate-100/70 dark:bg-[#131f33]/70 hover:bg-slate-200/70 dark:hover:bg-[#1e324f] flex items-center justify-between text-[11px] font-bold text-slate-600 dark:text-slate-300 transition-colors cursor-pointer"
-                >
-                  <span className="flex items-center gap-1.5">
-                    <IconBolt size={13} className="text-amber-500" />
-                    <span>
-                      {expandFallas ? "Ocultar catálogo de fallas" : `Ver más fallas frecuentes (+${fallasRapidas.length - 4})`}
-                    </span>
-                  </span>
-                  {expandFallas ? <IconChevronUp size={14} /> : <IconChevronDown size={14} />}
-                </button>
+              {/* Nivel 2: Ramas de especificación inmediata */}
+              <div className="p-2.5 rounded-2xl border border-slate-200 dark:border-[#1e324f] bg-slate-50/80 dark:bg-[#131f33]/80 space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <Text size="10px" fw={800} c="dimmed" tt="uppercase" lts={0.5} className="flex items-center gap-1 font-sirac-title">
+                    <IconSparkles size={12} className="text-amber-500" />
+                    <span>2. Especifica la Falla en {activeTronco.label} (Ramas):</span>
+                  </Text>
+                  <span className="text-[10px] text-slate-400 font-medium">Toca para agregar</span>
+                </div>
 
-                {/* Contenedor Contenido de Fallas Frecuentes (Nunca pasa del modal) */}
-                {expandFallas && (
-                  <div className="mt-1.5 p-2.5 bg-white dark:bg-[#0b1320] border border-slate-200 dark:border-[#1e324f] rounded-xl max-h-48 overflow-y-auto space-y-2">
-                    <div className="flex flex-wrap gap-1.5">
-                      {fallasRapidas.slice(4).map((falla) => {
-                        const isAdded = (form.values.falla || "").toLowerCase().includes(falla.toLowerCase());
-                        return (
-                          <button
-                            key={falla}
-                            type="button"
-                            onClick={() => handleApplyFalla(falla)}
-                            className={`px-2 py-1 rounded-md text-[11px] font-bold transition-all border cursor-pointer ${
-                              isAdded
-                                ? "bg-rose-600 text-white border-rose-600"
-                                : "bg-slate-50 dark:bg-[#131f33] text-slate-700 dark:text-slate-300 border-slate-200 dark:border-[#243f5d] hover:border-rose-400"
-                            }`}
-                          >
-                            {falla}
-                          </button>
-                        );
-                      })}
-                    </div>
-
-                    {/* Crear nuevo atajo de falla */}
-                    <div className="pt-2 border-t border-slate-100 dark:border-[#1e324f]">
-                      <Group gap="xs" wrap="nowrap">
-                        <TextInput
-                          placeholder="Nueva falla frecuente para guardar..."
-                          size="xs"
-                          value={nuevaFallaInput}
-                          onChange={(e) => setNuevaFallaInput(e.currentTarget.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") {
-                              e.preventDefault();
-                              handleAddNewFalla();
-                            }
-                          }}
-                          className="flex-1 font-sirac-title text-xs"
-                        />
-                        <Button
-                          size="xs"
-                          color="rose"
-                          variant="light"
-                          leftSection={<IconPlus size={14} />}
-                          onClick={handleAddNewFalla}
-                          disabled={!nuevaFallaInput.trim()}
-                          className="font-sirac-title text-xs font-bold"
-                        >
-                          Crear
-                        </Button>
-                      </Group>
-                    </div>
-                  </div>
-                )}
+                <div className="flex flex-wrap gap-1.5 max-h-40 overflow-y-auto pr-1">
+                  {activeTronco.ramas.map((rama) => {
+                    const isAdded = (form.values.falla || "").toLowerCase().includes(rama.toLowerCase());
+                    return (
+                      <button
+                        key={rama}
+                        type="button"
+                        onClick={() => handleApplyRama(rama)}
+                        className={`px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all border cursor-pointer flex items-center gap-1 font-sirac-title ${
+                          isAdded
+                            ? "bg-rose-600 text-white border-rose-600 shadow-xs"
+                            : "bg-white dark:bg-[#0b1320] text-slate-700 dark:text-slate-300 border-slate-200 dark:border-[#243f5d] hover:border-rose-400"
+                        }`}
+                      >
+                        {isAdded && <IconCheck size={12} strokeWidth={3} />}
+                        <span>{rama}</span>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
 
               {/* Textarea Principal */}
@@ -409,13 +352,13 @@ export function Step3SecurityFaultPanel({
                 minRows={3}
                 {...form.getInputProps("falla")}
                 error={form.errors.falla}
-                description="Mínimo 5 caracteres explicando el problema"
+                description="Mínimo 5 caracteres explicando el problema manifestado"
                 className="font-sirac-title text-xs"
               />
             </div>
 
             {/* ── COLUMNA 2: OBSERVACIONES FÍSICAS + ACCESOS RÁPIDOS ── */}
-            <div className="space-y-2.5">
+            <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <label className="text-xs font-bold text-slate-800 dark:text-slate-200 font-sirac-title flex items-center gap-1.5">
                   <IconNotes size={15} className="text-amber-500" />
@@ -442,7 +385,7 @@ export function Step3SecurityFaultPanel({
                         key={obs}
                         type="button"
                         onClick={() => handleApplyObservacion(obs)}
-                        className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all border cursor-pointer flex items-center gap-1 font-sirac-title ${
+                        className={`px-2.5 py-1 rounded-xl text-xs font-bold transition-all border cursor-pointer flex items-center gap-1 font-sirac-title ${
                           isAdded
                             ? "bg-amber-600 text-white border-amber-600 shadow-xs"
                             : "bg-slate-50 dark:bg-[#131f33] text-slate-700 dark:text-slate-300 border-slate-200 dark:border-[#243f5d] hover:border-amber-400"
@@ -461,7 +404,7 @@ export function Step3SecurityFaultPanel({
                 <button
                   type="button"
                   onClick={() => setExpandObservaciones(!expandObservaciones)}
-                  className="w-full py-1 px-2 rounded-lg bg-slate-100/70 dark:bg-[#131f33]/70 hover:bg-slate-200/70 dark:hover:bg-[#1e324f] flex items-center justify-between text-[11px] font-bold text-slate-600 dark:text-slate-300 transition-colors cursor-pointer"
+                  className="w-full py-1.5 px-2.5 rounded-xl bg-slate-100/70 dark:bg-[#131f33]/70 hover:bg-slate-200/70 dark:hover:bg-[#1e324f] flex items-center justify-between text-[11px] font-bold text-slate-600 dark:text-slate-300 transition-colors cursor-pointer"
                 >
                   <span className="flex items-center gap-1.5">
                     <IconBolt size={13} className="text-amber-500" />
@@ -538,22 +481,6 @@ export function Step3SecurityFaultPanel({
               />
             </div>
           </SimpleGrid>
-
-          {/* ── Inline Action: Continuar a Checklist ── */}
-          {onProceedNext && (
-            <Group justify="flex-end" pt="sm" className="border-t border-slate-100 dark:border-[#1e324f]">
-              <Button
-                size="sm"
-                color="blue"
-                rightSection={<IconArrowRight size={15} />}
-                onClick={onProceedNext}
-                disabled={!form.values.falla || form.values.falla.trim().length < 5}
-                className="font-sirac-title uppercase tracking-wider text-xs font-bold shadow-sm cursor-pointer"
-              >
-                Continuar a Checklist Técnico
-              </Button>
-            </Group>
-          )}
         </Stack>
       </Paper>
     </Stack>

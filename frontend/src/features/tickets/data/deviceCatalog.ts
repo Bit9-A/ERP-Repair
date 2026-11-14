@@ -354,6 +354,91 @@ export const DEFAULT_OBSERVACIONES_FRECUENTES = [
   "Botones físicos de volumen o encendido duros / atascados",
 ];
 
+// ── Árbol de Fallas Progresivo en 2 Niveles (Tronco -> Ramas) ──
+export interface FallaNodoDef {
+  id: string;
+  label: string;
+  color: string;
+  ramas: string[];
+}
+
+export const ARBOL_FALLAS: FallaNodoDef[] = [
+  {
+    id: "energia",
+    label: "Energía & Carga",
+    color: "amber",
+    ramas: [
+      "No enciende (Muerto)",
+      "Batería degradada / Apagado repentino",
+      "Pin de carga dañado / Con juego",
+      "Calienta en exceso al cargar",
+      "Corto en placa / Consumo anormal",
+      "Carga lenta o intermitente",
+    ],
+  },
+  {
+    id: "pantalla",
+    label: "Pantalla & Imagen",
+    color: "blue",
+    ramas: [
+      "Vidrio roto / Astillado (Da imagen)",
+      "Sin imagen / Pantalla negra total",
+      "Touch no responde / Toques fantasma",
+      "Líneas o manchas verdes / moradas",
+      "Parpadeo / Pérdida de iluminación",
+    ],
+  },
+  {
+    id: "camaras",
+    label: "Cámaras & Óptica",
+    color: "violet",
+    ramas: [
+      "Cámara trasera no abre / En negro",
+      "Cámara frontal borrosa / No enfoca",
+      "Vidrio / Lente exterior quebrado",
+      "Vibra o hace zumbido al enfocar (OIS)",
+      "Flash / Linterna no dispara",
+    ],
+  },
+  {
+    id: "audio",
+    label: "Audio & Comunicación",
+    color: "teal",
+    ramas: [
+      "Altavoz distorsionado / Sin sonido",
+      "Auricular de llamadas mudo",
+      "Micrófono no envía audio / No me oyen",
+      "Sin señal de operadora / Sin servicio",
+      "Lector de SIM no detecta tarjeta",
+    ],
+  },
+  {
+    id: "humedad",
+    label: "Humedad & Estructura",
+    color: "cyan",
+    ramas: [
+      "Equipo mojado / Daño por líquido",
+      "Sulfatación visible en componentes",
+      "Tapa trasera rota / Fisurada",
+      "Chasis doblado / Desalineado",
+      "Botones volumen / power trabados",
+      "Tornillos faltantes / Ya manipulado",
+    ],
+  },
+  {
+    id: "sistema",
+    label: "Sistema & Software",
+    color: "indigo",
+    ramas: [
+      "En bucle de logo (Bootloop)",
+      "Reinicio constante cada pocos minutos",
+      "Pide cuenta / Bloqueado por clave",
+      "Memoria saturada / Sistema congelado",
+      "Falla tras actualización de software",
+    ],
+  },
+];
+
 // Helper para obtener marcas relevantes por categoría
 export function getBrandsForCategory(categoryId: string, dbBrands: { nombre: string }[] = []): {
   popular: string[];
