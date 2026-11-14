@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import {
   Stack,
   Checkbox,
@@ -9,21 +10,22 @@ import {
   Divider,
   Button,
   Alert,
+  Badge,
 } from "@mantine/core";
 import {
   IconChecklist,
   IconAlertTriangle,
-  IconScreenShare,
-  IconBatteryCharging,
-  IconWifi,
-  IconCamera,
-  IconTool,
   IconCheck,
   IconX,
   IconArrowRight,
+  IconSparkles,
 } from "@tabler/icons-react";
 import type { UseFormReturnType } from "@mantine/form";
 import type { TicketFormValues } from "../../types/tickets.types";
+import {
+  getChecklistForCategory,
+  DEVICE_CATEGORIES,
+} from "../../data/deviceCatalog";
 
 interface Step4ChecklistPanelProps {
   form: UseFormReturnType<TicketFormValues>;
@@ -31,44 +33,54 @@ interface Step4ChecklistPanelProps {
 }
 
 export function Step4ChecklistPanel({ form, onProceedNext }: Step4ChecklistPanelProps) {
+  const currentType = form.values.tipo_equipo || "Smartphone";
+
+  // Identificar la categoría activa
+  const activeCategoryId = useMemo(() => {
+    const match = DEVICE_CATEGORIES.find((c) => c.id === currentType);
+    return match ? match.id : "Otro";
+  }, [currentType]);
+
+  // Grupos de checklist adaptados a la categoría real del equipo
+  const checklistGroups = useMemo(() => {
+    return getChecklistForCategory(activeCategoryId);
+  }, [activeCategoryId]);
+
+  // Contar cuántos ítems están marcados actualmente
+  const totalItemsCount = useMemo(() => {
+    return checklistGroups.reduce((acc, g) => acc + g.items.length, 0);
+  }, [checklistGroups]);
+
+  const checkedCount = useMemo(() => {
+    let count = 0;
+    checklistGroups.forEach((g) => {
+      g.items.forEach((item) => {
+        if ((form.values.checklist as any)?.[item.key]) {
+          count++;
+        }
+      });
+    });
+    return count;
+  }, [checklistGroups, form.values.checklist]);
+
+  // Acción para marcar todo el checklist contextual como OK
   const handleCheckAllGood = () => {
-    form.setFieldValue("checklist.encendido", true);
-    form.setFieldValue("checklist.touch", true);
-    form.setFieldValue("checklist.bateria", true);
-    form.setFieldValue("checklist.puerto_carga", true);
-    form.setFieldValue("checklist.senal", true);
-    form.setFieldValue("checklist.conectividad_wifi_bt", true);
-    form.setFieldValue("checklist.camaras", true);
-    form.setFieldValue("checklist.audio", true);
-    form.setFieldValue("checklist.botones", true);
-    form.setFieldValue("checklist.flash_linterna", true);
-    form.setFieldValue("checklist.biometria", true);
-    form.setFieldValue("checklist.sensor_proximidad", true);
+    checklistGroups.forEach((g) => {
+      g.items.forEach((item) => {
+        form.setFieldValue(`checklist.${item.key}` as any, true);
+      });
+    });
     form.setFieldValue("checklist.riesgos_explicados", true);
   };
 
+  // Acción para limpiar todo el checklist
   const handleResetChecklist = () => {
-    form.setFieldValue("checklist", {
-      camaras: false,
-      touch: false,
-      senal: false,
-      encendido: false,
-      botones: false,
-      bateria: false,
-      carcasa_rota: false,
-      accesorios_sim_sd: false,
-      funda: false,
-      uso_diario_desgaste: false,
-      biometria: false,
-      audio: false,
-      sensor_proximidad: false,
-      puerto_carga: false,
-      conectividad_wifi_bt: false,
-      flash_linterna: false,
-      pantalla_fallas_internas: false,
-      tornilleria_faltante: false,
-      riesgos_explicados: false,
+    checklistGroups.forEach((g) => {
+      g.items.forEach((item) => {
+        form.setFieldValue(`checklist.${item.key}` as any, false);
+      });
     });
+    form.setFieldValue("checklist.riesgos_explicados", false);
   };
 
   return (
@@ -84,17 +96,25 @@ export function Step4ChecklistPanel({ form, onProceedNext }: Step4ChecklistPanel
       >
         <Stack gap="md">
           {/* ── Encabezado y Acciones Rápidas ── */}
-          <Group justify="space-between" align="center" wrap="wrap">
+          <Group justify="space-between" align="center" wrap="wrap" gap="sm">
             <Group gap="sm">
               <ThemeIcon size="lg" radius="md" color="teal" variant="light">
                 <IconChecklist size={20} />
               </ThemeIcon>
               <div>
-                <Text fw={700} size="sm" className="font-heading">
-                  Inspección y Test Inicial de Recepción
-                </Text>
+                <div className="flex items-center gap-2">
+                  <Text fw={700} size="sm" className="font-heading">
+                    Inspección y Test Inicial de Recepción
+                  </Text>
+                  <Badge variant="filled" color="teal" size="xs" className="font-sirac-title uppercase font-bold">
+                    {activeCategoryId}
+                  </Badge>
+                  <Badge variant="outline" color="blue" size="xs" className="font-sirac-title font-bold">
+                    {checkedCount} / {totalItemsCount} OK
+                  </Badge>
+                </div>
                 <Text size="xs" c="dimmed">
-                  Verifica el estado físico y operativo de los componentes clave al recibir el equipo
+                  Puntos de inspección adaptados para <span className="font-bold text-teal-500">{activeCategoryId}</span>
                 </Text>
               </div>
             </Group>
@@ -106,8 +126,9 @@ export function Step4ChecklistPanel({ form, onProceedNext }: Step4ChecklistPanel
                 size="xs"
                 leftSection={<IconCheck size={14} />}
                 onClick={handleCheckAllGood}
+                className="font-sirac-title text-xs font-bold cursor-pointer"
               >
-                Buen Estado General
+                Marcar Todo Operativo (100% OK)
               </Button>
               <Button
                 variant="subtle"
@@ -115,6 +136,7 @@ export function Step4ChecklistPanel({ form, onProceedNext }: Step4ChecklistPanel
                 size="xs"
                 leftSection={<IconX size={14} />}
                 onClick={handleResetChecklist}
+                className="font-sirac-title text-xs font-bold cursor-pointer"
               >
                 Limpiar Todo
               </Button>
@@ -123,154 +145,64 @@ export function Step4ChecklistPanel({ form, onProceedNext }: Step4ChecklistPanel
 
           <Divider color="var(--border-subtle)" />
 
-          {/* ── Categoría 1: Pantalla y Display ── */}
-          <div>
-            <Group gap="xs" mb="xs">
-              <IconScreenShare size={16} color="var(--mantine-color-blue-6)" />
-              <Text size="xs" fw={700} tt="uppercase" c="blue" lts={0.5}>
-                Pantalla & Visualización
-              </Text>
-            </Group>
-            <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="sm">
-              <Checkbox
-                label="Touch / Digitalizador funcional"
-                {...form.getInputProps("checklist.touch", { type: "checkbox" })}
-              />
-              <Checkbox
-                label="Pantalla con fallas internas / manchas"
-                {...form.getInputProps("checklist.pantalla_fallas_internas", {
-                  type: "checkbox",
-                })}
-              />
-            </SimpleGrid>
-          </div>
+          {/* ── Grupos de Checklist Contextuales (Adaptados según categoría) ── */}
+          <div className="space-y-4">
+            {checklistGroups.map((group, groupIdx) => (
+              <div
+                key={groupIdx}
+                className="p-3 rounded-2xl border border-slate-200 dark:border-[#1e324f] bg-slate-50/60 dark:bg-[#131f33]/60 space-y-2.5"
+              >
+                <div className="flex items-center gap-1.5">
+                  <IconSparkles size={14} className={`text-${group.color}-500`} />
+                  <Text size="xs" fw={800} tt="uppercase" c={group.color} lts={0.5} className="font-sirac-title">
+                    {group.titulo}
+                  </Text>
+                </div>
 
-          {/* ── Categoría 2: Energía y Encendido ── */}
-          <div>
-            <Group gap="xs" mb="xs">
-              <IconBatteryCharging size={16} color="var(--mantine-color-green-6)" />
-              <Text size="xs" fw={700} tt="uppercase" c="green" lts={0.5}>
-                Energía & Encendido
-              </Text>
-            </Group>
-            <SimpleGrid cols={{ base: 1, sm: 3 }} spacing="sm">
-              <Checkbox
-                label="Enciende (Power / Boot)"
-                {...form.getInputProps("checklist.encendido", { type: "checkbox" })}
-              />
-              <Checkbox
-                label="Batería retiene carga"
-                {...form.getInputProps("checklist.bateria", { type: "checkbox" })}
-              />
-              <Checkbox
-                label="Puerto de carga operativo"
-                {...form.getInputProps("checklist.puerto_carga", {
-                  type: "checkbox",
-                })}
-              />
-            </SimpleGrid>
-          </div>
-
-          {/* ── Categoría 3: Conectividad y Sensores ── */}
-          <div>
-            <Group gap="xs" mb="xs">
-              <IconWifi size={16} color="var(--mantine-color-indigo-6)" />
-              <Text size="xs" fw={700} tt="uppercase" c="indigo" lts={0.5}>
-                Conectividad & Sensores
-              </Text>
-            </Group>
-            <SimpleGrid cols={{ base: 1, sm: 2, md: 4 }} spacing="sm">
-              <Checkbox
-                label="Señal móvil / Antenas"
-                {...form.getInputProps("checklist.senal", { type: "checkbox" })}
-              />
-              <Checkbox
-                label="Wi-Fi y Bluetooth"
-                {...form.getInputProps("checklist.conectividad_wifi_bt", {
-                  type: "checkbox",
-                })}
-              />
-              <Checkbox
-                label="Biometría (Huella/FaceID)"
-                {...form.getInputProps("checklist.biometria", { type: "checkbox" })}
-              />
-              <Checkbox
-                label="Sensor de proximidad"
-                {...form.getInputProps("checklist.sensor_proximidad", {
-                  type: "checkbox",
-                })}
-              />
-            </SimpleGrid>
-          </div>
-
-          {/* ── Categoría 4: Multimedia y Botones ── */}
-          <div>
-            <Group gap="xs" mb="xs">
-              <IconCamera size={16} color="var(--mantine-color-violet-6)" />
-              <Text size="xs" fw={700} tt="uppercase" c="violet" lts={0.5}>
-                Multimedia & Botones
-              </Text>
-            </Group>
-            <SimpleGrid cols={{ base: 1, sm: 2, md: 4 }} spacing="sm">
-              <Checkbox
-                label="Cámaras (Frontal/Trasera)"
-                {...form.getInputProps("checklist.camaras", { type: "checkbox" })}
-              />
-              <Checkbox
-                label="Audio (Altavoz/Auricular)"
-                {...form.getInputProps("checklist.audio", { type: "checkbox" })}
-              />
-              <Checkbox
-                label="Botones de volumen y power"
-                {...form.getInputProps("checklist.botones", { type: "checkbox" })}
-              />
-              <Checkbox
-                label="Flash / Linterna"
-                {...form.getInputProps("checklist.flash_linterna", {
-                  type: "checkbox",
-                })}
-              />
-            </SimpleGrid>
-          </div>
-
-          {/* ── Categoría 5: Cosmética y Accesorios ── */}
-          <div>
-            <Group gap="xs" mb="xs">
-              <IconTool size={16} color="var(--mantine-color-gray-6)" />
-              <Text size="xs" fw={700} tt="uppercase" c="dimmed" lts={0.5}>
-                Estado Físico & Accesorios
-              </Text>
-            </Group>
-            <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="sm">
-              <Checkbox
-                label="Carcasa o tapa rota"
-                {...form.getInputProps("checklist.carcasa_rota", {
-                  type: "checkbox",
-                })}
-              />
-              <Checkbox
-                label="Tornillería faltante"
-                {...form.getInputProps("checklist.tornilleria_faltante", {
-                  type: "checkbox",
-                })}
-              />
-              <Checkbox
-                label="Bandeja SIM / MicroSD presente"
-                {...form.getInputProps("checklist.accesorios_sim_sd", {
-                  type: "checkbox",
-                })}
-              />
-              <Checkbox
-                label="Trae funda / forro protector"
-                {...form.getInputProps("checklist.funda", { type: "checkbox" })}
-              />
-              <Checkbox
-                label="Desgaste por uso diario"
-                {...form.getInputProps("checklist.uso_diario_desgaste", {
-                  type: "checkbox",
-                })}
-              />
-            </SimpleGrid>
+                <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="xs">
+                  {group.items.map((item) => {
+                    const isChecked = Boolean((form.values.checklist as any)?.[item.key]);
+                    return (
+                      <div
+                        key={item.key}
+                        onClick={() => form.setFieldValue(`checklist.${item.key}` as any, !isChecked)}
+                        className={`p-2.5 rounded-xl border transition-all cursor-pointer flex items-center justify-between gap-2 ${
+                          isChecked
+                            ? "bg-emerald-50 dark:bg-emerald-950/20 border-emerald-400 dark:border-emerald-600/50 shadow-xs"
+                            : "bg-white dark:bg-[#0b1320] border-slate-200 dark:border-[#243f5d] hover:border-slate-300"
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <Checkbox
+                            checked={isChecked}
+                            onChange={() => {}} // handled by parent div
+                            color="teal"
+                            size="xs"
+                            styles={{
+                              input: { cursor: "pointer" },
+                            }}
+                          />
+                          <span
+                            className={`text-xs font-bold font-sirac-title ${
+                              isChecked
+                                ? "text-emerald-900 dark:text-emerald-200"
+                                : "text-slate-700 dark:text-slate-300"
+                            }`}
+                          >
+                            {item.label}
+                          </span>
+                        </div>
+                        {isChecked && (
+                          <Badge size="xs" color="teal" variant="light" className="shrink-0 font-sirac-title font-bold">
+                            OK
+                          </Badge>
+                        )}
+                      </div>
+                    );
+                  })}
+                </SimpleGrid>
+              </div>
+            ))}
           </div>
         </Stack>
       </Paper>
@@ -278,7 +210,7 @@ export function Step4ChecklistPanel({ form, onProceedNext }: Step4ChecklistPanel
       {/* ── Advertencia de Riesgos Legales / Taller ── */}
       <Alert
         icon={<IconAlertTriangle size={18} />}
-        title="Cláusula de Responsabilidad Técnica"
+        title="Cláusula de Responsabilidad Técnica y Manipulación"
         color="orange"
         radius="md"
         styles={{
@@ -287,10 +219,10 @@ export function Step4ChecklistPanel({ form, onProceedNext }: Step4ChecklistPanel
           },
         }}
       >
-        <Group justify="space-between" align="center" wrap="wrap">
-          <Text size="xs" style={{ flex: 1, minWidth: 240 }}>
-            Indica si se explicaron al cliente los riesgos inherentes a la manipulación técnica
-            (pantallas frágiles, desgaste de flexes internos o cortocircuitos previos).
+        <Group justify="space-between" align="center" wrap="wrap" gap="sm">
+          <Text size="xs" style={{ flex: 1, minWidth: 240 }} className="font-sirac-title">
+            Indica si se explicaron al cliente los riesgos inherentes a la apertura y manipulación técnica
+            del equipo (pantallas frágiles, flexes con desgaste previo o componentes sulfatados).
           </Text>
           <Checkbox
             label="Riesgos explicados y aceptados por el cliente"
@@ -299,6 +231,7 @@ export function Step4ChecklistPanel({ form, onProceedNext }: Step4ChecklistPanel
             {...form.getInputProps("checklist.riesgos_explicados", {
               type: "checkbox",
             })}
+            className="font-sirac-title text-xs"
           />
         </Group>
       </Alert>
@@ -311,7 +244,7 @@ export function Step4ChecklistPanel({ form, onProceedNext }: Step4ChecklistPanel
             color="blue"
             rightSection={<IconArrowRight size={15} />}
             onClick={onProceedNext}
-            className="font-sirac-title uppercase tracking-wider text-xs font-bold"
+            className="font-sirac-title uppercase tracking-wider text-xs font-bold shadow-sm cursor-pointer"
           >
             Continuar a Costos &amp; Presupuesto
           </Button>
@@ -320,4 +253,3 @@ export function Step4ChecklistPanel({ form, onProceedNext }: Step4ChecklistPanel
     </Stack>
   );
 }
-

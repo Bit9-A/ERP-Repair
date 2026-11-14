@@ -236,25 +236,40 @@ export function useTicketForm({
   }, [opened, initialData]);
 
   // -- Event Handlers --
-  const handleMarcaChange = (value: string | null) => {
-    form.setFieldValue("marca", value || "");
+  const handleMarcaChange = async (value: string | null) => {
+    const brandName = (value || "").trim().toUpperCase();
+    form.setFieldValue("marca", brandName);
     form.setFieldValue("modelo", "");
-    const marca = marcas.find((m: any) => m.nombre === value);
-    setSelectedMarcaId(marca?.id ?? null);
+
+    if (!brandName) {
+      setSelectedMarcaId(null);
+      return;
+    }
+
+    const marca = marcas.find((m: any) => m.nombre.toUpperCase() === brandName);
+    if (marca) {
+      setSelectedMarcaId(marca.id);
+    } else {
+      try {
+        const newMarca = await createMarca.mutateAsync(brandName);
+        setSelectedMarcaId(newMarca.id);
+      } catch {
+        setSelectedMarcaId(null);
+      }
+    }
   };
 
   const handleCreateMarcaInline = async () => {
     if (!marcaSearch.trim()) return;
     try {
-      const newMarca = await createMarca.mutateAsync(
-        marcaSearch.trim().toUpperCase(),
-      );
+      const brandUpper = marcaSearch.trim().toUpperCase();
+      const newMarca = await createMarca.mutateAsync(brandUpper);
       form.setFieldValue("marca", newMarca.nombre);
       setSelectedMarcaId(newMarca.id);
       setMarcaSearch("");
       notifications.show({
-        title: "Marca creada",
-        message: `"${newMarca.nombre}" fue agregada`,
+        title: "Marca registrada",
+        message: `"${newMarca.nombre}" fue agregada al catálogo`,
         color: "green",
       });
     } catch {
@@ -267,25 +282,41 @@ export function useTicketForm({
   };
 
   const handleCreateModeloInline = async () => {
-    if (!modeloSearch.trim() || !selectedMarcaId) return;
+    const modName = (modeloSearch || form.values.modelo || "").trim().toUpperCase();
+    if (!modName) return;
+
+    let mId = selectedMarcaId;
+    if (!mId && form.values.marca) {
+      try {
+        const newM = await createMarca.mutateAsync(form.values.marca.trim().toUpperCase());
+        mId = newM.id;
+        setSelectedMarcaId(mId);
+      } catch {
+        // Fallback
+      }
+    }
+
+    if (!mId) {
+      form.setFieldValue("modelo", modName);
+      setModeloSearch("");
+      return;
+    }
+
     try {
       const newModelo = await createModelo.mutateAsync({
-        marcaId: selectedMarcaId,
-        nombre: modeloSearch.trim().toUpperCase(),
+        marcaId: mId,
+        nombre: modName,
       });
       form.setFieldValue("modelo", newModelo.nombre);
       setModeloSearch("");
       notifications.show({
-        title: "Modelo creado",
+        title: "Modelo registrado",
         message: `"${newModelo.nombre}" fue agregado`,
         color: "green",
       });
     } catch {
-      notifications.show({
-        title: "Error",
-        message: "No se pudo crear el modelo",
-        color: "red",
-      });
+      form.setFieldValue("modelo", modName);
+      setModeloSearch("");
     }
   };
 
