@@ -36,13 +36,13 @@ export function UserTable({ users, onEdit, onDelete, onResetPassword }: UserTabl
         },
       }}
     >
-      <Table.Thead>
+      <Table.Thead className="bg-slate-50/70 dark:bg-[#18263d]/50">
         <Table.Tr>
-          <Table.Th>Nombre</Table.Th>
-          <Table.Th>Email</Table.Th>
-          <Table.Th>Rol</Table.Th>
-          <Table.Th>Sucursal</Table.Th>
-          <Table.Th style={{ textAlign: "right" }}>Comisión</Table.Th>
+          <Table.Th>Funcionario / Usuario</Table.Th>
+          <Table.Th>Correo Electrónico</Table.Th>
+          <Table.Th>Rol Institucional</Table.Th>
+          <Table.Th>Sede / Sucursal</Table.Th>
+          <Table.Th style={{ textAlign: "right" }}>Comisión Base</Table.Th>
           <Table.Th style={{ textAlign: "center" }}>Acciones</Table.Th>
         </Table.Tr>
       </Table.Thead>

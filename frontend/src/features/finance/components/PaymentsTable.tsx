@@ -72,23 +72,23 @@ export function PaymentsTable({ periodo }: PaymentsTableProps) {
             },
           }}
         >
-          <Table.Thead>
+          <Table.Thead className="bg-slate-50/70 dark:bg-[#18263d]/50">
             <Table.Tr>
-              <Table.Th>Ref.</Table.Th>
+              <Table.Th>Nro. Ref.</Table.Th>
               <Table.Th>Origen</Table.Th>
-              <Table.Th>Cliente</Table.Th>
-              <Table.Th style={{ textAlign: "right" }}>Equiv. USD</Table.Th>
-              <Table.Th>Moneda</Table.Th>
-              <Table.Th style={{ textAlign: "right" }}>Monto Local</Table.Th>
-              <Table.Th>Método</Table.Th>
-              <Table.Th>Fecha</Table.Th>
+              <Table.Th>Cliente &amp; Concepto</Table.Th>
+              <Table.Th>Método de Pago</Table.Th>
+              <Table.Th style={{ textAlign: "right" }}>Monto Percibido ($)</Table.Th>
+              <Table.Th style={{ textAlign: "right" }}>Moneda Local</Table.Th>
+              <Table.Th>Fecha &amp; Hora</Table.Th>
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
             {pagos.map((pay) => (
-              <Table.Tr key={pay.id}>
+              <Table.Tr key={pay.id} className="hover:bg-slate-50/80 dark:hover:bg-[#18263d]/50 transition-colors">
+                {/* 1. Nro. Referencia */}
                 <Table.Td>
-                  <Text ff="monospace" size="sm" fw={600}>
+                  <Text ff="monospace" size="xs" fw={700} className="text-blue-600 dark:text-blue-400">
                     {pay.venta?.numero
                       ? `V-${pay.venta.numero}`
                       : pay.ticket?.id
@@ -96,35 +96,39 @@ export function PaymentsTable({ periodo }: PaymentsTableProps) {
                         : "—"}
                   </Text>
                 </Table.Td>
+
+                {/* 2. Origen */}
                 <Table.Td>
                   {pay.venta ? (
-                    <Badge color="green" size="xs" variant="light">
+                    <Badge color="green" size="xs" variant="light" className="font-sirac-title uppercase tracking-wider text-[10px]">
                       Venta
                     </Badge>
                   ) : pay.ticket ? (
-                    <Badge color="blue" size="xs" variant="light">
-                      Reparación
+                    <Badge color="blue" size="xs" variant="light" className="font-sirac-title uppercase tracking-wider text-[10px]">
+                      Taller
                     </Badge>
                   ) : (
-                    <Badge color="gray" size="xs" variant="light">
+                    <Badge color="gray" size="xs" variant="light" className="font-sirac-title uppercase tracking-wider text-[10px]">
                       Otro
                     </Badge>
                   )}
                 </Table.Td>
+
+                {/* 3. Cliente & Concepto */}
                 <Table.Td>
-                  <Stack gap={2}>
-                    <Text size="sm" fw={500}>
+                  <Stack gap={1}>
+                    <Text size="xs" fw={700} className="font-sirac-title text-slate-800 dark:text-slate-100">
                       {pay.venta?.cliente?.nombre ??
                         pay.ticket?.cliente?.nombre ??
-                        "Sin Cliente"}
+                        "Cliente Particular"}
                     </Text>
                     {pay.ticket && (
-                      <Text size="xs" c="dimmed">
+                      <Text size="10px" c="dimmed">
                         {pay.ticket.marca} {pay.ticket.modelo}
                       </Text>
                     )}
                     {pay.venta?.items && pay.venta.items.length > 0 && (
-                      <Text size="xs" c="dimmed" truncate="end" maw={200}>
+                      <Text size="10px" c="dimmed" truncate="end" maw={220}>
                         {pay.venta.items
                           .map(
                             (it) =>
@@ -135,35 +139,44 @@ export function PaymentsTable({ periodo }: PaymentsTableProps) {
                     )}
                   </Stack>
                 </Table.Td>
-                <Table.Td style={{ textAlign: "right" }}>
-                  <Text ff="monospace" size="sm" fw={800} c="brand.6">
-                    $ {pay.equivalente_usd.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                  </Text>
-                </Table.Td>
-                <Table.Td>
-                  <Badge variant="filled" size="xs" color="gray">
-                    {pay.moneda?.codigo || "—"}
-                  </Badge>
-                </Table.Td>
-                <Table.Td style={{ textAlign: "right" }}>
-                  <Text ff="monospace" size="sm" fw={600}>
-                    {pay.monto_moneda_local.toLocaleString("es-VE", {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })}
-                  </Text>
-                </Table.Td>
+
+                {/* 4. Método de Pago */}
                 <Table.Td>
                   <Badge
                     color={PAYMENT_COLORS[pay.metodo] || "gray"}
                     size="xs"
                     variant="filled"
+                    className="font-sirac-title uppercase tracking-wider text-[10px]"
                   >
                     {pay.metodo.replace("_", " ")}
                   </Badge>
                 </Table.Td>
+
+                {/* 5. Monto Percibido ($) */}
+                <Table.Td style={{ textAlign: "right" }}>
+                  <Text ff="monospace" size="xs" fw={800} className="text-emerald-600 dark:text-emerald-400">
+                    $ {pay.equivalente_usd.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </Text>
+                </Table.Td>
+
+                {/* 6. Moneda Local */}
+                <Table.Td style={{ textAlign: "right" }}>
+                  <Group gap={4} justify="flex-end">
+                    <Text ff="monospace" size="xs" fw={600} className="text-slate-700 dark:text-slate-300">
+                      {pay.monto_moneda_local.toLocaleString("es-VE", {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
+                    </Text>
+                    <Badge variant="outline" size="xs" color="gray" className="text-[9px]">
+                      {pay.moneda?.codigo || "BS"}
+                    </Badge>
+                  </Group>
+                </Table.Td>
+
+                {/* 7. Fecha & Hora */}
                 <Table.Td>
-                  <Text size="xs" fw={500}>
+                  <Text size="xs" c="dimmed" className="font-sirac-sub">
                     {new Date(pay.fecha_pago).toLocaleString("es-VE", {
                       day: "2-digit",
                       month: "2-digit",

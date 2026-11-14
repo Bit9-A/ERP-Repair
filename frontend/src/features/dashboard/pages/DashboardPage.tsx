@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   SimpleGrid,
   Stack,
@@ -14,14 +15,27 @@ import {
   Calendar,
   Sparkles,
   RefreshCw,
+  BarChart3,
+  Activity,
 } from "lucide-react";
 import { StatCard } from "../../../components/ui/StatCard";
 import { KanbanPreview } from "../components/KanbanPreview";
 import { RecentTickets } from "../components/RecentTickets";
 import { QuickActions } from "../components/QuickActions";
 import { DashboardCharts } from "../components/DashboardCharts";
+import { WorkshopCapacityGauge } from "../components/WorkshopCapacityGauge";
+import { WorkshopLiveFeed } from "../components/WorkshopLiveFeed";
+import {
+  DashboardDetailModals,
+  type DashboardModalType,
+} from "../components/DashboardDetailModals";
 import { useAuthStore } from "../../auth/store/auth.store";
-import { useDashboardData, useFinanceStats } from "../../../services";
+import {
+  useDashboardData,
+  useFinanceStats,
+  useRepairs,
+  useLowStock,
+} from "../../../services";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import dayjs from "dayjs";
@@ -33,8 +47,14 @@ export function DashboardPage() {
   const user = useAuthStore((s) => s.user);
   const navigate = useNavigate();
 
+  // Internal tab: "analitica" (Centro de Mando General) vs "supervision" (Supervisión Técnica de Taller)
+  const [activeTab, setActiveTab] = useState<"analitica" | "supervision">("analitica");
+  const [activeModal, setActiveModal] = useState<DashboardModalType>(null);
+
   const { data: dashboardData, isLoading, refetch, isRefetching } = useDashboardData();
   const { data: financeStats } = useFinanceStats();
+  const { data: repairs = [] } = useRepairs();
+  const { data: lowStockProducts = [] } = useLowStock();
 
   const { kanbanCounts, metrics } = dashboardData || {
     kanbanCounts: {
@@ -141,68 +161,141 @@ export function DashboardPage() {
             </Button>
           </div>
         </div>
+
+        {/* ── Segmented Control Bar (SIRAC Navigation Standard) ── */}
+        <div className="relative z-10 mt-6 pt-5 border-t border-white/10 flex items-center justify-between flex-wrap gap-3">
+          <div className="bg-[#0b1320]/80 p-1 rounded-2xl border border-white/10 flex items-center gap-1">
+            <button
+              type="button"
+              onClick={() => setActiveTab("analitica")}
+              className={`py-2 px-3.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 font-sirac-title uppercase tracking-wider ${
+                activeTab === "analitica"
+                  ? "bg-blue-600 text-white shadow-md shadow-blue-900/50"
+                  : "text-slate-400 hover:text-slate-200"
+              }`}
+            >
+              <BarChart3 className="w-4 h-4" />
+              <span>Centro de Mando & Analítica</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setActiveTab("supervision")}
+              className={`py-2 px-3.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 font-sirac-title uppercase tracking-wider ${
+                activeTab === "supervision"
+                  ? "bg-blue-600 text-white shadow-md shadow-blue-900/50"
+                  : "text-slate-400 hover:text-slate-200"
+              }`}
+            >
+              <Activity className="w-4 h-4" />
+              <span>Supervisión de Taller & Capacidad</span>
+            </button>
+          </div>
+
+          <div className="text-[11px] font-sirac-sub text-slate-400 flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span>4 tarjetas interactivas • Haz clic para ver desglose</span>
+          </div>
+        </div>
       </motion.div>
 
-      {/* ── KPI Row (4 Key Metrics) ── */}
+      {/* ── KPI Row (4 Interactive StatCards with OnClick Modals) ── */}
       <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }} spacing="md">
         <StatCard
           title="Órdenes Activas"
           value={activeTickets}
           icon={<Wrench className="w-5 h-5" />}
           accentColor="#22C55E"
-          subtitle="En proceso de laboratorio"
+          subtitle="Clic para ver lista de equipos en taller"
           trend={{ value: `${activeTickets} en cola`, isPositive: true, label: "taller" }}
-          onClick={() => navigate("/reparaciones")}
+          onClick={() => setActiveModal("activeTickets")}
         />
         <StatCard
           title="En Espera Repuesto"
           value={String(waitingParts).padStart(2, "0")}
           icon={<Clock className="w-5 h-5" />}
           accentColor="#F59E0B"
-          subtitle="Piezas por recibir"
+          subtitle="Clic para ver refacciones pendientes"
           trend={{ value: "Demora", isPositive: false, label: "atención" }}
-          onClick={() => navigate("/reparaciones")}
+          onClick={() => setActiveModal("waitingParts")}
         />
         <StatCard
           title="Ingresos Hoy"
           value={`$${todayRevenue.toLocaleString("en-US", { minimumFractionDigits: 2 })}`}
           icon={<DollarSign className="w-5 h-5" />}
           accentColor="#3B82F6"
-          subtitle="Caja diaria en USD"
+          subtitle="Clic para auditar métodos de pago"
           trend={{ value: "+100%", isPositive: true, label: "facturado" }}
-          onClick={() => navigate("/finanzas")}
+          onClick={() => setActiveModal("revenue")}
         />
         <StatCard
           title="Alertas de Stock"
           value={String(lowStockCount).padStart(2, "0")}
           icon={<AlertTriangle className="w-5 h-5" />}
           accentColor="#EF4444"
-          subtitle={lowStockCount > 0 ? "Reponer artículos críticos" : "Niveles de stock correctos"}
+          subtitle="Clic para ver repuestos críticos"
           trend={{ value: `${lowStockCount} ítems`, isPositive: lowStockCount === 0, label: "mínimo" }}
-          onClick={() => navigate("/inventario")}
+          onClick={() => setActiveModal("lowStock")}
         />
       </SimpleGrid>
 
-      {/* ── Visual Analytics: Technical Capacity & Financials ── */}
-      <DashboardCharts
-        kanbanCounts={counts}
-        metrics={metrics}
+      {/* ── Dynamic Tab View ── */}
+      {activeTab === "analitica" ? (
+        <div className="space-y-6 animate-in fade-in duration-200">
+          {/* Visual Analytics: Technical Capacity & Financials */}
+          <DashboardCharts
+            kanbanCounts={counts}
+            metrics={metrics}
+            financeStats={financeStats}
+          />
+
+          {/* Bottom Section: Work Orders + Kanban + Quick Actions */}
+          <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
+            {/* Left Column: Recent Orders (7 cols) */}
+            <div className="xl:col-span-7">
+              <RecentTickets />
+            </div>
+
+            {/* Right Column: Workflow Preview + Fast Actions (5 cols) */}
+            <div className="xl:col-span-5 space-y-6">
+              <KanbanPreview counts={counts} />
+              <QuickActions />
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="space-y-6 animate-in fade-in duration-200">
+          {/* Row 1: Workshop Capacity Radial Gauge + Live Operational Feed */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <div className="lg:col-span-5">
+              <WorkshopCapacityGauge activeTickets={activeTickets} maxCapacity={30} />
+            </div>
+            <div className="lg:col-span-7">
+              <WorkshopLiveFeed repairs={repairs} />
+            </div>
+          </div>
+
+          {/* Row 2: Full Laboratory Kanban Workflow Preview */}
+          <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
+            <div className="xl:col-span-7">
+              <KanbanPreview counts={counts} />
+            </div>
+            <div className="xl:col-span-5">
+              <QuickActions />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Interactive Modals for StatCards ── */}
+      <DashboardDetailModals
+        openedModal={activeModal}
+        onClose={() => setActiveModal(null)}
+        repairs={repairs}
+        lowStockProducts={lowStockProducts}
+        todayRevenue={todayRevenue}
         financeStats={financeStats}
       />
-
-      {/* ── Bottom Section: Work Orders + Kanban + Quick Actions ── */}
-      <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
-        {/* Left Column: Recent Orders (7 cols) */}
-        <div className="xl:col-span-7">
-          <RecentTickets />
-        </div>
-
-        {/* Right Column: Workflow Preview + Fast Actions (5 cols) */}
-        <div className="xl:col-span-5 space-y-6">
-          <KanbanPreview counts={counts} />
-          <QuickActions />
-        </div>
-      </div>
     </Stack>
   );
 }

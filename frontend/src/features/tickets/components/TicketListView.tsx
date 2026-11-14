@@ -64,29 +64,52 @@ export function TicketListView({
         }}
         className="ticket-list-row"
       >
+        {/* 1. Orden / Ticket */}
         <Table.Td>
-          <Text size="sm" fw={600} ff="monospace" c="dimmed">
+          <Text size="xs" fw={700} ff="monospace" className="text-blue-600 dark:text-blue-400">
             #T-{ticket.id.substring(0, 6)}
           </Text>
         </Table.Td>
-        <Table.Td>
-          <Text size="sm" fw={500}>
-            {ticket.cliente?.nombre || "Sin cliente"}
-          </Text>
-        </Table.Td>
+
+        {/* 2. Dispositivo & Modelo */}
         <Table.Td>
           <Group gap={6} wrap="nowrap">
-            <IconDeviceMobile size={14} />
-            <Text size="sm">
-              {ticket.marca} {ticket.modelo}
-            </Text>
+            <IconDeviceMobile size={15} className="text-slate-400" />
+            <Stack gap={1}>
+              <Text size="xs" fw={700} className="font-sirac-title text-slate-900 dark:text-white">
+                {ticket.marca} {ticket.modelo}
+              </Text>
+              {ticket.imei && (
+                <Text size="10px" c="dimmed" ff="monospace">
+                  IMEI: {ticket.imei}
+                </Text>
+              )}
+            </Stack>
           </Group>
         </Table.Td>
+
+        {/* 3. Cliente & Contacto */}
         <Table.Td>
-          <Text size="xs" c="dimmed" lineClamp={1} maw={200}>
+          <Stack gap={1}>
+            <Text size="xs" fw={600} className="text-slate-800 dark:text-slate-200">
+              {ticket.cliente?.nombre || "Sin cliente"}
+            </Text>
+            {ticket.cliente?.telefono && (
+              <Text size="10px" c="dimmed">
+                {ticket.cliente.telefono}
+              </Text>
+            )}
+          </Stack>
+        </Table.Td>
+
+        {/* 4. Diagnóstico / Falla */}
+        <Table.Td>
+          <Text size="xs" c="dimmed" lineClamp={1} maw={220} className="font-sirac-sub">
             {ticket.falla}
           </Text>
         </Table.Td>
+
+        {/* 5. Estado Operativo */}
         <Table.Td>
           {/* Menú de estado (ahora usamos un Menu nativo) */}
           <Menu
@@ -100,6 +123,8 @@ export function TicketListView({
               <Badge
                 color={color}
                 variant="filled"
+                size="sm"
+                className="font-sirac-title tracking-wider uppercase text-[10px]"
                 style={{
                   cursor:
                     ticket.estado === "ENTREGADO" ? "not-allowed" : "pointer",
@@ -130,6 +155,8 @@ export function TicketListView({
             </Menu.Dropdown>
           </Menu>
         </Table.Td>
+
+        {/* 6. Tiempo en Taller */}
         <Table.Td>
           <Group gap={4} wrap="nowrap">
             {esAlerta && (
@@ -142,19 +169,23 @@ export function TicketListView({
                 }
               />
             )}
-            <IconClock size={12} color="var(--mantine-color-dimmed)" />
-            <Text size="xs" c="dimmed">
+            <IconClock size={12} className="text-slate-400" />
+            <Text size="xs" fw={600} className={esCritico ? "text-rose-600 font-bold" : esAlerta ? "text-amber-600 font-bold" : "text-slate-500"}>
               {diasTranscurridos}d
             </Text>
           </Group>
         </Table.Td>
+
+        {/* 7. Presupuesto (USD) */}
         <Table.Td>
-          <Text size="sm" ff="monospace" fw={700} c="brand.4">
+          <Text size="xs" ff="monospace" fw={700} className="text-emerald-600 dark:text-emerald-400">
             ${ticket.precio_total_usd?.toFixed(2) || "0.00"}
           </Text>
         </Table.Td>
-        <Table.Td>
-          <Tooltip label="Ver / Editar">
+
+        {/* 8. Acciones */}
+        <Table.Td style={{ textAlign: "right" }}>
+          <Tooltip label="Ver / Editar Orden">
             <ActionIcon
               variant="subtle"
               size="sm"
@@ -163,7 +194,7 @@ export function TicketListView({
                 onTicketClick?.(ticket);
               }}
             >
-              <IconEye size={14} />
+              <IconEye size={15} />
             </ActionIcon>
           </Tooltip>
         </Table.Td>
@@ -342,16 +373,16 @@ export function TicketListView({
             },
           }}
         >
-          <Table.Thead>
+          <Table.Thead className="bg-slate-50/80 dark:bg-[#18263d]/60">
             <Table.Tr>
-              <Table.Th>Ticket</Table.Th>
-              <Table.Th>Cliente</Table.Th>
-              <Table.Th>Equipo</Table.Th>
-              <Table.Th>Falla</Table.Th>
-              <Table.Th>Estado</Table.Th>
-              <Table.Th>Tiempo</Table.Th>
-              <Table.Th>Total</Table.Th>
-              <Table.Th></Table.Th>
+              <Table.Th>Orden / ID</Table.Th>
+              <Table.Th>Dispositivo &amp; Modelo</Table.Th>
+              <Table.Th>Cliente &amp; Contacto</Table.Th>
+              <Table.Th>Diagnóstico / Falla</Table.Th>
+              <Table.Th>Estado Operativo</Table.Th>
+              <Table.Th>Tiempo en Taller</Table.Th>
+              <Table.Th>Presupuesto</Table.Th>
+              <Table.Th style={{ textAlign: "right" }}>Acciones</Table.Th>
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>

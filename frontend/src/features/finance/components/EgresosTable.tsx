@@ -162,13 +162,13 @@ export function EgresosTable({ periodo }: EgresosTableProps) {
               },
             }}
           >
-            <Table.Thead>
+            <Table.Thead className="bg-slate-50/70 dark:bg-[#18263d]/50">
               <Table.Tr>
-                <Table.Th>Concepto</Table.Th>
-                <Table.Th>Categoría</Table.Th>
-                <Table.Th>Tipo</Table.Th>
-                <Table.Th>Fecha</Table.Th>
-                <Table.Th style={{ textAlign: "right" }}>Monto ($)</Table.Th>
+                <Table.Th>Concepto del Gasto</Table.Th>
+                <Table.Th>Categoría Operativa</Table.Th>
+                <Table.Th>Naturaleza</Table.Th>
+                <Table.Th>Fecha Registro</Table.Th>
+                <Table.Th style={{ textAlign: "right" }}>Monto Desembolsado ($)</Table.Th>
                 <Table.Th style={{ width: 80, textAlign: "center" }}>
                   Acciones
                 </Table.Th>
@@ -176,27 +176,27 @@ export function EgresosTable({ periodo }: EgresosTableProps) {
             </Table.Thead>
             <Table.Tbody>
               {egresos.map((egreso) => (
-                <Table.Tr key={egreso.id}>
+                <Table.Tr key={egreso.id} className="hover:bg-slate-50/80 dark:hover:bg-[#18263d]/50 transition-colors">
                   <Table.Td>
-                    <Stack gap={2}>
-                      <Text size="sm" fw={600}>
+                    <Stack gap={1}>
+                      <Text size="xs" fw={700} className="font-sirac-title text-slate-800 dark:text-slate-100">
                         {egreso.concepto}
                       </Text>
                       {egreso.ticket && (
-                        <Text size="xs" c="dimmed">
-                          {egreso.ticket.marca} {egreso.ticket.modelo}
+                        <Text size="10px" c="dimmed">
+                          Orden #{egreso.ticket.id.substring(0, 6)} • {egreso.ticket.marca} {egreso.ticket.modelo}
                         </Text>
                       )}
                       {egreso.producto && (
-                        <Text size="xs" c="dimmed">
-                          {egreso.producto.marca_comp}{" "}
+                        <Text size="10px" c="dimmed">
+                          Refacción: {egreso.producto.marca_comp}{" "}
                           {egreso.producto.modelo_comp}
                         </Text>
                       )}
                     </Stack>
                   </Table.Td>
                   <Table.Td>
-                    <Badge color="gray" size="xs" variant="light">
+                    <Badge color="gray" size="xs" variant="light" className="font-sirac-title uppercase tracking-wider text-[10px]">
                       {egreso.categoria}
                     </Badge>
                   </Table.Td>
@@ -212,7 +212,7 @@ export function EgresosTable({ periodo }: EgresosTableProps) {
                     )}
                   </Table.Td>
                   <Table.Td>
-                    <Text size="xs" fw={500}>
+                    <Text size="xs" c="dimmed" className="font-sirac-sub">
                       {new Date(egreso.createdAt).toLocaleString("es-VE", {
                         day: "2-digit",
                         month: "2-digit",
@@ -223,8 +223,8 @@ export function EgresosTable({ periodo }: EgresosTableProps) {
                     </Text>
                   </Table.Td>
                   <Table.Td style={{ textAlign: "right" }}>
-                    <Text ff="monospace" size="sm" fw={800} c="red.6">
-                    -$ {egreso.monto_usd.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    <Text ff="monospace" size="xs" fw={800} className="text-rose-600 dark:text-rose-400">
+                      -$ {egreso.monto_usd.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </Text>
                   </Table.Td>
                   <Table.Td style={{ textAlign: "center" }}>

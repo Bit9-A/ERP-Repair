@@ -60,17 +60,17 @@ export function ProductTable({
     >
       <Table.Thead className="bg-slate-50/70 dark:bg-[#18263d]/50">
         <Table.Tr>
-          <Table.Th>SKU</Table.Th>
-          <Table.Th>Nombre</Table.Th>
-          <Table.Th>Marca / Modelo</Table.Th>
+          <Table.Th>Código / SKU</Table.Th>
+          <Table.Th>Artículo &amp; Propiedad</Table.Th>
+          <Table.Th>Compatibilidad</Table.Th>
           <Table.Th>Categoría</Table.Th>
           <Table.Th style={{ textAlign: "right" }}>
-            {sucursalId ? "Stock Sucursal" : "Stock Global"}
+            {sucursalId ? "Disponibilidad Local" : "Stock Global"}
           </Table.Th>
-          {!sucursalId && <Table.Th>Por Sucursal</Table.Th>}
-          <Table.Th style={{ textAlign: "right" }}>Precio Prov.</Table.Th>
-          <Table.Th style={{ textAlign: "right" }}>Precio Cliente</Table.Th>
-          <Table.Th>Estado</Table.Th>
+          {!sucursalId && <Table.Th>Distribución Sucursales</Table.Th>}
+          <Table.Th style={{ textAlign: "right" }}>Precio Venta ($)</Table.Th>
+          <Table.Th style={{ textAlign: "right" }}>Costo Prov. ($)</Table.Th>
+          <Table.Th>Condición</Table.Th>
           <Table.Th style={{ textAlign: "center" }}>Acciones</Table.Th>
         </Table.Tr>
       </Table.Thead>
@@ -200,17 +200,17 @@ export function ProductTable({
                 </Table.Td>
               )}
 
-              {/* Precio Proveedor */}
+              {/* Precio Venta Cliente */}
               <Table.Td style={{ textAlign: "right" }}>
-                <Text ff="monospace" size="sm" c="dimmed">
-                  ${formatCurrency(product.costo_usd)}
+                <Text ff="monospace" size="sm" fw={700} className="text-emerald-600 dark:text-emerald-400">
+                  ${formatCurrency(product.precio_usd)}
                 </Text>
               </Table.Td>
 
-              {/* Precio Cliente */}
+              {/* Costo Proveedor */}
               <Table.Td style={{ textAlign: "right" }}>
-                <Text ff="monospace" size="sm" fw={600}>
-                  ${formatCurrency(product.precio_usd)}
+                <Text ff="monospace" size="xs" c="dimmed">
+                  ${formatCurrency(product.costo_usd)}
                 </Text>
               </Table.Td>
 

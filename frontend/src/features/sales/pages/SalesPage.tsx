@@ -343,13 +343,12 @@ export function SalesPage() {
           >
             <Table.Thead className="bg-slate-50/70 dark:bg-[#18263d]/50">
               <Table.Tr>
-                <Table.Th>Código</Table.Th>
-                <Table.Th>Cliente</Table.Th>
-                <Table.Th>Cédula/ID</Table.Th>
-                <Table.Th>Vendedor</Table.Th>
-                <Table.Th style={{ textAlign: "right" }}>Total</Table.Th>
-                <Table.Th>Estado</Table.Th>
-                <Table.Th>Fecha</Table.Th>
+                <Table.Th>Comprobante</Table.Th>
+                <Table.Th>Cliente &amp; Identificación</Table.Th>
+                <Table.Th>Vendedor / Cajero</Table.Th>
+                <Table.Th>Fecha Emisión</Table.Th>
+                <Table.Th>Estado de Cobro</Table.Th>
+                <Table.Th style={{ textAlign: "right" }}>Total Facturado ($)</Table.Th>
                 <Table.Th style={{ textAlign: "center" }}>Acciones</Table.Th>
               </Table.Tr>
             </Table.Thead>
@@ -360,40 +359,60 @@ export function SalesPage() {
                   <Table.Tr
                     key={sale.id}
                     onClick={() => handleViewDetail(sale)}
+                    className="hover:bg-slate-50/80 dark:hover:bg-[#18263d]/50 transition-colors"
                   >
+                    {/* 1. Comprobante */}
                     <Table.Td>
-                      <Text ff="monospace" size="sm" fw={600}>
+                      <Text ff="monospace" size="xs" fw={700} className="text-blue-600 dark:text-blue-400">
                         V-{sale.numero}
                       </Text>
                     </Table.Td>
+
+                    {/* 2. Cliente & Identificación */}
                     <Table.Td>
-                      <Text size="sm">
-                        {sale.cliente?.nombre || "Sin cliente"}
+                      <Text size="xs" fw={700} className="font-sirac-title text-slate-800 dark:text-slate-100">
+                        {sale.cliente?.nombre || "Cliente Particular"}
+                      </Text>
+                      {sale.cliente?.cedula && (
+                        <Text size="10px" c="dimmed" ff="monospace">
+                          CI: {sale.cliente.cedula}
+                        </Text>
+                      )}
+                    </Table.Td>
+
+                    {/* 3. Vendedor / Cajero */}
+                    <Table.Td>
+                      <Text size="xs" className="font-sirac-sub text-slate-700 dark:text-slate-300">
+                        {sale.vendedor?.nombre || "Cajero Principal"}
                       </Text>
                     </Table.Td>
+
+                    {/* 4. Fecha */}
                     <Table.Td>
-                      <Text size="sm" c="dimmed" ff="monospace">
-                        {sale.cliente?.cedula || "—"}
+                      <Text size="xs" c="dimmed" className="font-sirac-sub">
+                        {new Date(sale.createdAt).toLocaleDateString("es-VE", {
+                          day: "2-digit",
+                          month: "short",
+                          year: "numeric",
+                        })}
                       </Text>
                     </Table.Td>
+
+                    {/* 5. Estado */}
                     <Table.Td>
-                      <Text size="sm">{sale.vendedor?.nombre || "N/A"}</Text>
-                    </Table.Td>
-                    <Table.Td style={{ textAlign: "right" }}>
-                      <Text ff="monospace" size="sm" fw={700}>
-                        $ {sale.total_usd.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                      </Text>
-                    </Table.Td>
-                    <Table.Td>
-                      <Badge variant="filled" color={status.color} size="sm">
+                      <Badge variant="filled" color={status.color} size="xs" className="font-sirac-title uppercase tracking-wider text-[10px]">
                         {status.label}
                       </Badge>
                     </Table.Td>
-                    <Table.Td>
-                      <Text size="xs" c="dimmed">
-                        {new Date(sale.createdAt).toLocaleDateString("es-VE")}
+
+                    {/* 6. Total Facturado */}
+                    <Table.Td style={{ textAlign: "right" }}>
+                      <Text ff="monospace" size="xs" fw={700} className="text-emerald-600 dark:text-emerald-400">
+                        $ {sale.total_usd.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </Text>
                     </Table.Td>
+
+                    {/* 7. Acciones */}
                     <Table.Td>
                       <Group gap="xs" justify="center">
                         <Tooltip label="Ver detalle">

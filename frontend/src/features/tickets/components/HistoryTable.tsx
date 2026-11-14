@@ -63,60 +63,77 @@ export function HistoryTable({ onTicketClick }: HistoryTableProps) {
             highlightOnHover
             verticalSpacing="sm"
           >
-            <Table.Thead>
+            <Table.Thead className="bg-slate-50/80 dark:bg-[#18263d]/60">
               <Table.Tr>
-                <Table.Th>Orden</Table.Th>
-                <Table.Th>Cliente</Table.Th>
-                <Table.Th>Dispositivo</Table.Th>
-                <Table.Th>Ingreso</Table.Th>
-                <Table.Th>Entrega</Table.Th>
-                <Table.Th>Estado</Table.Th>
-                <Table.Th style={{ width: 80 }}>Detalles</Table.Th>
+                <Table.Th>Orden / ID</Table.Th>
+                <Table.Th>Dispositivo &amp; Modelo</Table.Th>
+                <Table.Th>Cliente &amp; Contacto</Table.Th>
+                <Table.Th>Fecha Ingreso</Table.Th>
+                <Table.Th>Fecha Entrega</Table.Th>
+                <Table.Th>Estado Final</Table.Th>
+                <Table.Th style={{ textAlign: "right" }}>Total Facturado</Table.Th>
+                <Table.Th style={{ width: 80, textAlign: "center" }}>Acciones</Table.Th>
               </Table.Tr>
             </Table.Thead>
             <Table.Tbody>
               {tickets.map((ticket) => (
-                <Table.Tr key={ticket.id}>
+                <Table.Tr key={ticket.id} className="hover:bg-slate-50/80 dark:hover:bg-[#18263d]/50 transition-colors">
                   <Table.Td>
-                    <Text size="sm" fw={600} ff="monospace" c="dimmed">
+                    <Text size="xs" fw={700} ff="monospace" className="text-blue-600 dark:text-blue-400">
                       #T-{ticket.id.substring(0, 6)}
                     </Text>
                   </Table.Td>
                   <Table.Td>
-                    <Text size="sm" fw={500}>
-                      {ticket.cliente?.nombre || "Sin cliente"}
-                    </Text>
-                  </Table.Td>
-                  <Table.Td>
-                    <Text size="sm">
+                    <Text size="xs" fw={700} className="font-sirac-title text-slate-900 dark:text-white">
                       {ticket.marca} {ticket.modelo}
                     </Text>
+                    {ticket.imei && (
+                      <Text size="10px" c="dimmed" ff="monospace">
+                        IMEI: {ticket.imei}
+                      </Text>
+                    )}
                   </Table.Td>
                   <Table.Td>
-                    <Text size="sm">
+                    <Text size="xs" fw={600} className="text-slate-800 dark:text-slate-200">
+                      {ticket.cliente?.nombre || "Sin cliente"}
+                    </Text>
+                    {ticket.cliente?.telefono && (
+                      <Text size="10px" c="dimmed">
+                        {ticket.cliente.telefono}
+                      </Text>
+                    )}
+                  </Table.Td>
+                  <Table.Td>
+                    <Text size="xs" c="dimmed">
                       {dayjs(ticket.fecha_ingreso).format("DD/MM/YYYY")}
                     </Text>
                   </Table.Td>
                   <Table.Td>
-                    <Text size="sm" c="dimmed">
+                    <Text size="xs" c="dimmed">
                       {ticket.fecha_entrega
                         ? dayjs(ticket.fecha_entrega).format("DD/MM/YYYY")
-                        : "-"}
+                        : "En laboratorio"}
                     </Text>
                   </Table.Td>
                   <Table.Td>
-                    <Badge color="gray" variant="light">
+                    <Badge color="gray" variant="light" size="xs" className="font-sirac-title tracking-wider uppercase text-[10px]">
                       {TICKET_STATUS[ticket.estado]?.label || ticket.estado}
                     </Badge>
                   </Table.Td>
-                  <Table.Td>
+                  <Table.Td style={{ textAlign: "right" }}>
+                    <Text size="xs" ff="monospace" fw={700} className="text-emerald-600 dark:text-emerald-400">
+                      ${ticket.precio_total_usd?.toFixed(2) || "0.00"}
+                    </Text>
+                  </Table.Td>
+                  <Table.Td style={{ textAlign: "center" }}>
                     <Tooltip label="Ver detalles / Imprimir">
                       <ActionIcon
                         variant="subtle"
-                        color="brand"
+                        color="blue"
+                        size="sm"
                         onClick={() => onTicketClick(ticket)}
                       >
-                        <IconEye size={16} />
+                        <IconEye size={15} />
                       </ActionIcon>
                     </Tooltip>
                   </Table.Td>

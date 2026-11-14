@@ -45,13 +45,13 @@ export function TopBar({ toggle }: TopBarProps) {
       {/* Top SIRAC transition accent line */}
       <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-blue-600 via-amber-400 to-emerald-500 opacity-80 pointer-events-none" />
 
-      {/* Left Section: Mobile Menu + Breadcrumbs */}
+      {/* Left Section: Mobile Menu (Hidden on desktop) + Breadcrumbs */}
       <div className="flex items-center gap-3 md:gap-4">
-        {/* Toggle Sidebar Button */}
+        {/* Toggle Sidebar Button — Only for mobile devices where sidebar is offscreen */}
         <button
           onClick={toggle}
-          className="p-2 rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-white dark:hover:bg-[#18263d] transition-colors"
-          title="Alternar Menú"
+          className="md:hidden p-2 rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-white dark:hover:bg-[#18263d] transition-colors"
+          title="Abrir menú"
         >
           <Menu size={20} />
         </button>

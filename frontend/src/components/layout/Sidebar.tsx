@@ -17,6 +17,7 @@ import {
   Settings,
   LogOut,
   ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 
 interface NavItem {
@@ -260,16 +261,22 @@ export function Sidebar({
               </div>
             </div>
           ) : (
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#243f5d] to-blue-600 flex items-center justify-center font-black text-sm text-white shadow-lg shadow-blue-950/50 ring-1 ring-blue-400/30 font-sirac-title z-10">
-              TL
-            </div>
+            <button
+              type="button"
+              onClick={onToggleCollapse}
+              className="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#243f5d] to-blue-600 flex items-center justify-center font-black text-sm text-white shadow-lg shadow-blue-950/50 ring-1 ring-blue-400/30 font-sirac-title z-10 hover:ring-blue-400/80 hover:scale-105 transition-all cursor-pointer group"
+              title="Expandir menú lateral"
+            >
+              <span className="group-hover:hidden">TL</span>
+              <ChevronRight size={18} className="hidden group-hover:block" />
+            </button>
           )}
 
           {/* Desktop collapse button */}
           {!isMobile && onToggleCollapse && !isCollapsed && (
             <button
               onClick={onToggleCollapse}
-              className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-colors z-10"
+              className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-colors z-10 cursor-pointer"
               title="Colapsar menú"
             >
               <ChevronLeft size={18} />
